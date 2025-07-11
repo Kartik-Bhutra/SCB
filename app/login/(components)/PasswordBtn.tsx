@@ -1,4 +1,3 @@
-"use client";
 import EyeCloseIcon from "@/icons/EyeClose";
 import EyeOpenIcon from "@/icons/EyeOpen";
 import { useState } from "react";

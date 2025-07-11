@@ -1,7 +1,33 @@
+"use client";
+import { useRef } from "react";
 import PasswordBtn from "./PasswordBtn";
+import { useRouter } from "next/navigation";
 export default function LoginForm() {
+  const router = useRouter();
+  const formRef = useRef<HTMLFormElement>(null);
+  const handleSubmitForm = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (formRef.current) {
+      const formData = new FormData(formRef.current);
+      if (formData.get("userId") && formData.get("password")) {
+        const data = await fetch("/api/auth/login", {
+          method: "POST",
+          body: formData,
+          credentials: "same-origin",
+        });
+        if (data.ok) {
+          router.push("/admin");
+        }
+      }
+    }
+  };
+
   return (
-    <form className="space-y-4 sm:space-y-6">
+    <form
+      className="space-y-4 sm:space-y-6"
+      onSubmit={handleSubmitForm}
+      ref={formRef}
+    >
       <div className="space-y-4 sm:space-y-5">
         <div className="space-y-1.5 sm:space-y-2">
           <label className="block text-sm font-medium text-gray-700">
