@@ -1,33 +1,32 @@
 "use client";
-import { useRef } from "react";
 import PasswordBtn from "./PasswordBtn";
 import { useRouter } from "next/navigation";
+import handleLogin from "../action";
+import { useActionState, useEffect, useState } from "react";
+
 export default function LoginForm() {
   const router = useRouter();
-  const formRef = useRef<HTMLFormElement>(null);
-  const handleSubmitForm = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    if (formRef.current) {
-      const formData = new FormData(formRef.current);
-      if (formData.get("userId") && formData.get("password")) {
-        const data = await fetch("/api/auth/login", {
-          method: "POST",
-          body: formData,
-          credentials: "same-origin",
-        });
-        if (data.ok) {
-          router.push("/admin");
-        }
-      }
+  const [state, actionHandler, isLoading] = useActionState(handleLogin, {
+    error: "",
+    success: false,
+  });
+  const [localError, setLocalError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (state.success) {
+      router.replace("/");
     }
-  };
+    if (state.error) {
+      setLocalError(state.error);
+    }
+  }, [state, router]);
+
+  function handleInputChange() {
+    if (localError) setLocalError(null);
+  }
 
   return (
-    <form
-      className="space-y-4 sm:space-y-6"
-      onSubmit={handleSubmitForm}
-      ref={formRef}
-    >
+    <form className="space-y-4 sm:space-y-6" action={actionHandler}>
       <div className="space-y-4 sm:space-y-5">
         <div className="space-y-1.5 sm:space-y-2">
           <label className="block text-sm font-medium text-gray-700">
@@ -39,9 +38,11 @@ export default function LoginForm() {
               transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             placeholder="Enter your user Id"
             name="userId"
+            onChange={handleInputChange}
+            required
           />
         </div>
-        <PasswordBtn />
+        <PasswordBtn handleInputChange={handleInputChange} />
       </div>
 
       <div className="flex items-center justify-between flex-wrap gap-2">
@@ -67,13 +68,21 @@ export default function LoginForm() {
           Forgot password?
         </button>
       </div>
-
+      {localError && (
+        <div
+          className="w-full px-3 py-2 rounded-xl bg-red-50 border border-red-200 text-red-700 text-sm mt-2"
+          style={{ minHeight: "1.5rem" }}
+        >
+          {localError}
+        </div>
+      )}
       <button
         type="submit"
         className="w-full py-2.5 sm:py-3 px-4 bg-blue-600 text-white rounded-xl font-medium text-sm sm:text-base
           transition-all duration-200 hover:bg-blue-700 focus:outline-none 
           focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 
           transform hover:-translate-y-0.5 disabled:opacity-50"
+        disabled={isLoading}
       >
         Sign In
       </button>

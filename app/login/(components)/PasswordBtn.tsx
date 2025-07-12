@@ -1,8 +1,11 @@
 import EyeCloseIcon from "@/icons/EyeClose";
 import EyeOpenIcon from "@/icons/EyeOpen";
-import { useState } from "react";
+import { ChangeEvent, useState } from "react";
+interface PasswordBtnProps {
+  handleInputChange: (e: ChangeEvent<HTMLInputElement>) => void;
+}
 
-export default function PasswordBtn() {
+export default function PasswordBtn({ handleInputChange }: PasswordBtnProps) {
   const [eye, setEye] = useState(false);
   return (
     <div className="space-y-2">
@@ -15,6 +18,8 @@ export default function PasswordBtn() {
           className="w-full px-4 py-3 border border-gray-200 rounded-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent pr-12"
           placeholder="Enter your password"
           name="password"
+          onChange={handleInputChange}
+          required
         />
         <button
           type="button"
