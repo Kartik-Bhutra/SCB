@@ -2,7 +2,7 @@
 import { getDB } from "@/lib/db";
 import { cookies } from "next/headers";
 import { sign } from "jsonwebtoken";
-import { loginAdminDBResponse, LoginState } from "../types/serverActions";
+import { loginAdminDBResponse, LoginState } from "@/types/serverActions";
 export default async function handleLogin(
   prevState: LoginState,
   formdata: FormData,

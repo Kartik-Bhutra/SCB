@@ -14,7 +14,7 @@ export default function LoginForm() {
 
   useEffect(() => {
     if (state.success) {
-      router.replace("/");
+      router.replace("/admin");
     }
     if (state.error) {
       setLocalError(state.error);
