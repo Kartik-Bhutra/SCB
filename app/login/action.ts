@@ -17,7 +17,7 @@ export default async function handleLogin(
       };
     }
     const db = getDB();
-    const q = `SELECT passwordHashed FROM admins WHERE userId = ?`;
+    const q = "SELECT passwordHashed FROM admins WHERE userId = ?";
     const [rows] = await db.query(q, [userId]);
     const row = (rows as loginAdminDBResponse[])[0];
     if (!row) {

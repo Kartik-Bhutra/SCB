@@ -1,5 +1,5 @@
 onlyBuiltDependencies:
-  - '@tailwindcss/oxide'
+  - "@tailwindcss/oxide"
   - argon2
   - sharp
   - unrs-resolver

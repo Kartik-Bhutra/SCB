@@ -24,7 +24,7 @@ export async function getCurrentUser() {
   try {
     const { userId } = verify(token, secret) as JwtPayload;
     const db = getDB();
-    const q = `SELECT role from admins where userId = ?`;
+    const q = "SELECT role from admins where userId = ?";
     const [rows] = await db.query(q, [userId]);
     const row = (rows as currentAdminDBResponse[])[0];
     if (!row) {
