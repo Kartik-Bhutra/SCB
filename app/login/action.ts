@@ -1,8 +1,9 @@
 "use server";
-import { getDB } from "@/lib/db";
+import { getDB } from "@/lib/mySQL";
 import { cookies } from "next/headers";
 import { sign } from "jsonwebtoken";
 import { loginAdminDBResponse, LoginState } from "@/types/serverActions";
+import { verify } from "argon2";
 export default async function handleLogin(
   prevState: LoginState,
   formdata: FormData,
@@ -27,7 +28,8 @@ export default async function handleLogin(
       };
     }
     const { passwordHashed } = row;
-    if (passwordHashed !== password) {
+    const isMatch = await verify(passwordHashed, password || "");
+    if (!isMatch) {
       return {
         error: "Invalid credentials",
         success: false,

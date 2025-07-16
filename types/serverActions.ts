@@ -1,3 +1,17 @@
+export interface clientToken {
+  token: string;
+}
+
+export interface clientOTP extends clientToken {
+  otp: string;
+}
+
+export interface registerClientToken {
+  username: string;
+  mobileNo: string;
+  deviceId: string;
+}
+
 export type currentAdminDBResponse = {
   role: boolean;
 };
@@ -9,29 +23,4 @@ export type loginAdminDBResponse = {
 export type LoginState = {
   success: boolean;
   error: string;
-};
-
-export type requestClient = {
-  username: string;
-  mobileNo: string;
-  deviceId: string;
-};
-
-export type checkAuthClient = {
-  authenticated: boolean;
-  deviceIdHashed: string;
-};
-
-export type clientDevice = {
-  deviceId: string;
-};
-export type authClient = {
-  username: string;
-  mobileNo: string;
-  authenticated: boolean;
-};
-
-export type changeClient = {
-  mobileNo: string;
-  newValue: string;
 };

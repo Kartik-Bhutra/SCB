@@ -28,6 +28,9 @@ importers:
       react-dom:
         specifier: ^19.0.0
         version: 19.1.0(react@19.1.0)
+      redis:
+        specifier: ^5.6.0
+        version: 5.6.0
       zod:
         specifier: ^4.0.2
         version: 4.0.2
@@ -569,6 +572,49 @@ packages:
         integrity: sha512-m7X9U6BG2+J+R1lSOdCiITLLrxm+cWlNI3HUFA92oLO77ObGNzaKdh8pMLqdZcshtkKuV84olNNXDfMc4FezBQ==,
       }
     engines: { node: ">=10" }
+
+  "@redis/bloom@5.6.0":
+    resolution:
+      {
+        integrity: sha512-l13/d6BaZDJzogzZJEphIeZ8J0hpQpjkMiozomTm6nJiMNYkoPsNOBOOQua4QsG0fFjyPmLMDJFPAp5FBQtTXg==,
+      }
+    engines: { node: ">= 18" }
+    peerDependencies:
+      "@redis/client": ^5.6.0
+
+  "@redis/client@5.6.0":
+    resolution:
+      {
+        integrity: sha512-wmP9kCFElCSr4MM4+1E4VckDuN4wLtiXSM/J0rKVQppajxQhowci89RGZr2OdLualowb8SRJ/R6OjsXrn9ZNFA==,
+      }
+    engines: { node: ">= 18" }
+
+  "@redis/json@5.6.0":
+    resolution:
+      {
+        integrity: sha512-YQN9ZqaSDpdLfJqwzcF4WeuJMGru/h4WsV7GeeNtXsSeyQjHTyDxrd48xXfRRJGv7HitA7zGnzdHplNeKOgrZA==,
+      }
+    engines: { node: ">= 18" }
+    peerDependencies:
+      "@redis/client": ^5.6.0
+
+  "@redis/search@5.6.0":
+    resolution:
+      {
+        integrity: sha512-sLgQl92EyMVNHtri5K8Q0j2xt9c0cO9HYurXz667Un4xeUYR+B/Dw5lLG35yqO7VvVxb9amHJo9sAWumkKZYwA==,
+      }
+    engines: { node: ">= 18" }
+    peerDependencies:
+      "@redis/client": ^5.6.0
+
+  "@redis/time-series@5.6.0":
+    resolution:
+      {
+        integrity: sha512-tXABmN1vu4aTNL3WI4Iolpvx/5jgil2Bs31ozvKblT+jkUoRkk8ykmYo9Pv/Mp7Gk6/Qkr/2rMgVminrt/4BBQ==,
+      }
+    engines: { node: ">= 18" }
+    peerDependencies:
+      "@redis/client": ^5.6.0
 
   "@rtsao/scc@1.1.0":
     resolution:
@@ -1303,6 +1349,13 @@ packages:
       {
         integrity: sha512-IV3Ou0jSMzZrd3pZ48nLkT9DA7Ag1pnPzaiQhpW7c3RbcqqzvzzVu+L8gfqMp/8IM2MQtSiqaCxrrcfu8I8rMA==,
       }
+
+  cluster-key-slot@1.1.2:
+    resolution:
+      {
+        integrity: sha512-RMr0FhtfXemyinomL4hrWcYJxmX6deFdCxpJzhDttxgO1+bcCnkk+9drydLVDmAMG7NE6aN/fl4F7ucU/90gAA==,
+      }
+    engines: { node: ">=0.10.0" }
 
   color-convert@2.0.1:
     resolution:
@@ -3010,6 +3063,13 @@ packages:
       }
     engines: { node: ">=0.10.0" }
 
+  redis@5.6.0:
+    resolution:
+      {
+        integrity: sha512-0x3pM3SlYA5azdNwO8qgfMBzoOqSqr9M+sd1hojbcn0ZDM5zsmKeMM+zpTp6LIY+mbQomIc/RTTQKuBzr8QKzQ==,
+      }
+    engines: { node: ">= 18" }
+
   reflect.getprototypeof@1.0.10:
     resolution:
       {
@@ -3820,6 +3880,26 @@ snapshots:
 
   "@phc/format@1.0.0": {}
 
+  "@redis/bloom@5.6.0(@redis/client@5.6.0)":
+    dependencies:
+      "@redis/client": 5.6.0
+
+  "@redis/client@5.6.0":
+    dependencies:
+      cluster-key-slot: 1.1.2
+
+  "@redis/json@5.6.0(@redis/client@5.6.0)":
+    dependencies:
+      "@redis/client": 5.6.0
+
+  "@redis/search@5.6.0(@redis/client@5.6.0)":
+    dependencies:
+      "@redis/client": 5.6.0
+
+  "@redis/time-series@5.6.0(@redis/client@5.6.0)":
+    dependencies:
+      "@redis/client": 5.6.0
+
   "@rtsao/scc@1.1.0": {}
 
   "@rushstack/eslint-patch@1.12.0": {}
@@ -4260,6 +4340,8 @@ snapshots:
       string-width: 7.2.0
 
   client-only@0.0.1: {}
+
+  cluster-key-slot@1.1.2: {}
 
   color-convert@2.0.1:
     dependencies:
@@ -5360,6 +5442,14 @@ snapshots:
   react-is@16.13.1: {}
 
   react@19.1.0: {}
+
+  redis@5.6.0:
+    dependencies:
+      "@redis/bloom": 5.6.0(@redis/client@5.6.0)
+      "@redis/client": 5.6.0
+      "@redis/json": 5.6.0(@redis/client@5.6.0)
+      "@redis/search": 5.6.0(@redis/client@5.6.0)
+      "@redis/time-series": 5.6.0(@redis/client@5.6.0)
 
   reflect.getprototypeof@1.0.10:
     dependencies:

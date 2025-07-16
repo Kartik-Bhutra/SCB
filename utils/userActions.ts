@@ -1,6 +1,6 @@
 "use server";
 
-import { getDB } from "@/lib/db";
+import { getDB } from "@/lib/mySQL";
 import { JwtPayload, verify } from "jsonwebtoken";
 import { cookies } from "next/headers";
 import { currentAdminDBResponse } from "@/types/serverActions";

@@ -4,14 +4,16 @@ USE SCB;
 
 CREATE TABLE IF NOT EXISTS users (
   mobileNoHashed VARCHAR(50) PRIMARY KEY,
-  -- for searching mobileNoHashed
-  deviceIdHashed VARCHAR(50),
-  -- for checking that request was made or not
   mobileNoEncrypted VARCHAR(75) NOT NULL,
   username VARCHAR(30) NOT NULL,
-  -- for clients, and reference for admins
   authenticated BOOLEAN DEFAULT 0,
   createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS sessions (
+  token VARCHAR(150) PRIMARY KEY,
+  mobileNoHashed VARCHAR(50),
+  CONSTRAINT fk_session_mobileNoHashed FOREIGN KEY (mobileNoHashed) REFERENCES users (mobileNoHashed) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS admins (
@@ -20,5 +22,5 @@ CREATE TABLE IF NOT EXISTS admins (
   mobileNoHashed VARCHAR(50),
   role BOOLEAN DEFAULT 0,
   createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  CONSTRAINT fk_admin_mobileNo FOREIGN KEY (mobileNoHashed) REFERENCES users (mobileNoHashed) ON DELETE CASCADE ON UPDATE CASCADE -- admin is also a client
+  CONSTRAINT fk_admin_mobileNoHashed FOREIGN KEY (mobileNoHashed) REFERENCES users (mobileNoHashed) ON DELETE CASCADE ON UPDATE CASCADE
 );
