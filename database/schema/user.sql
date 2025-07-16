@@ -11,8 +11,8 @@ CREATE TABLE IF NOT EXISTS users (
 );
 
 CREATE TABLE IF NOT EXISTS sessions (
-  token VARCHAR(150) PRIMARY KEY,
-  mobileNoHashed VARCHAR(50),
+  token VARCHAR(250) NOT NULL,
+  mobileNoHashed VARCHAR(50) PRIMARY KEY,
   CONSTRAINT fk_session_mobileNoHashed FOREIGN KEY (mobileNoHashed) REFERENCES users (mobileNoHashed) ON DELETE CASCADE ON UPDATE CASCADE
 );
 

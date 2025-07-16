@@ -18,20 +18,18 @@ export async function POST(request: NextRequest) {
     const otp = generateSixDigitOTP();
     const otpHash = await hash(otp);
 
-    console.log("OTP for testing:", otp);
+    console.log("OTP:", otp);
 
-    const result = await redis.set(token, otpHash, {
-      EX: 60 * 10,
-    });
+    const result = await redis.set(token, otpHash, { EX: 600 });
     if (result !== "OK") {
-      throw new CustomError("Failed to store OTP", 500);
+      throw new CustomError("Server error", 500);
     }
 
-    return NextResponse.json({ message: "OTP generated" }, { status: 200 });
+    return NextResponse.json({ message: "OK" }, { status: 200 });
   } catch (err) {
-    if (err instanceof CustomError) {
-      return NextResponse.json(err.toJSON(), { status: err.statusCode });
-    }
-    return NextResponse.json({ message: "Unknown error" }, { status: 500 });
+    return NextResponse.json(
+      { message: "Server error" },
+      { status: err instanceof CustomError ? err.statusCode : 500 },
+    );
   }
 }
