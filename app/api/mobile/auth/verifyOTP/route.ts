@@ -6,7 +6,6 @@ import redis from "@/lib/redis";
 import {
   authenticatedClient,
   clientOTP,
-  mergedClient,
   registerClientToken,
 } from "@/types/serverActions";
 import { verify } from "argon2";
@@ -19,23 +18,23 @@ export async function POST(request: NextRequest) {
 
     const { mobileNo, username, deviceId } = verifyToken<registerClientToken>(
       token,
-      true,
+      false,
     );
 
-    const storedHash = await redis.get(token);
-    if (!storedHash || !(await verify(storedHash, otp))) {
+    const storedOTP = await redis.get(token);
+    if (!storedOTP || !(await verify(storedOTP, otp))) {
       return NextResponse.json({ message: "Invalid" }, { status: 401 });
     }
 
     await redis.del(token);
 
     const mobileNoHashed = createHash(mobileNo);
+    const deviceIdHashed = createHash(deviceId);
     const mobileNoEncrypted = encrypt(mobileNo);
-
     const db = getDB();
     await db.execute(
-      "INSERT IGNORE INTO users (mobileNoHashed, mobileNoEncrypted, username) VALUES (?, ?, ?)",
-      [mobileNoHashed, mobileNoEncrypted, username],
+      "INSERT INTO users (mobileNoHashed, mobileNoEncrypted, username, token) VALUES (?, ?, ?, ?) ON DUPLICATE  KEY UPDATE  username = VALUES(username), token = VALUES (token)",
+      [mobileNoHashed, mobileNoEncrypted, username, deviceIdHashed],
     );
 
     const [rows] = await db.execute(
@@ -44,30 +43,22 @@ export async function POST(request: NextRequest) {
     );
 
     const authenticated = (rows as authenticatedClient[])[0].authenticated;
-    const sid = signToken<mergedClient>(
+    await redis.json.set(mobileNoHashed, "$", {
+      token: deviceIdHashed,
+      authenticated,
+    });
+
+    const sid = signToken(
       {
-        deviceId,
-        mobileNo,
-        username,
-        authenticated,
+        token: `${mobileNoHashed}:${deviceIdHashed}`,
       },
       true,
     );
 
-    await db.execute(
-      "INSERT INTO sessions (token, mobileNoHashed) VALUES (?, ?) ON DUPLICATE KEY UPDATE token = VALUES(token)",
-      [sid, mobileNoHashed],
-    );
-    await redis.set(mobileNoHashed, sid, { EX: 86400 });
-
-    return NextResponse.json(
-      { message: "Verified", token: sid },
-      { status: 200 },
-    );
+    return NextResponse.json({ message: "Verified", sid }, { status: 200 });
   } catch (err) {
-    console.error(err);
     return NextResponse.json(
-      { message: "Server error" },
+      err instanceof CustomError ? err.toJSON() : { message: "server error" },
       { status: err instanceof CustomError ? err.statusCode : 500 },
     );
   }

@@ -10,6 +10,8 @@ export interface authenticatedClient {
   authenticated: boolean;
 }
 
+export interface authToken extends clientToken, authenticatedClient {}
+
 export interface registerClientToken {
   username: string;
   mobileNo: string;

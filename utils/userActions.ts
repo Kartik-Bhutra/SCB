@@ -21,7 +21,6 @@ export async function getCurrentUser() {
 
     return { success: true, error: "", role, userId };
   } catch (err) {
-    console.error(err);
     if (err instanceof CustomError) {
       return {
         success: false,

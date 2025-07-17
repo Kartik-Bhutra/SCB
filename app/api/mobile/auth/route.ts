@@ -1,41 +1,45 @@
-import { createHash } from "@/hooks/useHash";
 import { verifyToken } from "@/hooks/useJWT";
 import { CustomError } from "@/lib/error";
 import { getDB } from "@/lib/mySQL";
 import redis from "@/lib/redis";
-import { clientToken, mergedClient } from "@/types/serverActions";
+import { authToken, clientToken } from "@/types/serverActions";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(request: NextRequest) {
   try {
     const { token } = (await request.json()) as clientToken;
-    const { mobileNo } = verifyToken<mergedClient>(token, true);
 
-    const mobileNoHashed = createHash(mobileNo);
+    const payload = verifyToken<clientToken>(token, true);
+    const sid = payload.token;
 
-    const cachedToken = await redis.get(mobileNoHashed);
-    if (cachedToken === token) {
+    const [mobileNoHashed, deviceToken] = sid.split(":");
+
+    const cached = (await redis.json.get(mobileNoHashed)) as authToken | null;
+
+    if (cached && cached.token === deviceToken) {
       return NextResponse.json({ message: "OK" }, { status: 200 });
     }
 
     const db = getDB();
     const [rows] = await db.execute(
-      "SELECT token FROM sessions WHERE mobileNoHashed = ?",
+      "SELECT token, authenticated FROM users WHERE mobileNoHashed = ?",
       [mobileNoHashed],
     );
-    const row = (rows as clientToken[])[0];
+    const row = (rows as authToken[])[0];
 
-    if (!row || row.token !== token) {
+    if (!row || row.token !== deviceToken) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 403 });
     }
 
-    await redis.set(mobileNoHashed, token, { EX: 86400 });
+    await redis.json.set(mobileNoHashed, "$", {
+      token: row.token,
+      authenticated: row.authenticated,
+    });
 
     return NextResponse.json({ message: "OK" }, { status: 200 });
   } catch (err) {
-    console.error(err);
     return NextResponse.json(
-      { message: "Server error" },
+      err instanceof CustomError ? err.toJSON() : { message: "server error" },
       { status: err instanceof CustomError ? err.statusCode : 500 },
     );
   }

@@ -57,8 +57,6 @@ export default async function handleLogin(
       error: "",
     };
   } catch (err) {
-    console.error(err);
-
     if (err instanceof CustomError) {
       return {
         success: false,
