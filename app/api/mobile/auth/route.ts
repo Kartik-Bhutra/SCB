@@ -1,15 +1,15 @@
 import { createHash } from "@/hooks/useHash";
-import { verifyTokenPayload } from "@/hooks/useJWT";
+import { verifyToken } from "@/hooks/useJWT";
 import { CustomError } from "@/lib/error";
 import { getDB } from "@/lib/mySQL";
 import redis from "@/lib/redis";
-import { clientToken, registerClientToken } from "@/types/serverActions";
+import { clientToken, mergedClient } from "@/types/serverActions";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(request: NextRequest) {
   try {
     const { token } = (await request.json()) as clientToken;
-    const { mobileNo } = verifyTokenPayload<registerClientToken>(token, false);
+    const { mobileNo } = verifyToken<mergedClient>(token, true);
 
     const mobileNoHashed = createHash(mobileNo);
 
@@ -33,7 +33,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ message: "OK" }, { status: 200 });
   } catch (err) {
-    console.error("Access verify error:", err);
+    console.error(err);
     return NextResponse.json(
       { message: "Server error" },
       { status: err instanceof CustomError ? err.statusCode : 500 },

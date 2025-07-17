@@ -1,50 +1,47 @@
 "use server";
 import { getDB } from "@/lib/mySQL";
 import { cookies } from "next/headers";
-import { sign } from "jsonwebtoken";
-import { loginAdminDBResponse, LoginState } from "@/types/serverActions";
 import { verify } from "argon2";
+import redis from "@/lib/redis";
+import { signToken } from "@/hooks/useJWT";
+import { createHash } from "@/hooks/useHash";
+import { CustomError } from "@/lib/error";
+import type { adminDB, adminStat, LoginState } from "@/types/serverActions";
+
 export default async function handleLogin(
-  prevState: LoginState,
+  _: LoginState,
   formdata: FormData,
 ): Promise<LoginState> {
   try {
     const userId = formdata.get("userId")?.toString().trim();
     const password = formdata.get("password")?.toString().trim();
-    if (!userId && !password) {
-      return {
-        error: "Fill user details",
-        success: false,
-      };
+
+    if (!userId || !password) {
+      throw new CustomError("Fill user details", 400);
     }
+
     const db = getDB();
-    const q = "SELECT passwordHashed FROM admins WHERE userId = ?";
-    const [rows] = await db.execute(q, [userId]);
-    const row = (rows as loginAdminDBResponse[])[0];
+    const [rows] = await db.execute(
+      "SELECT passwordHashed, role FROM admins WHERE userId = ?",
+      [userId],
+    );
+
+    const row = (rows as adminDB[])[0];
     if (!row) {
-      return {
-        error: "Invalid credentials",
-        success: false,
-      };
+      throw new CustomError("Invalid credentials", 401);
     }
-    const { passwordHashed } = row;
-    const isMatch = await verify(passwordHashed, password || "");
+
+    const { passwordHashed, role } = row;
+    const isMatch = await verify(passwordHashed, password);
     if (!isMatch) {
-      return {
-        error: "Invalid credentials",
-        success: false,
-      };
+      throw new CustomError("Invalid credentials", 401);
     }
-    const secret = process.env.ENCRYPTED_KEY;
-    if (!secret) {
-      return {
-        error: "server error",
-        success: false,
-      };
-    }
-    const token = sign({ userId }, secret, {
-      expiresIn: "1d",
-    });
+
+    const token = signToken<adminStat>({ userId, role }, true);
+
+    const userIdHashed = createHash(userId);
+    await redis.set(userIdHashed, token, { EX: 60 * 60 * 24 });
+
     const cookieStore = await cookies();
     cookieStore.set("token", token, {
       httpOnly: true,
@@ -54,15 +51,24 @@ export default async function handleLogin(
       priority: "low",
       maxAge: 60 * 60 * 24,
     });
+
     return {
       success: true,
       error: "",
     };
   } catch (err) {
-    console.log(err);
+    console.error(err);
+
+    if (err instanceof CustomError) {
+      return {
+        success: false,
+        error: err.message,
+      };
+    }
+
     return {
-      error: "invalid credentials",
       success: false,
+      error: "Something went wrong",
     };
   }
 }

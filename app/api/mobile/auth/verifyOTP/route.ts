@@ -1,9 +1,14 @@
 import { createHash } from "@/hooks/useHash";
-import { verifyTokenPayload } from "@/hooks/useJWT";
+import { signToken, verifyToken } from "@/hooks/useJWT";
 import { CustomError } from "@/lib/error";
 import { getDB } from "@/lib/mySQL";
 import redis from "@/lib/redis";
-import { clientOTP, registerClientToken } from "@/types/serverActions";
+import {
+  authenticatedClient,
+  clientOTP,
+  mergedClient,
+  registerClientToken,
+} from "@/types/serverActions";
 import { verify } from "argon2";
 import { encrypt } from "@/hooks/useXCHACHA20";
 import { NextRequest, NextResponse } from "next/server";
@@ -12,9 +17,9 @@ export async function POST(request: NextRequest) {
   try {
     const { token, otp } = (await request.json()) as clientOTP;
 
-    const { mobileNo, username } = verifyTokenPayload<registerClientToken>(
+    const { mobileNo, username, deviceId } = verifyToken<registerClientToken>(
       token,
-      false,
+      true,
     );
 
     const storedHash = await redis.get(token);
@@ -33,16 +38,34 @@ export async function POST(request: NextRequest) {
       [mobileNoHashed, mobileNoEncrypted, username],
     );
 
-    await db.execute(
-      "INSERT INTO sessions (token, mobileNoHashed) VALUES (?, ?) ON DUPLICATE KEY UPDATE token = VALUES(token)",
-      [token, mobileNoHashed],
+    const [rows] = await db.execute(
+      "SELECT authenticated FROM users WHERE mobileNoHashed = ?",
+      [mobileNoHashed],
     );
 
-    await redis.set(mobileNoHashed, token, { EX: 86400 });
+    const authenticated = (rows as authenticatedClient[])[0].authenticated;
+    const sid = signToken<mergedClient>(
+      {
+        deviceId,
+        mobileNo,
+        username,
+        authenticated,
+      },
+      true,
+    );
 
-    return NextResponse.json({ message: "Verified" }, { status: 200 });
+    await db.execute(
+      "INSERT INTO sessions (token, mobileNoHashed) VALUES (?, ?) ON DUPLICATE KEY UPDATE token = VALUES(token)",
+      [sid, mobileNoHashed],
+    );
+    await redis.set(mobileNoHashed, sid, { EX: 86400 });
+
+    return NextResponse.json(
+      { message: "Verified", token: sid },
+      { status: 200 },
+    );
   } catch (err) {
-    console.error("OTP verify error:", err);
+    console.error(err);
     return NextResponse.json(
       { message: "Server error" },
       { status: err instanceof CustomError ? err.statusCode : 500 },

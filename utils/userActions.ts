@@ -1,51 +1,38 @@
 "use server";
 
-import { getDB } from "@/lib/mySQL";
-import { JwtPayload, verify } from "jsonwebtoken";
+import { createHash } from "@/hooks/useHash";
+import { verifyToken } from "@/hooks/useJWT";
+import redis from "@/lib/redis";
+import { adminStat } from "@/types/serverActions";
 import { cookies } from "next/headers";
-import { currentAdminDBResponse } from "@/types/serverActions";
-
-const secret = process.env.ENCRYPTED_KEY;
+import { CustomError } from "@/lib/error";
 
 export async function getCurrentUser() {
-  if (!secret) {
-    return { error: "server error", success: false, role: false, userId: "" };
-  }
-  const cookieStore = await cookies();
-  const token = cookieStore.get("token")?.value;
-  if (!token) {
-    return {
-      error: "no token found",
-      success: false,
-      role: false,
-      userId: "",
-    };
-  }
   try {
-    const { userId } = verify(token, secret) as JwtPayload;
-    const db = getDB();
-    const q = "SELECT role from admins where userId = ?";
-    const [rows] = await db.execute(q, [userId]);
-    const row = (rows as currentAdminDBResponse[])[0];
-    if (!row) {
+    const token = (await cookies()).get("token")?.value;
+    if (!token) throw new CustomError("Unauthorized", 401);
+
+    const { userId, role } = verifyToken<adminStat>(token, true);
+
+    const userIdHashed = createHash(userId);
+    const cachedToken = await redis.get(userIdHashed);
+    if (!cachedToken || cachedToken !== token)
+      throw new CustomError("Unauthorized", 401);
+
+    return { success: true, error: "", role, userId };
+  } catch (err) {
+    console.error(err);
+    if (err instanceof CustomError) {
       return {
-        error: "invaild token",
         success: false,
+        error: err.message,
         role: false,
         userId: "",
       };
     }
     return {
-      success: true,
-      role: row.role,
-      error: "",
-      userId,
-    };
-  } catch (err) {
-    console.log(err);
-    return {
-      error: "invalid token",
       success: false,
+      error: "something went wrong",
       role: false,
       userId: "",
     };
