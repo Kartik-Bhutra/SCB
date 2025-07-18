@@ -3,7 +3,6 @@ import type { NextConfig } from "next";
 const pages = [
   "next.config.ts",
   "postcss.config.mjs",
-  "tsconfig.json",
   "eslint.config.mjs",
   ".lintstagedrc.mjs",
 ];

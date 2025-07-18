@@ -36,6 +36,8 @@ export async function POST(request: NextRequest) {
       authenticated: row.authenticated,
     });
 
+    await redis.expire(mobileNoHashed, 60 * 60 * 24);
+
     return NextResponse.json({ message: "OK" }, { status: 200 });
   } catch (err) {
     return NextResponse.json(

@@ -11,12 +11,13 @@ import {
 import { verify } from "argon2";
 import { encrypt } from "@/hooks/useXCHACHA20";
 import { NextRequest, NextResponse } from "next/server";
+import { randomUUID } from "crypto";
 
 export async function POST(request: NextRequest) {
   try {
     const { token, otp } = (await request.json()) as clientOTP;
 
-    const { mobileNo, username, deviceId } = verifyToken<registerClientToken>(
+    const { mobileNo, username } = verifyToken<registerClientToken>(
       token,
       false,
     );
@@ -29,12 +30,12 @@ export async function POST(request: NextRequest) {
     await redis.del(token);
 
     const mobileNoHashed = createHash(mobileNo);
-    const deviceIdHashed = createHash(deviceId);
+    const tokenSid = randomUUID();
     const mobileNoEncrypted = encrypt(mobileNo);
     const db = getDB();
     await db.execute(
       "INSERT INTO users (mobileNoHashed, mobileNoEncrypted, username, token) VALUES (?, ?, ?, ?) ON DUPLICATE  KEY UPDATE  username = VALUES(username), token = VALUES (token)",
-      [mobileNoHashed, mobileNoEncrypted, username, deviceIdHashed],
+      [mobileNoHashed, mobileNoEncrypted, username, tokenSid],
     );
 
     const [rows] = await db.execute(
@@ -44,13 +45,15 @@ export async function POST(request: NextRequest) {
 
     const authenticated = (rows as authenticatedClient[])[0].authenticated;
     await redis.json.set(mobileNoHashed, "$", {
-      token: deviceIdHashed,
+      token: tokenSid,
       authenticated,
     });
 
+    await redis.expire(mobileNoHashed, 60 * 60 * 24);
+
     const sid = signToken(
       {
-        token: `${mobileNoHashed}:${deviceIdHashed}`,
+        token: `${mobileNoHashed}:${tokenSid}`,
       },
       true,
     );

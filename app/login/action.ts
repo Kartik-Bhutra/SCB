@@ -3,10 +3,9 @@ import { getDB } from "@/lib/mySQL";
 import { cookies } from "next/headers";
 import { verify } from "argon2";
 import redis from "@/lib/redis";
-import { signToken } from "@/hooks/useJWT";
-import { createHash } from "@/hooks/useHash";
 import { CustomError } from "@/lib/error";
-import type { adminDB, adminStat, LoginState } from "@/types/serverActions";
+import type { adminDB, LoginState } from "@/types/serverActions";
+import { randomUUID } from "crypto";
 
 export default async function handleLogin(
   _: LoginState,
@@ -37,10 +36,13 @@ export default async function handleLogin(
       throw new CustomError("Invalid credentials", 401);
     }
 
-    const token = signToken<adminStat>({ userId, role }, true);
-
-    const userIdHashed = createHash(userId);
-    await redis.set(userIdHashed, token, { EX: 60 * 60 * 24 });
+    const sid = randomUUID();
+    const token = `${userId}:${sid}`;
+    await redis.json.set(userId, "$", {
+      sid,
+      role,
+    });
+    await redis.expire(userId, 60 * 60 * 24);
 
     const cookieStore = await cookies();
     cookieStore.set("token", token, {
@@ -57,16 +59,9 @@ export default async function handleLogin(
       error: "",
     };
   } catch (err) {
-    if (err instanceof CustomError) {
-      return {
-        success: false,
-        error: err.message,
-      };
-    }
-
     return {
       success: false,
-      error: "Something went wrong",
+      error: err instanceof CustomError ? err.message : "something went wrong",
     };
   }
 }

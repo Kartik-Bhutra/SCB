@@ -3,9 +3,9 @@ CREATE DATABASE IF NOT EXISTS SCB;
 USE SCB;
 
 CREATE TABLE IF NOT EXISTS blockedNo(
-  mobileNoHashed VARCHAR(100) PRIMARY KEY,
-  mobileNoEncrypted VARCHAR(100) NOT NULL,
-  remark VARCHAR(50),
+  id SMALLINT AUTO_INCREMENT PRIMARY KEY,
+  mobileNoHashed VARCHAR(50) UNIQUE NOT NULL,
+  mobileNoEncrypted VARCHAR(75) NOT NULL,
   createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -13,7 +13,7 @@ CREATE TABLE IF NOT EXISTS reports(
   reportedMobileNoHashed VARCHAR(100) PRIMARY KEY,
   reportedmobileNoEncrypted VARCHAR(100) NOT NULL,
   reporterMobileNoHashed varchar(100),
-  status ENUM('pending', 'approved', 'rejected') NOT NULL DEFAULT 'pending',
+  STATUS ENUM('pending', 'approved', 'rejected') NOT NULL DEFAULT 'pending',
   createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   CONSTRAINT fk_report_reporterMobileNo FOREIGN KEY (reporterMobileNoHashed) REFERENCES users (mobileNoHashed) ON DELETE CASCADE ON UPDATE CASCADE -- admin is also a client
 );

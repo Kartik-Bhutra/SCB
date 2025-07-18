@@ -15,7 +15,6 @@ export interface authToken extends clientToken, authenticatedClient {}
 export interface registerClientToken {
   username: string;
   mobileNo: string;
-  deviceId: string;
 }
 
 export interface mergedClient
@@ -27,12 +26,17 @@ export interface adminDB {
   role: boolean;
 }
 
-export interface adminStat {
-  userId: string;
+export interface session {
   role: boolean;
+  sid: string;
 }
 
 export interface LoginState {
   success: boolean;
   error: string;
+}
+export interface blockedData {
+  mobileNoEncrypted: string;
+  id: number;
+  createdAt: Date;
 }
