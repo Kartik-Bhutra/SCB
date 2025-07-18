@@ -26,7 +26,7 @@ export default function Error({
         </button>
 
         <Link
-          href="/"
+          href="/admin"
           className="px-6 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors duration-200"
         >
           Return to Dashboard
