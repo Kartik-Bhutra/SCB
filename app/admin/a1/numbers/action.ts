@@ -20,7 +20,7 @@ export async function fetchData(page: number, length: number) {
     const db = getDB();
     const id = (page - 1) * 25;
     const [rows] = await db.execute(
-      `SELECT mobileNoEncrypted, id, createdAt FROM blockedNo WHERE id > ? LIMIT ${Number(length)}`,
+      `SELECT mobileNoEncrypted, createdAt FROM blockedNo WHERE id > ? LIMIT ${Number(length)}`,
       [id],
     );
     const [row] = await db.execute("SELECT id from blockedNo LIMIT 1");

@@ -20,6 +20,17 @@ function formatTimestamp(timestamp: string | Date) {
   });
 }
 
+const formatValue = (val: string) => {
+  const chunks = [];
+  for (let i = 0; i < val.length; ) {
+    const remaining = val.length - i;
+    const size = remaining > 4 ? 3 : remaining;
+    chunks.push(val.slice(i, i + size));
+    i += size;
+  }
+  return chunks.join("-");
+};
+
 export default function TableBody({
   data,
   setDeleteId,
@@ -27,19 +38,21 @@ export default function TableBody({
 }: TableBodyProps) {
   return (
     <tbody>
-      {data.map((item) => (
+      {data.map(({ createdAt, mobileNoEncrypted }) => (
         <tr
-          key={item.mobileNoEncrypted}
+          key={mobileNoEncrypted}
           className="odd:bg-white even:bg-gray-50 border-b border-gray-200"
         >
           <td className="px-6 py-4 font-semibold text-gray-900 text-center">
-            {formatTimestamp(item.createdAt)}
+            {formatTimestamp(createdAt)}
           </td>
-          <td className="px-6 py-4 text-center">{item.mobileNoEncrypted}</td>
+          <td className="px-6 py-4 text-center">
+            {formatValue(mobileNoEncrypted)}
+          </td>
           <td className="px-6 py-4 text-center">
             <button
               onClick={() => {
-                setDeleteId(item.mobileNoEncrypted);
+                setDeleteId(mobileNoEncrypted);
                 setOpenDelete(true);
               }}
               className="text-red-500 hover:underline"

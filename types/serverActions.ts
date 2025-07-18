@@ -37,6 +37,5 @@ export interface serverActionState {
 }
 export interface blockedData {
   mobileNoEncrypted: string;
-  id: number;
   createdAt: Date;
 }

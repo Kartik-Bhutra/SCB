@@ -49,7 +49,8 @@ export default function SeqInput() {
             inputRef.current?.setSelectionRange(len, len);
           }, 0);
         }}
-        className="w-full font-mono text-xl tracking-widest text-center px-4 py-2 border border-gray-300 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 caret-transparent"
+        autoComplete="off"
+        className="w-full font-mono text-xl tracking-widest text-center px-4 py-2 border border-gray-300 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
         maxLength={15}
         inputMode="numeric"
         onChange={() => {}}
