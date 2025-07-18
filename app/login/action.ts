@@ -4,13 +4,13 @@ import { cookies } from "next/headers";
 import { verify } from "argon2";
 import redis from "@/lib/redis";
 import { CustomError } from "@/lib/error";
-import type { adminDB, LoginState } from "@/types/serverActions";
+import type { adminDB, serverActionState } from "@/types/serverActions";
 import { randomUUID } from "crypto";
 
 export default async function handleLogin(
-  _: LoginState,
+  _: serverActionState,
   formdata: FormData,
-): Promise<LoginState> {
+): Promise<serverActionState> {
   try {
     const userId = formdata.get("userId")?.toString().trim();
     const password = formdata.get("password")?.toString().trim();

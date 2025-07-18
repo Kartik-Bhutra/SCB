@@ -1,5 +1,3 @@
-import { Dispatch, SetStateAction } from "react";
-
 interface Option {
   label: string;
   value: string;
@@ -7,31 +5,22 @@ interface Option {
 
 interface SelectProps {
   options: Option[];
-  value: string;
-  setValue: Dispatch<SetStateAction<string>>;
-  label: string;
 }
 
-export default function Select({
-  options,
-  value,
-  setValue,
-  label,
-}: SelectProps) {
+export default function Select({ options }: SelectProps) {
   return (
     <div className="max-w mx-auto my-4">
       <label
-        htmlFor="options"
+        htmlFor="code"
         className="block mb-2 text-sm font-medium text-gray-700"
       >
-        {label}
+        Select Country
       </label>
       <select
-        value={value}
-        onChange={(e) => setValue(e.target.value)}
-        id="options"
-        name="options"
+        id="code"
+        name="code"
         className="block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+        defaultValue="+91"
       >
         {options.map((option, key) => (
           <option key={key} value={option.value}>

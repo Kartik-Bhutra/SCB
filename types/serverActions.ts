@@ -31,7 +31,7 @@ export interface session {
   sid: string;
 }
 
-export interface LoginState {
+export interface serverActionState {
   success: boolean;
   error: string;
 }

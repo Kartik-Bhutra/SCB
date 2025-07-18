@@ -1,12 +1,19 @@
-import { useRef, Dispatch, SetStateAction } from "react";
+import { useRef, useState } from "react";
 
-interface SeqInputProps {
-  value: string;
-  setValue: Dispatch<SetStateAction<string>>;
-}
-
-export default function SeqInput({ value, setValue }: SeqInputProps) {
+export default function SeqInput() {
   const inputRef = useRef<HTMLInputElement>(null);
+  const [value, setValue] = useState("");
+
+  const formatValue = (val: string) => {
+    const chunks = [];
+    for (let i = 0; i < val.length; ) {
+      const remaining = val.length - i;
+      const size = remaining > 4 ? 3 : remaining;
+      chunks.push(val.slice(i, i + size));
+      i += size;
+    }
+    return chunks.join("-");
+  };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Backspace") {
@@ -17,44 +24,40 @@ export default function SeqInput({ value, setValue }: SeqInputProps) {
 
     if (/^\d$/.test(e.key)) {
       e.preventDefault();
-      if (value.length < 15) {
-        setValue((prev) => prev + e.key);
-      }
+      setValue((prev) => (prev.length < 12 ? prev + e.key : prev));
     }
   };
 
-  const display = (value + "X".repeat(12)).slice(0, 12);
-
   return (
-    <div className="max-w-md mx-auto ">
+    <div className="max-w-md mx-auto">
       <label
-        htmlFor="maskedInput"
+        htmlFor="displayedNumber"
         className="block mb-2 text-sm font-medium text-gray-700"
       >
         Enter Sequence
       </label>
 
       <input
-        id="maskedInput"
+        id="displayedNumber"
         ref={inputRef}
-        value={display}
+        value={formatValue(value)}
         onKeyDown={handleKeyDown}
         onClick={(e) => e.preventDefault()}
         onFocus={() => {
           setTimeout(() => {
-            const len = value.length;
+            const len = formatValue(value).length;
             inputRef.current?.setSelectionRange(len, len);
           }, 0);
         }}
         className="w-full font-mono text-xl tracking-widest text-center px-4 py-2 border border-gray-300 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 caret-transparent"
-        maxLength={12}
+        maxLength={15}
         inputMode="numeric"
         onChange={() => {}}
       />
 
-      <p className="text-sm text-gray-500 mt-1">
-        Type value to replace the <code>X</code>s. Max 15 value.
-      </p>
+      <input type="hidden" name="number" value={formatValue(value)} />
+
+      <p className="text-sm text-gray-500 mt-1">Max 12 digits.</p>
     </div>
   );
 }
