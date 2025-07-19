@@ -20,14 +20,14 @@ export async function fetchData(page: number, length: number) {
     const db = getDB();
     const id = (page - 1) * 25;
     const [rows] = await db.execute(
-      `SELECT mobileNoEncrypted, createdAt FROM blockedNo WHERE id > ? LIMIT ${Number(length)}`,
+      `SELECT MNE, createdAt,blockedBy FROM numbers WHERE id > ? LIMIT ${length}`,
       [id],
     );
-    const [row] = await db.execute("SELECT id from blockedNo LIMIT 1");
+    const [row] = await db.execute("SELECT id from numbers LIMIT 1");
     const lastId = (row as ids[])[0];
     const data = (rows as blockedData[]).map((row) => ({
       ...row,
-      mobileNoEncrypted: decrypt(row.mobileNoEncrypted),
+      MNE: decrypt(row.MNE),
     }));
     return {
       success: true,
@@ -48,7 +48,7 @@ export async function fetchData(page: number, length: number) {
 
 export async function addNo(_: serverActionState, formData: FormData) {
   try {
-    const { success } = await getCurrentUser();
+    const { success, userId } = await getCurrentUser();
     if (!success) {
       throw new CustomError("Unauthorized", 401);
     }
@@ -59,11 +59,11 @@ export async function addNo(_: serverActionState, formData: FormData) {
     }
     const mobileNo = code + number;
     const db = getDB();
-    const mobileNoHashed = createHash(mobileNo);
-    const mobileNoEncrypted = encrypt(mobileNo);
+    const MNH = createHash(mobileNo);
+    const MNE = encrypt(mobileNo);
     await db.execute(
-      "INSERT IGNORE INTO blockedNo (mobileNoHashed, mobileNoEncrypted) VALUES (?,?) ",
-      [mobileNoHashed, mobileNoEncrypted],
+      "INSERT IGNORE INTO numbers (MNH, MNE,blockedBy) VALUES (?,?,?) ",
+      [MNH, MNE, userId],
     );
     return {
       success: true,
@@ -88,11 +88,9 @@ export async function deleteNo(_: serverActionState, formData: FormData) {
     }
 
     const db = getDB();
-    const mobileNoHashed = createHash(mobileNo);
+    const MNH = createHash(mobileNo);
 
-    await db.execute("DELETE FROM blockedNo WHERE mobileNoHashed = ?", [
-      mobileNoHashed,
-    ]);
+    await db.execute("DELETE FROM numbers WHERE MNH = ?", [MNH]);
 
     return {
       success: true,

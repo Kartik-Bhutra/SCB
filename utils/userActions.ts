@@ -2,24 +2,33 @@
 import redis from "@/lib/redis";
 import { cookies } from "next/headers";
 import { CustomError } from "@/lib/error";
-import { session } from "@/types/serverActions";
+interface session {
+  adminType: boolean;
+  sid: string;
+  userId: string;
+}
 
 export async function getCurrentUser() {
   try {
     const token = (await cookies()).get("token")?.value;
     if (!token) throw new CustomError("Unauthorized", 401);
 
-    const [userId, sid] = token.split(":");
+    const [UIH, sid] = token.split(":");
 
-    const cachedToken = (await redis.json.get(userId)) as session | null;
+    const cachedToken = (await redis.json.get(UIH)) as session | null;
     if (!cachedToken || cachedToken.sid !== sid)
       throw new CustomError("Unauthorized", 401);
 
-    return { success: true, error: "", role: cachedToken.role, userId };
+    return {
+      success: true,
+      error: "",
+      adminType: cachedToken.adminType,
+      userId: cachedToken.userId,
+    };
   } catch (err) {
     return {
       success: false,
-      role: false,
+      adminType: false,
       userId: "",
       error: err instanceof CustomError ? err.message : "something went wrong",
     };

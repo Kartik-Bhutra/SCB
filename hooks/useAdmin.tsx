@@ -3,12 +3,12 @@
 import { createContext, useContext } from "react";
 
 interface UserContextProps {
-  role: boolean;
+  adminType: boolean;
   userId: string;
 }
 
 export const AdminContext = createContext<UserContextProps>({
-  role: false,
+  adminType: false,
   userId: "",
 });
 

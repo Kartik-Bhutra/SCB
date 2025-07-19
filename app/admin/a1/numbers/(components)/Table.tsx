@@ -62,6 +62,9 @@ export default function Table({ data, isLoading, setRefresh }: tableProps) {
                     Number
                   </th>
                   <th scope="col" className="px-6 py-3">
+                    Blocked BY
+                  </th>
+                  <th scope="col" className="px-6 py-3">
                     Action
                   </th>
                 </tr>
@@ -69,7 +72,7 @@ export default function Table({ data, isLoading, setRefresh }: tableProps) {
               {isLoading ? (
                 <tbody>
                   <tr>
-                    <td colSpan={3} className="p-0">
+                    <td colSpan={4} className="p-0">
                       <Loader />
                     </td>
                   </tr>

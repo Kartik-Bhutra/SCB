@@ -4,8 +4,14 @@ import { cookies } from "next/headers";
 import { verify } from "argon2";
 import redis from "@/lib/redis";
 import { CustomError } from "@/lib/error";
-import type { adminDB, serverActionState } from "@/types/serverActions";
+import type { serverActionState } from "@/types/serverActions";
 import { randomUUID } from "crypto";
+import { createHash } from "@/hooks/useHash";
+
+interface adminDB {
+  PH: string;
+  adminType: boolean;
+}
 
 export default async function handleLogin(
   _: serverActionState,
@@ -21,7 +27,7 @@ export default async function handleLogin(
 
     const db = getDB();
     const [rows] = await db.execute(
-      "SELECT passwordHashed, role FROM admins WHERE userId = ?",
+      "SELECT PH, adminType FROM admins WHERE userId = ?",
       [userId],
     );
 
@@ -30,17 +36,19 @@ export default async function handleLogin(
       throw new CustomError("Invalid credentials", 401);
     }
 
-    const { passwordHashed, role } = row;
-    const isMatch = await verify(passwordHashed, password);
+    const { PH, adminType } = row;
+    const isMatch = await verify(PH, password);
     if (!isMatch) {
       throw new CustomError("Invalid credentials", 401);
     }
 
     const sid = randomUUID();
-    const token = `${userId}:${sid}`;
-    await redis.json.set(userId, "$", {
+    const UIH = createHash(userId);
+    const token = `${UIH}:${sid}`;
+    await redis.json.set(UIH, "$", {
       sid,
-      role,
+      adminType,
+      userId,
     });
     await redis.expire(userId, 60 * 60 * 24);
 

@@ -8,7 +8,7 @@ export default async function adminLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const { success, role, userId } = await getCurrentUser();
+  const { success, adminType, userId } = await getCurrentUser();
   if (!success) {
     redirect("/login", RedirectType.replace);
   }
@@ -17,11 +17,11 @@ export default async function adminLayout({
   if (!pathname) {
     redirect("/login", RedirectType.replace);
   }
-  if (pathname.startsWith("/admin/a2/") && !role) {
+  if (pathname.startsWith("/admin/a2/") && !adminType) {
     redirect("/admin", RedirectType.replace);
   }
   return (
-    <Dashboard role={role} userId={userId}>
+    <Dashboard adminType={adminType} userId={userId}>
       {children}
     </Dashboard>
   );

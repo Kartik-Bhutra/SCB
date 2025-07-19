@@ -38,21 +38,21 @@ export default function TableBody({
 }: TableBodyProps) {
   return (
     <tbody>
-      {data.map(({ createdAt, mobileNoEncrypted }) => (
+      {data.map(({ createdAt, MNE, blockedBy }) => (
         <tr
-          key={mobileNoEncrypted}
+          key={MNE}
           className="odd:bg-white even:bg-gray-50 border-b border-gray-200"
         >
           <td className="px-6 py-4 font-semibold text-gray-900 text-center">
             {formatTimestamp(createdAt)}
           </td>
-          <td className="px-6 py-4 text-center">
-            {formatValue(mobileNoEncrypted)}
-          </td>
+          <td className="px-6 py-4 text-center">{formatValue(MNE)}</td>
+          <td className="px-6 py-4 text-center">{blockedBy}</td>
+
           <td className="px-6 py-4 text-center">
             <button
               onClick={() => {
-                setDeleteId(mobileNoEncrypted);
+                setDeleteId(MNE);
                 setOpenDelete(true);
               }}
               className="text-red-500 hover:underline"

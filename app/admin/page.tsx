@@ -2,7 +2,7 @@
 import { useAdmin } from "@/hooks/useAdmin";
 
 export default function HomePage() {
-  const { role, userId } = useAdmin();
+  const { adminType, userId } = useAdmin();
   return (
     <div className="h-full bg-gray-50 p-8">
       <div className="max-w-4xl">
@@ -11,7 +11,7 @@ export default function HomePage() {
             Welcome Back, {userId}
           </h1>
           <p className="mt-2 text-gray-600">
-            You are logged in as {role ? "Owner" : "Administrator"}
+            You are logged in as {adminType ? "Owner" : "Administrator"}
           </p>
         </div>
       </div>

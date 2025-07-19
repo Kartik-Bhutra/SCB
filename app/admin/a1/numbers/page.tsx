@@ -1,6 +1,5 @@
 "use client";
 
-import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { blockedData } from "@/types/serverActions";
 import Pagination from "../../(components)/Pagination";
@@ -9,14 +8,13 @@ import { fetchData } from "./action";
 import Table from "./(components)/Table";
 
 export default function BlockNumber() {
-  const searchParams = useSearchParams();
-  const [length] = useState(25);
+  const [length, setLength] = useState(25);
   const [lastPageNo, setLastPageNo] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [data, setData] = useState([] as blockedData[]);
   const [refresh, setRefresh] = useState(false);
-  const page = Number(searchParams.get("page") || "1");
+  const [page, setPage] = useState(25);
   useEffect(() => {
     (async () => {
       setIsLoading(true);
@@ -28,6 +26,9 @@ export default function BlockNumber() {
       if (!success) {
         setError(error);
         return;
+      }
+      if (page > lastPageNo) {
+        setPage(lastPageNo);
       }
       setLastPageNo(lastPageNo);
       setData(data);
@@ -41,8 +42,10 @@ export default function BlockNumber() {
       <Table data={data} isLoading={isLoading} setRefresh={setRefresh} />
       <Pagination
         currentPage={page}
-        baseUrl="/admin/a1/numbers"
         totalPages={lastPageNo}
+        setPage={setPage}
+        length={length}
+        setLength={setLength}
       />
     </div>
   );
