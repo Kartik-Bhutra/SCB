@@ -49,7 +49,7 @@ export async function addNo(_: serverActionState, formData: FormData) {
       throw new CustomError("Unauthorized", 401);
     }
     const code = formData.get("code")?.toString();
-    const number = formData.get("number")?.toString().split("-").join("");
+    const number = formData.get("number")?.toString();
     if (!code || !number) {
       throw new CustomError("Fill details", 400);
     }

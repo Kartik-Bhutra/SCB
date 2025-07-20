@@ -1,12 +1,17 @@
 "use server";
 
+import { createHash } from "@/hooks/useHash";
 import { decrypt } from "@/hooks/useXCHACHA20";
 import { CustomError } from "@/lib/error";
 import { getDB } from "@/lib/mySQL";
 import { clientData, ids, serverActionState } from "@/types/serverActions";
 import { getCurrentUser } from "@/utils/userActions";
 
-export async function fetchData(page: number, length: number) {
+export async function fetchData(
+  page: number,
+  length: number,
+  userType: number,
+) {
   try {
     const { success, department } = await getCurrentUser();
     if (!success) {
@@ -15,8 +20,8 @@ export async function fetchData(page: number, length: number) {
     const db = getDB();
     const id = (page - 1) * 25;
     const [rows] = await db.execute(
-      `SELECT MNE, username FROM clients WHERE id > ? and department = ? and userType = 1 LIMIT ${length}`,
-      [id, department],
+      `SELECT MNE, username FROM clients WHERE id > ? and department = ? and userType = ? LIMIT ${length}`,
+      [id, department, userType],
     );
     const data = (rows as clientData[]).map((row) => ({
       ...row,
@@ -44,10 +49,61 @@ export async function fetchData(page: number, length: number) {
   }
 }
 
-export async function bulkUpload(_: serverActionState, formData: FormData) {
-  console.log(formData);
-  return {
-    success: false,
-    error: "",
-  };
+export async function approveNo(_: serverActionState, formData: FormData) {
+  try {
+    const { success, userId } = await getCurrentUser();
+    if (!success) {
+      throw new CustomError("Unauthorized", 401);
+    }
+    const number = formData.get("mobileNo")?.toString();
+    if (!number) {
+      throw new CustomError("Fill details", 400);
+    }
+    console.log(number);
+    const db = getDB();
+    const MNH = createHash(number);
+
+    await db.execute(
+      "UPDATE clients SET userType = 2, authBy = ? WHERE MNH = ?",
+      [userId, MNH],
+    );
+
+    return {
+      success: true,
+      error: "",
+    };
+  } catch (err) {
+    return {
+      success: false,
+      error: err instanceof CustomError ? err.message : "something went wrong",
+    };
+  }
+}
+
+export async function removeNo(_: serverActionState, formData: FormData) {
+  try {
+    const { success, userId } = await getCurrentUser();
+    if (!success) {
+      throw new CustomError("Unauthorized", 401);
+    }
+    const number = formData.get("mobileNo")?.toString();
+    if (!number) {
+      throw new CustomError("Fill details", 400);
+    }
+    const db = getDB();
+    const MNH = createHash(number);
+    await db.execute(
+      "UPDATE clients SET userType = 0, authBy = ? WHERE MNH = ?",
+      [userId, MNH],
+    );
+    return {
+      success: true,
+      error: "",
+    };
+  } catch (err) {
+    return {
+      success: false,
+      error: err instanceof CustomError ? err.message : "something went wrong",
+    };
+  }
 }

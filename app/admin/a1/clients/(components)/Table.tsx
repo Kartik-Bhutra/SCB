@@ -65,6 +65,7 @@ export default function Table({
                 </tbody>
               ) : (
                 <TableBody
+                  setOpenCreate={setOpenCreate}
                   isApproved={isApproved}
                   data={data}
                   setOpenDelete={setOpenDelete}

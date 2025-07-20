@@ -6,13 +6,26 @@ interface TableBodyProps {
   isApproved: boolean;
   setOpenDelete: Dispatch<SetStateAction<boolean>>;
   setDeleteId: Dispatch<SetStateAction<string>>;
+  setOpenCreate: Dispatch<SetStateAction<boolean>>;
 }
+
+const formatValue = (val: string) => {
+  const chunks = [];
+  for (let i = 0; i < val.length; ) {
+    const remaining = val.length - i;
+    const size = remaining > 4 ? 3 : remaining;
+    chunks.push(val.slice(i, i + size));
+    i += size;
+  }
+  return chunks.join("-");
+};
 
 export default function TableBody({
   data,
   isApproved,
   setDeleteId,
   setOpenDelete,
+  setOpenCreate,
 }: TableBodyProps) {
   return (
     <tbody>
@@ -21,7 +34,7 @@ export default function TableBody({
           key={MNE}
           className="odd:bg-white even:bg-gray-50 border-b border-gray-200"
         >
-          <td className="px-6 py-4 text-center">{MNE}</td>
+          <td className="px-6 py-4 text-center">{formatValue(MNE)}</td>
           <td className="px-6 py-4 text-center">{username}</td>
           <td className="px-6 py-4 flex justify-center text-center">
             {isApproved ? (
@@ -39,7 +52,7 @@ export default function TableBody({
                 <button
                   onClick={() => {
                     setDeleteId(MNE);
-                    setOpenDelete(true);
+                    setOpenCreate(true);
                   }}
                   className="text-green-500 hover:underline"
                 >

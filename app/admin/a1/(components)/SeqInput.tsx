@@ -56,7 +56,7 @@ export default function SeqInput() {
         onChange={() => {}}
       />
 
-      <input type="hidden" name="number" value={formatValue(value)} />
+      <input type="hidden" name="number" value={value} />
 
       <p className="text-sm text-gray-500 mt-1">Max 12 digits.</p>
     </div>

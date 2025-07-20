@@ -1,6 +1,6 @@
 import Modal from "../../(components)/Modal";
 import { Dispatch, SetStateAction } from "react";
-import { bulkUpload } from "../action";
+import { approveNo, removeNo } from "../action";
 
 interface ClientModalProps {
   openCreate: boolean;
@@ -22,28 +22,24 @@ export default function ClientModal({
   return (
     <>
       <Modal
-        onConfirm={bulkUpload}
+        onConfirm={approveNo}
         open={openCreate}
         setOpen={setOpenCreate}
         setRefresh={setRefresh}
         title="Create Sequence"
       >
-        <p>
-          Are you sure you want to delete the sequence? It cannot be undone.
-        </p>
+        <p>Are you sure you want to add the MobileNo</p>
         <input type="hidden" name="mobileNo" value={deleteId} />
       </Modal>
 
       <Modal
-        onConfirm={bulkUpload}
+        onConfirm={removeNo}
         open={openDelete}
         setOpen={setOpenDelete}
         setRefresh={setRefresh}
         title="Delete Sequence"
       >
-        <p>
-          Are you sure you want to delete the sequence? It cannot be undone.
-        </p>
+        <p>Are you sure you want to remove that mobileNo</p>
         <input type="hidden" name="mobileNo" value={deleteId} />
       </Modal>
     </>

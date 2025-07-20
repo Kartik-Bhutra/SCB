@@ -21,7 +21,7 @@ export default function BlockNumber() {
       const { success, error, data, lastPageNo } = await fetchData(
         page,
         length,
-        1,
+        0,
       );
       setIsLoading(false);
       if (!success) {
@@ -45,7 +45,7 @@ export default function BlockNumber() {
         data={data}
         isLoading={isLoading}
         setRefresh={setRefresh}
-        isApproved={false}
+        isApproved={true}
       />
       <Pagination
         currentPage={page}
