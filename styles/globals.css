@@ -25,6 +25,10 @@ body {
   overflow-x: hidden;
 }
 
+button {
+  cursor: pointer;
+}
+
 @keyframes fadeIn {
   from {
     opacity: 0;

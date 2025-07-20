@@ -4,12 +4,8 @@ import { createHash } from "@/hooks/useHash";
 import { decrypt, encrypt } from "@/hooks/useXCHACHA20";
 import { CustomError } from "@/lib/error";
 import { getDB } from "@/lib/mySQL";
-import { blockedData, serverActionState } from "@/types/serverActions";
+import { blockedData, ids, serverActionState } from "@/types/serverActions";
 import { getCurrentUser } from "@/utils/userActions";
-
-interface ids {
-  id: number;
-}
 
 export async function fetchData(page: number, length: number) {
   try {
@@ -23,7 +19,7 @@ export async function fetchData(page: number, length: number) {
       `SELECT MNE, createdAt,blockedBy FROM numbers WHERE id > ? LIMIT ${length}`,
       [id],
     );
-    const [row] = await db.execute("SELECT id from numbers LIMIT 1");
+    const [row] = await db.execute("SELECT id FROM numbers LIMIT 1");
     const lastId = (row as ids[])[0];
     const data = (rows as blockedData[]).map((row) => ({
       ...row,

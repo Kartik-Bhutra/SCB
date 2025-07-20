@@ -6,6 +6,7 @@ interface session {
   adminType: boolean;
   sid: string;
   userId: string;
+  department: string;
 }
 
 export async function getCurrentUser() {
@@ -24,6 +25,7 @@ export async function getCurrentUser() {
       error: "",
       adminType: cachedToken.adminType,
       userId: cachedToken.userId,
+      department: cachedToken.department,
     };
   } catch (err) {
     return {
@@ -31,6 +33,7 @@ export async function getCurrentUser() {
       adminType: false,
       userId: "",
       error: err instanceof CustomError ? err.message : "something went wrong",
+      department: "",
     };
   }
 }

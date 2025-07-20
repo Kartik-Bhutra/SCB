@@ -11,6 +11,7 @@ import { createHash } from "@/hooks/useHash";
 interface adminDB {
   PH: string;
   adminType: boolean;
+  department: string;
 }
 
 export default async function handleLogin(
@@ -27,7 +28,7 @@ export default async function handleLogin(
 
     const db = getDB();
     const [rows] = await db.execute(
-      "SELECT PH, adminType FROM admins WHERE userId = ?",
+      "SELECT PH, adminType, department FROM admins WHERE userId = ?",
       [userId],
     );
 
@@ -36,7 +37,7 @@ export default async function handleLogin(
       throw new CustomError("Invalid credentials", 401);
     }
 
-    const { PH, adminType } = row;
+    const { PH, adminType, department } = row;
     const isMatch = await verify(PH, password);
     if (!isMatch) {
       throw new CustomError("Invalid credentials", 401);
@@ -49,8 +50,9 @@ export default async function handleLogin(
       sid,
       adminType,
       userId,
+      department,
     });
-    await redis.expire(userId, 60 * 60 * 24);
+    await redis.expire(UIH, 60 * 60 * 24);
 
     const cookieStore = await cookies();
     cookieStore.set("token", token, {

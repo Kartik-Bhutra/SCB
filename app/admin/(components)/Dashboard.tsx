@@ -8,12 +8,14 @@ interface DashboardProps {
   children: React.ReactNode;
   adminType: boolean;
   userId: string;
+  department: string;
 }
 
 export default function Dashboard({
   children,
   adminType,
   userId,
+  department,
 }: DashboardProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [status, setStatus] = useState(true);
@@ -61,7 +63,7 @@ export default function Dashboard({
         <main className="w-full md:ml-64 min-h-[calc(100vh-4rem)] p-4 md:p-6">
           <div className="bg-white rounded-lg shadow-sm border border-gray-200">
             <div className="overflow-x-auto">
-              <AdminContext.Provider value={{ adminType, userId }}>
+              <AdminContext.Provider value={{ adminType, userId, department }}>
                 {children}
               </AdminContext.Provider>
             </div>

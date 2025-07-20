@@ -8,7 +8,7 @@ export default async function adminLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const { success, adminType, userId } = await getCurrentUser();
+  const { success, adminType, userId, department } = await getCurrentUser();
   if (!success) {
     redirect("/login", RedirectType.replace);
   }
@@ -21,7 +21,7 @@ export default async function adminLayout({
     redirect("/admin", RedirectType.replace);
   }
   return (
-    <Dashboard adminType={adminType} userId={userId}>
+    <Dashboard adminType={adminType} userId={userId} department={department}>
       {children}
     </Dashboard>
   );
