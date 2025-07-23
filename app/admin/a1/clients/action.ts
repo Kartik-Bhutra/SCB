@@ -107,3 +107,31 @@ export async function removeNo(_: serverActionState, formData: FormData) {
     };
   }
 }
+
+export async function makeNormal(_: serverActionState, formData: FormData) {
+  try {
+    const { success, userId } = await getCurrentUser();
+    if (!success) {
+      throw new CustomError("Unauthorized", 401);
+    }
+    const number = formData.get("mobileNo")?.toString();
+    if (!number) {
+      throw new CustomError("Fill details", 400);
+    }
+    const db = getDB();
+    const MNH = createHash(number);
+    await db.execute(
+      "UPDATE clients SET userType = 1, authBy = ? WHERE MNH = ?",
+      [userId, MNH],
+    );
+    return {
+      success: true,
+      error: "",
+    };
+  } catch (err) {
+    return {
+      success: false,
+      error: err instanceof CustomError ? err.message : "something went wrong",
+    };
+  }
+}

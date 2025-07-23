@@ -4,12 +4,14 @@ import { Dispatch, SetStateAction, useState } from "react";
 import Loader from "@/app/admin/(components)/Loader";
 import ClientModal from "./ClientModal";
 import NoData from "@/app/admin/(components)/NoData";
+import Link from "next/link";
 
 interface tableProps {
   data: clientData[];
   isLoading: boolean;
   setRefresh: Dispatch<SetStateAction<boolean>>;
   isApproved: boolean;
+  label: string;
 }
 
 export default function Table({
@@ -17,6 +19,7 @@ export default function Table({
   isApproved,
   isLoading,
   setRefresh,
+  label,
 }: tableProps) {
   const [openCreate, setOpenCreate] = useState(false);
   const [openDelete, setOpenDelete] = useState(false);
@@ -24,6 +27,7 @@ export default function Table({
   return (
     <>
       <ClientModal
+        label={label}
         openCreate={openCreate}
         setOpenCreate={setOpenCreate}
         openDelete={openDelete}
@@ -34,8 +38,16 @@ export default function Table({
       <div className="bg-white rounded-lg shadow-sm mx-auto max-w-[100vw]">
         <div className="flex justify-between items-center gap-2 px-6 py-4 border-b border-gray-200">
           <h2 className="text-lg font-semibold text-gray-800">
-            Blocked Numbers
+            {label} Clients
           </h2>
+          <div className="inline-flex rounded-md shadow-xs" role="group">
+            <Link
+              href="/admin/a1/clients"
+              className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-s mr-[1px]"
+            >
+              Back
+            </Link>
+          </div>
         </div>
         {!data.length && !isLoading ? (
           <NoData />

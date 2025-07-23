@@ -1,6 +1,6 @@
 import Modal from "../../(components)/Modal";
 import { Dispatch, SetStateAction } from "react";
-import { approveNo, removeNo } from "../action";
+import { approveNo, makeNormal, removeNo } from "../action";
 
 interface ClientModalProps {
   openCreate: boolean;
@@ -9,6 +9,7 @@ interface ClientModalProps {
   setOpenDelete: Dispatch<SetStateAction<boolean>>;
   deleteId: string;
   setRefresh: Dispatch<SetStateAction<boolean>>;
+  label: string;
 }
 
 export default function ClientModal({
@@ -18,6 +19,7 @@ export default function ClientModal({
   setOpenDelete,
   deleteId,
   setRefresh,
+  label,
 }: ClientModalProps) {
   return (
     <>
@@ -33,7 +35,7 @@ export default function ClientModal({
       </Modal>
 
       <Modal
-        onConfirm={removeNo}
+        onConfirm={label === "Rejected" ? makeNormal : removeNo}
         open={openDelete}
         setOpen={setOpenDelete}
         setRefresh={setRefresh}

@@ -46,6 +46,7 @@ export default function BlockNumber() {
         isLoading={isLoading}
         setRefresh={setRefresh}
         isApproved={false}
+        label="Requests"
       />
       <Pagination
         currentPage={page}
