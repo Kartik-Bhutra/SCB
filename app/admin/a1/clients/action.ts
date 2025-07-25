@@ -59,7 +59,6 @@ export async function approveNo(_: serverActionState, formData: FormData) {
     if (!number) {
       throw new CustomError("Fill details", 400);
     }
-    console.log(number);
     const db = getDB();
     const MNH = createHash(number);
 

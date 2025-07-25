@@ -46,12 +46,17 @@ export default async function handleLogin(
     const sid = randomUUID();
     const UIH = createHash(userId);
     const token = `${UIH}:${sid}`;
-    await redis.json.set(UIH, "$", {
+    const status = await redis.json.set(UIH, "$", {
       sid,
       adminType,
       userId,
       department,
     });
+
+    if (status !== "OK") {
+      throw new CustomError("Server Error", 500);
+    }
+
     await redis.expire(UIH, 60 * 60 * 24);
 
     const cookieStore = await cookies();

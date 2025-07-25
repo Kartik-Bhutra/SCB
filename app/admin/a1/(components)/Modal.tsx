@@ -63,7 +63,6 @@ export default function Modal({
 
   useEffect(() => {
     if (state.success) {
-      console.log("h11");
       handleClose();
       setRefresh((prev) => !prev);
     }

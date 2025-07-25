@@ -31,7 +31,6 @@ export default function BlockNumber() {
       if (page > lastPageNo) {
         setPage(lastPageNo);
       }
-      console.log(data);
       setLastPageNo(lastPageNo);
       setData(data);
     })();
