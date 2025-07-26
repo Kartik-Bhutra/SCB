@@ -1,5 +1,5 @@
 import Logout from "@/icons/Logout";
-import { logoutUser } from "@/utils/userActions";
+import { logoutUser } from "@/utils/adminActions";
 import { useRouter } from "next/navigation";
 
 export default function Sidebar() {

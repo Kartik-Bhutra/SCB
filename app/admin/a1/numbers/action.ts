@@ -3,9 +3,10 @@
 import { createHash } from "@/hooks/useHash";
 import { decrypt, encrypt } from "@/hooks/useXCHACHA20";
 import { CustomError } from "@/lib/error";
+import { messanger } from "@/lib/firebase";
 import { getDB } from "@/lib/mySQL";
 import { blockedData, ids, serverActionState } from "@/types/serverActions";
-import { getCurrentUser } from "@/utils/userActions";
+import { getCurrentUser } from "@/utils/adminActions";
 
 export async function fetchData(page: number, length: number) {
   try {
@@ -61,6 +62,11 @@ export async function addNo(_: serverActionState, formData: FormData) {
       "INSERT IGNORE INTO numbers (MNH, MNE,blockedBy) VALUES (?,?,?) ",
       [MNH, MNE, userId],
     );
+    await messanger.send({
+      topic: "blockedUpdates",
+      data: { type: "refresh_block_list" },
+      android: { priority: "high" },
+    });
     return {
       success: true,
       error: "",
@@ -87,7 +93,11 @@ export async function deleteNo(_: serverActionState, formData: FormData) {
     const MNH = createHash(mobileNo);
 
     await db.execute("DELETE FROM numbers WHERE MNH = ?", [MNH]);
-
+    await messanger.send({
+      topic: "blockedUpdates",
+      data: { type: "refresh_block_list" },
+      android: { priority: "high" },
+    });
     return {
       success: true,
       error: "",

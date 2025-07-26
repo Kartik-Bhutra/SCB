@@ -1,10 +1,10 @@
 import { createHash } from "@/hooks/useHash";
 import { encrypt } from "@/hooks/useXCHACHA20";
 import { CustomError } from "@/lib/error";
+import { auth } from "@/lib/firebase";
 import { getDB } from "@/lib/mySQL";
 import redis from "@/lib/redis";
 import { randomUUID } from "crypto";
-import { getAuth } from "firebase-admin/auth";
 import { NextRequest, NextResponse } from "next/server";
 
 interface register {
@@ -19,7 +19,6 @@ interface clients {
 
 export async function POST(request: NextRequest) {
   try {
-    const auth = getAuth();
     const { token, department, username } = (await request.json()) as register;
     if (!token) {
       throw new CustomError("Fill user details", 400);

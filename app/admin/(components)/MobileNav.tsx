@@ -3,7 +3,7 @@ import MobileLinks from "@/icons/MobileLinks";
 import Cross from "@/icons/Cross";
 import Logout from "@/icons/Logout";
 import { useRouter } from "next/navigation";
-import { logoutUser } from "@/utils/userActions";
+import { logoutUser } from "@/utils/adminActions";
 
 interface MobileNavProps {
   isOpen: boolean;

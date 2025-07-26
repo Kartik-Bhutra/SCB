@@ -1,5 +1,4 @@
-import firebase from "firebase-admin";
-import { ServiceAccount } from "firebase-admin";
+import firebase, { ServiceAccount } from "firebase-admin";
 import keys from "../firebase.json";
 
 if (!firebase.apps.length) {
@@ -8,4 +7,6 @@ if (!firebase.apps.length) {
   });
 }
 
-export default firebase;
+export const admin = firebase;
+export const auth = firebase.auth();
+export const messanger = firebase.messaging();

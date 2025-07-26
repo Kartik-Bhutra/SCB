@@ -5,7 +5,7 @@ import { decrypt } from "@/hooks/useXCHACHA20";
 import { CustomError } from "@/lib/error";
 import { getDB } from "@/lib/mySQL";
 import { clientData, ids, serverActionState } from "@/types/serverActions";
-import { getCurrentUser } from "@/utils/userActions";
+import { getCurrentUser } from "@/utils/adminActions";
 
 export async function fetchData(
   page: number,

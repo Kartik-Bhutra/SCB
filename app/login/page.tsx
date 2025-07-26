@@ -1,5 +1,5 @@
 import { redirect, RedirectType } from "next/navigation";
-import { getCurrentUser } from "@/utils/userActions";
+import { getCurrentUser } from "@/utils/adminActions";
 import LoginForm from "./(components)/LoginForm";
 import KeyIcon from "@/icons/Key";
 
