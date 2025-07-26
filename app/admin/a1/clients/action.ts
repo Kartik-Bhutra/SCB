@@ -4,6 +4,7 @@ import { createHash } from "@/hooks/useHash";
 import { decrypt } from "@/hooks/useXCHACHA20";
 import { CustomError } from "@/lib/error";
 import { getDB } from "@/lib/mySQL";
+import redis from "@/lib/redis";
 import { clientData, ids, serverActionState } from "@/types/serverActions";
 import { getCurrentUser } from "@/utils/adminActions";
 
@@ -66,12 +67,15 @@ export async function approveNo(_: serverActionState, formData: FormData) {
       "UPDATE clients SET userType = 2, authBy = ? WHERE MNH = ?",
       [userId, MNH],
     );
-
+    try {
+      await redis.json.set(MNH, "$.userType", 2);
+    } catch {}
     return {
       success: true,
       error: "",
     };
   } catch (err) {
+    console.error(err);
     return {
       success: false,
       error: err instanceof CustomError ? err.message : "something went wrong",
@@ -95,11 +99,15 @@ export async function removeNo(_: serverActionState, formData: FormData) {
       "UPDATE clients SET userType = 0, authBy = ? WHERE MNH = ?",
       [userId, MNH],
     );
+    try {
+      await redis.json.set(MNH, "$.userType", 0);
+    } catch {}
     return {
       success: true,
       error: "",
     };
   } catch (err) {
+    console.error(err);
     return {
       success: false,
       error: err instanceof CustomError ? err.message : "something went wrong",
@@ -123,6 +131,9 @@ export async function makeNormal(_: serverActionState, formData: FormData) {
       "UPDATE clients SET userType = 1, authBy = ? WHERE MNH = ?",
       [userId, MNH],
     );
+    try {
+      await redis.json.set(MNH, "$.userType", 1);
+    } catch {}
     return {
       success: true,
       error: "",

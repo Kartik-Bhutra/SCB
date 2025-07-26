@@ -1,5 +1,5 @@
-import EyeCloseIcon from "@/icons/EyeClose";
-import EyeOpenIcon from "@/icons/EyeOpen";
+import EyeCloseIcon from "./EyeClose";
+import EyeOpenIcon from "./EyeOpen";
 import { ChangeEvent, useState } from "react";
 interface PasswordBtnProps {
   handleInputChange: (e: ChangeEvent<HTMLInputElement>) => void;

@@ -1,12 +1,12 @@
-import { redirect, RedirectType } from "next/navigation";
+import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/utils/adminActions";
 import LoginForm from "./(components)/LoginForm";
-import KeyIcon from "@/icons/Key";
+import KeyIcon from "./(components)/Key";
 
 export default async function LoginPage() {
   const { success } = await getCurrentUser();
   if (success) {
-    redirect("/admin", RedirectType.replace);
+    redirect("/admin");
   }
   return (
     <div className="min-h-screen w-full flex justify-center items-center bg-gradient-to-br from-blue-50 via-gray-50 to-indigo-50 px-4 sm:px-6 lg:px-8">

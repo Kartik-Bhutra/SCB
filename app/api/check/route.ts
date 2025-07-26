@@ -15,7 +15,7 @@ interface departments {
   department: string;
 }
 
-export default async function POST(request: NextRequest) {
+export async function POST(request: NextRequest) {
   try {
     const { mobileNo } = (await request.json()) as check;
     if (!mobileNo) {
