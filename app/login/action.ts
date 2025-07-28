@@ -4,7 +4,7 @@ import { cookies } from "next/headers";
 import { verify } from "argon2";
 import redis from "@/lib/redis";
 import { CustomError } from "@/lib/error";
-import type { serverActionState } from "@/types/serverActions";
+import { serverActionState } from "@/types/serverActions";
 import { randomUUID } from "crypto";
 import { createHash } from "@/hooks/useHash";
 
@@ -32,7 +32,7 @@ export default async function handleLogin(
       [userId],
     );
 
-    const row = (rows as adminDB[])[0];
+    const row = (rows as adminDB[] | [])[0];
     if (!row) {
       throw new CustomError("Invalid credentials", 401);
     }

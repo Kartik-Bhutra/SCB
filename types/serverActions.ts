@@ -10,6 +10,12 @@ export interface blockedData {
   blockedBy: string;
 }
 
+export interface blockedCodes {
+  code: string;
+  createdAt: Date;
+  blockedBy: string;
+}
+
 export interface clientData {
   MNE: string;
   username: string;
