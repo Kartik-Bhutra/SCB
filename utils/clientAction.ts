@@ -19,12 +19,7 @@ export async function mobileAuth(idToken: string) {
     if (!idToken) {
       throw new CustomError("Fill user details", 400);
     }
-    const decoded = await auth.verifyIdToken(idToken);
-    const { phone_number, sid } = decoded as verify;
-    if (!phone_number) {
-      throw new CustomError("Invalid credentials", 401);
-    }
-    const MNH = createHash(phone_number);
+    const [MNH, sid] = idToken.split(":");
     const data = (await redis.json.get(MNH)) as clientToken | null;
     if (data) {
       if (data.token !== sid) {
@@ -60,6 +55,7 @@ export async function mobileAuth(idToken: string) {
       userType,
     };
   } catch (err) {
+    console.error(err)
     return {
       success: false,
       error: err instanceof CustomError ? err.message : "something went wrong",

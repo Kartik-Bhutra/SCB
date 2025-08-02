@@ -40,7 +40,6 @@ export async function fetchData(
       lastPageNo: lastId ? Math.ceil(lastId.id / length) : 1,
     };
   } catch (err) {
-    console.error(err);
     return {
       data: [] as clientData[],
       success: false,
@@ -75,7 +74,7 @@ export async function approveNo(_: serverActionState, formData: FormData) {
       error: "",
     };
   } catch (err) {
-    console.error(err);
+    console.error(err)
     return {
       success: false,
       error: err instanceof CustomError ? err.message : "something went wrong",
@@ -107,7 +106,6 @@ export async function removeNo(_: serverActionState, formData: FormData) {
       error: "",
     };
   } catch (err) {
-    console.error(err);
     return {
       success: false,
       error: err instanceof CustomError ? err.message : "something went wrong",

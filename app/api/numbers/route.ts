@@ -18,7 +18,7 @@ export async function POST(request: NextRequest) {
     }
 
     const { success, userType, error: authError } = await mobileAuth(token);
-
+    console.log(success, userType, authError);
     if (!success) {
       throw new CustomError(authError || "Invalid Token", 401);
     }

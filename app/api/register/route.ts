@@ -23,15 +23,20 @@ export async function POST(request: NextRequest) {
     if (!token) {
       throw new CustomError("Fill user details", 400);
     }
+
     const decoded = await auth.verifyIdToken(token);
-    const { uid, phone_number } = decoded;
+    const { phone_number } = decoded;
+
     if (!phone_number) {
       throw new CustomError("Invalid credentials", 401);
     }
+
     const sid = randomUUID();
-    await auth.setCustomUserClaims(uid, { sid });
-    const db = getDB();
     const MNH = createHash(phone_number);
+
+    const sidT = MNH + ":" + sid;
+
+    const db = getDB();
     const [rows] = await db.execute(
       "SELECT userType FROM clients WHERE MNH = ?",
       [MNH],
@@ -46,7 +51,7 @@ export async function POST(request: NextRequest) {
     if (!userType) {
       const MNE = encrypt(phone_number);
       await db.execute(
-        "INSERT INTO clients (MNH, MNE, username, token, department)",
+        "INSERT INTO clients (MNH, MNE, username, token, department) VALUES (?, ?, ?, ?, ?)",
         [MNH, MNE, username || "N/A", sid, department || "N/A"],
       );
     }
@@ -57,9 +62,9 @@ export async function POST(request: NextRequest) {
     });
 
     await redis.expire(MNH, 60 * 60 * 24);
-
+    console.log(sidT);
     return NextResponse.json(
-      { message: "OK", userType: userType || 1, error: false },
+      { message: "OK", userType: userType || 1, token: sidT, error: false },
       { status: 200 },
     );
   } catch (err) {

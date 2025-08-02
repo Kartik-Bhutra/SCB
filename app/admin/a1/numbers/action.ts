@@ -33,7 +33,6 @@ export async function fetchData(page: number, length: number) {
       lastPageNo: lastId ? Math.ceil(lastId.id / length) : 1,
     };
   } catch (err) {
-    console.error(err);
     return {
       data: [] as blockedData[],
       success: false,

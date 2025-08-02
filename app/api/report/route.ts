@@ -3,6 +3,7 @@ import { decrypt, encrypt } from "@/hooks/useXCHACHA20";
 import { CustomError } from "@/lib/error";
 import { auth } from "@/lib/firebase";
 import { getDB } from "@/lib/mySQL";
+import { mobileAuth } from "@/utils/clientAction";
 import { NextRequest, NextResponse } from "next/server";
 
 interface token {
@@ -16,6 +17,7 @@ interface readReport {
 
 interface add extends token {
   mobileNo: string;
+  phone_number: string;
 }
 
 export async function POST(request: NextRequest) {
@@ -24,12 +26,17 @@ export async function POST(request: NextRequest) {
     if (!token) {
       throw new CustomError("Fill user details", 400);
     }
-    const decoded = await auth.verifyIdToken(token);
-    const { phone_number } = decoded;
-    if (!phone_number) {
-      throw new CustomError("Invalid credentials", 401);
+    const { success, userType, error: authError } = await mobileAuth(token);
+    if (!success) {
+      throw new CustomError(authError || "Invalid Token", 401);
     }
-    const MNH = createHash(phone_number);
+    if (userType === 0) {
+      throw new CustomError(authError || "Authentication failed", 403);
+    }
+    if (userType === 1) {
+      throw new CustomError("Unauthorized access", 401);
+    }
+    const [MNH] = token.split(":");
     const db = getDB();
     const [result] = await db.execute(
       "SELECT MNE, stat FROM reports WHERE RMNH = ?",
@@ -53,14 +60,19 @@ export async function POST(request: NextRequest) {
 
 export async function PATCH(request: NextRequest) {
   try {
-    const { token, mobileNo } = (await request.json()) as add;
-    if (!token || !mobileNo) {
+    const { token, mobileNo, phone_number } = (await request.json()) as add;
+    if (!token || !mobileNo || !phone_number) {
       throw new CustomError("Fill user details", 400);
     }
-    const decoded = await auth.verifyIdToken(token);
-    const { phone_number } = decoded;
-    if (!phone_number) {
-      throw new CustomError("Invalid credentials", 401);
+    const { success, userType, error: authError } = await mobileAuth(token);
+    if (!success) {
+      throw new CustomError(authError || "Invalid Token", 401);
+    }
+    if (userType === 0) {
+      throw new CustomError(authError || "Authentication failed", 403);
+    }
+    if (userType === 1) {
+      throw new CustomError("Unauthorized access", 401);
     }
     const MNH = createHash(phone_number);
     const db = getDB();

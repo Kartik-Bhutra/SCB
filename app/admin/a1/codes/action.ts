@@ -27,7 +27,6 @@ export async function fetchData(page: number, length: number) {
       lastPageNo: lastId ? Math.ceil(lastId.id / length) : 1,
     };
   } catch (err) {
-    console.error(err);
     return {
       data: [] as blockedCodes[],
       success: false,
@@ -63,7 +62,6 @@ export async function addNo(_: serverActionState, formData: FormData) {
       error: "",
     };
   } catch (err) {
-    console.error(err);
     return {
       success: false,
       error: err instanceof CustomError ? err.message : "something went wrong",
