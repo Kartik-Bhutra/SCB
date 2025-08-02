@@ -19,10 +19,15 @@ export async function POST(request: NextRequest) {
 
     const { success, userType, error: authError } = await mobileAuth(token);
 
-    if (!success || userType !== 2) {
-      throw new CustomError(authError || "Authentication failed", 401);
+    if (!success) {
+      throw new CustomError(authError || "Invalid Token", 401);
     }
-
+    if (userType === 0) {
+      throw new CustomError(authError || "Authentication failed", 403);
+    }
+    if (userType === 1) {
+      throw new CustomError("Unauthorized access", 401);
+    }
     const db = getDB();
     const [rows] = await db.execute("SELECT MNE FROM numbers");
 

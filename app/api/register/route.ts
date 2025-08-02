@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
     const userType = (rows as clients[] | undefined[])[0]?.userType;
 
     if (userType === 0) {
-      throw new CustomError("mobileNo not allowed", 401);
+      throw new CustomError("mobileNo not allowed", 403);
     }
 
     if (!userType) {
