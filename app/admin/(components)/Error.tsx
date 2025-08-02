@@ -1,4 +1,4 @@
-import FetchError from "@/icons/FetchError";
+import FetchError from "./FetchError";
 import Link from "next/link";
 import { Dispatch, SetStateAction } from "react";
 interface errorProps {

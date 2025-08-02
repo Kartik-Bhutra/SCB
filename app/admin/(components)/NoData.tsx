@@ -1,4 +1,4 @@
-import NoDataIcon from "@/icons/NoData";
+import NoDataIcon from "./NotFound";
 import Link from "next/link";
 
 export default function NoData() {

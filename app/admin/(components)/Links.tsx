@@ -1,4 +1,8 @@
-export default function Links({ icon }) {
+interface LinksProps {
+  icon: string;
+}
+
+export default function Links({ icon }: LinksProps) {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"

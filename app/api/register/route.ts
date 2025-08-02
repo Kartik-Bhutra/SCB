@@ -59,7 +59,7 @@ export async function POST(request: NextRequest) {
     await redis.expire(MNH, 60 * 60 * 24);
 
     return NextResponse.json(
-      { message: "OK", userType: userType || 1, success: true, error: false },
+      { message: "OK", userType: userType || 1, error: false },
       { status: 200 },
     );
   } catch (err) {

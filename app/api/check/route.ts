@@ -43,7 +43,6 @@ export async function POST(request: NextRequest) {
           departments: (rows as departments[]).map(
             ({ department }) => department,
           ),
-          success: true,
           error: false,
         },
         { status: 200 },
@@ -51,7 +50,7 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json(
-      { message: "OK", exists: 1, success: true, error: false },
+      { message: "OK", exists: 1, error: false },
       { status: 200 },
     );
   } catch (err) {

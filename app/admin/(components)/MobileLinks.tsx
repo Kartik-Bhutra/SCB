@@ -1,4 +1,8 @@
-export default function MobileLinks({ isOpen }) {
+interface MobileLinksProps {
+  isOpen: boolean;
+}
+
+export default function MobileLinks({ isOpen }: MobileLinksProps) {
   return (
     <svg
       className="w-6 h-6"

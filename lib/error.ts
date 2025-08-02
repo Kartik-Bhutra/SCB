@@ -15,7 +15,6 @@ export class CustomError extends Error {
   toJSON() {
     return {
       error: true,
-      success: false,
       message: this.message,
       code: this.code,
     };

@@ -36,7 +36,6 @@ export async function POST(request: NextRequest) {
       {
         data: decryptedNumbers,
         codes: (data as blockedCodes[]).map(({ code }) => code),
-        success: true,
         error: false,
       },
       { status: 200 },
