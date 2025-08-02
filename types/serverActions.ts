@@ -21,6 +21,11 @@ export interface clientData {
   username: string;
 }
 
+export interface reportsData {
+  MNE: string;
+  RMNE: string;
+}
+
 export interface ids {
   id: number;
 }
