@@ -1,13 +1,6 @@
 import { CustomError } from "@/lib/error";
-import { DecodedIdToken } from "firebase-admin/auth";
-import { createHash } from "@/hooks/useHash";
 import { getDB } from "@/lib/mySQL";
-import { auth } from "@/lib/firebase";
 import redis from "@/lib/redis";
-
-interface verify extends DecodedIdToken {
-  sid: string;
-}
 
 interface clientToken {
   token: string;
@@ -55,7 +48,6 @@ export async function mobileAuth(idToken: string) {
       userType,
     };
   } catch (err) {
-    console.error(err)
     return {
       success: false,
       error: err instanceof CustomError ? err.message : "something went wrong",

@@ -74,7 +74,6 @@ export async function approveNo(_: serverActionState, formData: FormData) {
       error: "",
     };
   } catch (err) {
-    console.error(err)
     return {
       success: false,
       error: err instanceof CustomError ? err.message : "something went wrong",

@@ -42,6 +42,7 @@ export default function SeqInput() {
         ref={inputRef}
         value={formatValue(value)}
         onKeyDown={handleKeyDown}
+        onChange={() => {}}
         autoComplete="off"
         className="w-full font-mono text-xl tracking-widest text-center px-4 py-2 border border-gray-300 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
         maxLength={12}

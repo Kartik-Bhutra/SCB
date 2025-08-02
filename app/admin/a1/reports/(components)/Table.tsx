@@ -4,6 +4,7 @@ import { Dispatch, SetStateAction, useState } from "react";
 import Loader from "@/app/admin/(components)/Loader";
 import ClientModal from "./ClientModal";
 import NoData from "@/app/admin/(components)/NoData";
+import Link from "next/link";
 
 interface tableProps {
   data: reportsData[];
@@ -26,6 +27,17 @@ export default function Table({ data, isLoading, setRefresh }: tableProps) {
         setRefresh={setRefresh}
       />
       <div className="bg-white rounded-lg shadow-sm mx-auto max-w-[100vw]">
+        <div className="flex justify-between items-center gap-2 px-6 py-4 border-b border-gray-200">
+          <h2 className="text-lg font-semibold text-gray-800">reports</h2>
+          <div className="inline-flex rounded-md shadow-xs" role="group">
+            <Link
+              href="/admin/"
+              className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-s mr-[1px]"
+            >
+              Back
+            </Link>
+          </div>
+        </div>
         {!data.length && !isLoading ? (
           <NoData />
         ) : (

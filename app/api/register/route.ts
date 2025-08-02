@@ -62,7 +62,6 @@ export async function POST(request: NextRequest) {
     });
 
     await redis.expire(MNH, 60 * 60 * 24);
-    console.log(sidT);
     return NextResponse.json(
       { message: "OK", userType: userType || 1, token: sidT, error: false },
       { status: 200 },

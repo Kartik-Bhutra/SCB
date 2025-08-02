@@ -3,6 +3,7 @@
 import { createHash } from "@/hooks/useHash";
 import { decrypt, encrypt } from "@/hooks/useXCHACHA20";
 import { CustomError } from "@/lib/error";
+import { messanger } from "@/lib/firebase";
 import { getDB } from "@/lib/mySQL";
 import { ids, reportsData, serverActionState } from "@/types/serverActions";
 import { getCurrentUser } from "@/utils/adminActions";
@@ -58,9 +59,14 @@ export async function approveNo(_: serverActionState, formData: FormData) {
       [userId, MNH],
     );
     await db.execute(
-      "INSERT IGNORE INTO numbers (MNH, MNE,blockedBy) VALUES (?,?,?) ",
+      "INSERT IGNORE INTO numbers (MNH, MNE,blockedBy) VALUES (?,?,?)",
       [MNH, encrypt(number), userId],
     );
+    await messanger.send({
+      topic: "blockedUpdates",
+      data: { type: "refresh_block_list" },
+      android: { priority: "high" },
+    });
     return {
       success: true,
       error: "",
@@ -89,6 +95,11 @@ export async function removeNo(_: serverActionState, formData: FormData) {
       "UPDATE reports SET stat = 0, blockedBy = ? WHERE MNH = ?",
       [userId, MNH],
     );
+    await messanger.send({
+      topic: "blockedUpdates",
+      data: { type: "refresh_block_list" },
+      android: { priority: "high" },
+    });
     return {
       success: true,
       error: "",

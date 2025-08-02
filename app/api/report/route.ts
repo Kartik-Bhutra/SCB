@@ -1,7 +1,6 @@
 import { createHash } from "@/hooks/useHash";
 import { decrypt, encrypt } from "@/hooks/useXCHACHA20";
 import { CustomError } from "@/lib/error";
-import { auth } from "@/lib/firebase";
 import { getDB } from "@/lib/mySQL";
 import { mobileAuth } from "@/utils/clientAction";
 import { NextRequest, NextResponse } from "next/server";
@@ -76,10 +75,11 @@ export async function PATCH(request: NextRequest) {
     }
     const MNH = createHash(phone_number);
     const db = getDB();
-    await db.execute("INSERT INTO reports(MNE,RMNH,RMNE) VALUES(?,?,?)", [
+    await db.execute("INSERT INTO reports(MNE,RMNH,RMNE,MNH) VALUES(?,?,?,?)", [
       encrypt(mobileNo),
       MNH,
       encrypt(phone_number),
+      createHash(mobileNo),
     ]);
     return NextResponse.json({ message: "OK", error: false }, { status: 200 });
   } catch (err) {
