@@ -10,7 +10,7 @@ CREATE TABLE IF NOT EXISTS admins (
   MNE VARCHAR(80) NOT NULL,
   adminType TINYINT(1) DEFAULT 0,
   createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  department VARCHAR(30),
+  department VARCHAR(30) NOT NULL,
   FOREIGN KEY (department) REFERENCES departments(department)
 );
 
@@ -27,7 +27,6 @@ CREATE TABLE IF NOT EXISTS clients (
   FOREIGN KEY (department) REFERENCES departments(department),
   FOREIGN KEY (authBy) REFERENCES admins(userId)
 );
-
 CREATE TABLE IF NOT EXISTS numbers(
   id SMALLINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   MNH VARCHAR(50) UNIQUE NOT NULL,
@@ -35,4 +34,17 @@ CREATE TABLE IF NOT EXISTS numbers(
   blockedBy VARCHAR(50) NOT NULL,
   createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (blockedBy) REFERENCES admins(userId)
+);
+
+CREATE TABLE IF NOT EXISTS codes(
+  id SMALLINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  code VARCHAR(50) UNIQUE NOT NULL,
+  blockedBy VARCHAR(50) NOT NULL,
+  createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (blockedBy) REFERENCES admins(userId)
+);
+insert into departments(department) values("RAJASTHAN");
+
+INSERT INTO admins(userId, PH,MNE,adminType,department) values(
+"owner","$argon2id$v=19$m=65536,t=3,p=4$cvMqVsR7WqzS2bKNdoOsFA$NGAuvOJIhsR08tc8Xt/OqXsCVLik1uxI963Un+F580k","WfLFt20xq7VYZnvmvBoT9P-T-i2tw9Kf0BrtKiM:YbVtOClEE22V-bsY9gQbCS65PTlBg79h",1,"RAJASTHAN"
 );

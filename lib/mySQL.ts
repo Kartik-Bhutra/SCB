@@ -12,6 +12,7 @@ export function getDB() {
       waitForConnections: true,
       connectionLimit: 1,
       queueLimit: 0,
+      port: Number(process.env.DB_PORT),
     });
   }
   return pool;

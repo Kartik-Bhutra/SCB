@@ -6,11 +6,14 @@ services:
     container_name: nextjs_app
     ports:
       - "3000:3000"
+    networks:
+      - army
     environment:
       - DB_HOST=db
       - DB_NAME=SCB
       - DB_USER=nextjs_user
       - DB_PASS=kartik
+      - DB_PORT=3306
       - ENCRYPTED_KEY=01824723cec7749538394df278e859e1
       - SECERT_KEY=93300bb61a43bdd6fc7cb6e03ad042f4
       - REDIS_HOST=redis
@@ -34,18 +37,21 @@ services:
       - MYSQL_USER=nextjs_user
       - MYSQL_PASSWORD=kartik
     ports:
-      - "3306:3306"
+      - "3307:3306"
+    networks:
+      - army
     volumes:
       - db_data:/var/lib/mysql
 
   redis:
-    image: redis:7-alpine
+    image: redis:latest
     container_name: redis_cache
     ports:
       - "6379:6379"
     volumes:
       - redis_data:/data
-
+    networks:
+      - army
   adminer:
     image: adminer
     restart: always
@@ -55,3 +61,6 @@ services:
 volumes:
   db_data:
   redis_data:
+networks:
+  army:
+    driver: bridge
