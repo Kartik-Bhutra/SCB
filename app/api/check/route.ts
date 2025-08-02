@@ -30,8 +30,12 @@ export async function POST(request: NextRequest) {
 
     const userType = (rows as clients[] | undefined[])[0]?.userType;
 
+    if (userType === 0) {
+      throw new CustomError("mobileNo not allowed", 401);
+    }
+
     if (!userType) {
-      const [rows] = await db.execute("SELECT departments from departments");
+      const [rows] = await db.execute("SELECT department from departments");
       return NextResponse.json(
         {
           message: "OK",
@@ -39,16 +43,17 @@ export async function POST(request: NextRequest) {
           departments: (rows as departments[]).map(
             ({ department }) => department,
           ),
+          success: true,
+          error: false,
         },
         { status: 200 },
       );
     }
 
-    if (userType === 0) {
-      throw new CustomError("mobileNo not allowed", 401);
-    }
-
-    return NextResponse.json({ message: "OK", exists: 1 }, { status: 200 });
+    return NextResponse.json(
+      { message: "OK", exists: 1, success: true, error: false },
+      { status: 200 },
+    );
   } catch (err) {
     return NextResponse.json(
       err instanceof CustomError ? err.toJSON() : { message: "server error" },

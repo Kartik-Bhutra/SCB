@@ -39,16 +39,16 @@ export async function POST(request: NextRequest) {
 
     const userType = (rows as clients[] | undefined[])[0]?.userType;
 
+    if (userType === 0) {
+      throw new CustomError("mobileNo not allowed", 401);
+    }
+
     if (!userType) {
       const MNE = encrypt(phone_number);
       await db.execute(
         "INSERT INTO clients (MNH, MNE, username, token, department)",
         [MNH, MNE, username || "N/A", sid, department || "N/A"],
       );
-    }
-
-    if (userType === 0) {
-      throw new CustomError("mobileNo not allowed", 401);
     }
 
     await redis.json.set(MNH, "$", {
@@ -58,7 +58,10 @@ export async function POST(request: NextRequest) {
 
     await redis.expire(MNH, 60 * 60 * 24);
 
-    return NextResponse.json({ message: "OK" }, { status: 200 });
+    return NextResponse.json(
+      { message: "OK", userType: userType || 1, success: true, error: false },
+      { status: 200 },
+    );
   } catch (err) {
     return NextResponse.json(
       err instanceof CustomError ? err.toJSON() : { message: "server error" },

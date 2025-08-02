@@ -1,7 +1,7 @@
 import { decrypt } from "@/hooks/useXCHACHA20";
 import { CustomError } from "@/lib/error";
 import { getDB } from "@/lib/mySQL";
-import { blockedData } from "@/types/serverActions";
+import { blockedCodes, blockedData } from "@/types/serverActions";
 import { mobileAuth } from "@/utils/clientAction";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -30,9 +30,14 @@ export async function POST(request: NextRequest) {
       decrypt(MNE),
     );
 
+    const [data] = await db.execute("SELECT code FROM codes");
+
     return NextResponse.json(
       {
         data: decryptedNumbers,
+        codes: (data as blockedCodes[]).map(({ code }) => code),
+        success: true,
+        error: false,
       },
       { status: 200 },
     );

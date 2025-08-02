@@ -4,7 +4,6 @@ export class CustomError extends Error {
 
   constructor(message: string, statusCode = 500, code?: string) {
     super(message);
-    this.name = "CustomError";
     this.statusCode = statusCode;
     this.code = code;
 
@@ -15,7 +14,8 @@ export class CustomError extends Error {
 
   toJSON() {
     return {
-      error: this.name,
+      error: true,
+      success: false,
       message: this.message,
       code: this.code,
     };
