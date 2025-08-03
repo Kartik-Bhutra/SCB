@@ -51,6 +51,7 @@
 CREATE TABLE IF NOT EXISTS reports(
   id SMALLINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   MNE VARCHAR(80) NOT NULL,
+  MNH VARCHAR(50) NOT NULL,
   RMNH VARCHAR(50) NOT NULL,
   RMNE VARCHAR(80) NOT NULL,
   stat TINYINT DEFAULT 1,
@@ -58,4 +59,8 @@ CREATE TABLE IF NOT EXISTS reports(
   blockedBy VARCHAR(50),
   FOREIGN KEY (blockedBy) REFERENCES admins(userId),
   FOREIGN KEY (RMNH) REFERENCES clients(MNH)
+);
+insert into departments(department) values("RAJASTHAN");
+INSERT INTO admins(userId, PH,MNE,adminType,department) values(
+"owner","$argon2id$v=19$m=65536,t=3,p=4$cvMqVsR7WqzS2bKNdoOsFA$NGAuvOJIhsR08tc8Xt/OqXsCVLik1uxI963Un+F580k","WfLFt20xq7VYZnvmvBoT9P-T-i2tw9Kf0BrtKiM:YbVtOClEE22V-bsY9gQbCS65PTlBg79h",1,"RAJASTHAN"
 );
