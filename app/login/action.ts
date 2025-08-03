@@ -61,11 +61,11 @@ export default async function handleLogin(
 
     const cookieStore = await cookies();
     cookieStore.set("token", token, {
-      httpOnly: true,
-      secure: true,
-      sameSite: "strict",
-      path: "/",
-      priority: "low",
+      // httpOnly: true,
+      // secure: true,
+      // sameSite: "strict",
+      // path: "/",
+      // priority: "low",
       maxAge: 60 * 60 * 24,
     });
 

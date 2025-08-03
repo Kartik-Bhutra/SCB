@@ -15,7 +15,6 @@ export async function getCurrentUser() {
     if (!token) throw new CustomError("Unauthorized", 401);
 
     const [UIH, sid] = token.split(":");
-
     const cachedToken = (await redis.json.get(UIH)) as session | null;
     if (!cachedToken || cachedToken.sid !== sid)
       throw new CustomError("Unauthorized", 401);
