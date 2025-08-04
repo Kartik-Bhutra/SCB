@@ -15,11 +15,13 @@ interface register {
 
 interface clients {
   userType: number;
+  username: string;
+  department: string;
 }
 
 export async function POST(request: NextRequest) {
   try {
-    const { token, department, username } = (await request.json()) as register;
+    let { token, department, username } = (await request.json()) as register;
     if (!token) {
       throw new CustomError("Fill user details", 400);
     }
@@ -34,15 +36,18 @@ export async function POST(request: NextRequest) {
     const sid = randomUUID();
     const MNH = createHash(phone_number);
 
-    const sidT = MNH + ":" + sid;
+    token = MNH + ":" + sid;
 
     const db = getDB();
     const [rows] = await db.execute(
-      "SELECT userType FROM clients WHERE MNH = ?",
+      "SELECT userType, username, department FROM clients WHERE MNH = ?",
       [MNH],
     );
 
     const userType = (rows as clients[] | undefined[])[0]?.userType;
+
+    username = username || (rows as clients[] | undefined[])[0]?.username;
+    department = department || (rows as clients[] | undefined[])[0]?.department;
 
     if (userType === 0) {
       throw new CustomError("mobileNo not allowed", 403);
@@ -63,7 +68,14 @@ export async function POST(request: NextRequest) {
 
     await redis.expire(MNH, 60 * 60 * 24);
     return NextResponse.json(
-      { message: "OK", userType: userType || 1, token: sidT, error: false },
+      {
+        message: "OK",
+        userType: userType || 1,
+        token,
+        username: username || "N/A",
+        department: department || "N/A",
+        error: false,
+      },
       { status: 200 },
     );
   } catch (err) {

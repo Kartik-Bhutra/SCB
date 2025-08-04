@@ -4,7 +4,7 @@ import redis from "@/lib/redis";
 
 interface clientToken {
   token: string;
-  userType: string;
+  userType: number;
 }
 
 export async function mobileAuth(idToken: string) {
