@@ -21,8 +21,8 @@ export async function fetchData(
     const db = getDB();
     const id = (page - 1) * 25;
     const [rows] = await db.execute(
-      `SELECT MNE, username FROM clients WHERE id > ? and department = ? and userType = ? LIMIT ${length}`,
-      [id, department, userType],
+      `SELECT MNE, username FROM clients WHERE id > ? AND (department = ? OR ? ) AND userType = ? LIMIT ${length}`,
+      [id, department, department === "ALL", userType],
     );
     const data = (rows as clientData[]).map((row) => ({
       ...row,
