@@ -1,7 +1,4 @@
-import { decrypt } from "@/hooks/useXCHACHA20";
 import { CustomError } from "@/lib/error";
-import { getDB } from "@/lib/mySQL";
-import { blockedCodes, blockedData } from "@/types/serverActions";
 import { mobileAuth } from "@/utils/clientAction";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -10,7 +7,6 @@ export async function POST(request: NextRequest) {
     const { token } = (await request.json()) as {
       token: string;
     };
-
     if (!token) {
       throw new CustomError("Missing authentication token", 400);
     }
@@ -22,23 +18,9 @@ export async function POST(request: NextRequest) {
     if (userType === 0) {
       throw new CustomError(authError || "Authentication failed", 403);
     }
-    if (userType === 1) {
-      throw new CustomError("Unauthorized access", 401);
-    }
-    const db = getDB();
-    const [rows] = await db.execute("SELECT MNE FROM numbers");
-
-    const decryptedNumbers = (rows as blockedData[]).map(({ MNE }) =>
-      decrypt(MNE),
-    );
-
-    const [data] = await db.execute("SELECT code FROM codes");
-
     return NextResponse.json(
       {
-        data: decryptedNumbers,
-        codes: (data as blockedCodes[]).map(({ code }) => code),
-        error: false,
+        userType: userType || 1,
       },
       { status: 200 },
     );
