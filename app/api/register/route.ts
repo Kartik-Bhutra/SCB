@@ -3,7 +3,6 @@ import { encrypt } from "@/hooks/useXCHACHA20";
 import { CustomError } from "@/lib/error";
 import { auth } from "@/lib/firebase";
 import { getDB } from "@/lib/mySQL";
-import redis from "@/lib/redis";
 import { randomUUID } from "crypto";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -46,8 +45,8 @@ export async function POST(request: NextRequest) {
 
     const userType = (rows as clients[] | undefined[])[0]?.userType;
 
-    username = username || (rows as clients[] | undefined[])[0]?.username;
-    department = department || (rows as clients[] | undefined[])[0]?.department;
+    username = (rows as clients[] | undefined[])[0]?.username || username;
+    department = (rows as clients[] | undefined[])[0]?.department || department;
 
     if (userType === 0) {
       throw new CustomError("mobileNo not allowed", 403);
@@ -59,14 +58,12 @@ export async function POST(request: NextRequest) {
         "INSERT INTO clients (MNH, MNE, username, token, department) VALUES (?, ?, ?, ?, ?)",
         [MNH, MNE, username || "N/A", sid, department || "N/A"],
       );
+    } else {
+      await db.execute("UPDATE clients SET token = ? WHERE MNH = ?", [
+        sid,
+        MNH,
+      ]);
     }
-
-    await redis.json.set(MNH, "$", {
-      userType: userType || 1,
-      token: sid,
-    });
-
-    await redis.expire(MNH, 60 * 60 * 24);
     return NextResponse.json(
       {
         message: "OK",
@@ -74,11 +71,11 @@ export async function POST(request: NextRequest) {
         token,
         username: username || "N/A",
         department: department || "N/A",
-        error: false,
       },
       { status: 200 },
     );
   } catch (err) {
+    console.error(err);
     return NextResponse.json(
       err instanceof CustomError ? err.toJSON() : { message: "server error" },
       { status: err instanceof CustomError ? err.statusCode : 500 },

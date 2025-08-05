@@ -3,10 +3,6 @@ import { CustomError } from "@/lib/error";
 import { getDB } from "@/lib/mySQL";
 import { NextRequest, NextResponse } from "next/server";
 
-interface check {
-  mobileNo: string;
-}
-
 interface clients {
   userType: number;
 }
@@ -17,10 +13,13 @@ interface departments {
 
 export async function POST(request: NextRequest) {
   try {
-    const { mobileNo } = (await request.json()) as check;
+    const { mobileNo } = (await request.json()) as {
+      mobileNo: string;
+    };
     if (!mobileNo) {
       throw new CustomError("Fill user details", 400);
     }
+
     const MNH = createHash(mobileNo);
     const db = getDB();
     const [rows] = await db.execute(
@@ -38,21 +37,16 @@ export async function POST(request: NextRequest) {
       const [rows] = await db.execute("SELECT department from departments");
       return NextResponse.json(
         {
-          message: "OK",
           exists: 0,
-          departments: (rows as departments[]).map(
-            ({ department }) => department,
+          departments: (rows as departments[]).filter(
+            ({ department }) => department !== "ALL",
           ),
-          error: false,
         },
         { status: 200 },
       );
     }
 
-    return NextResponse.json(
-      { message: "OK", exists: 1, error: false },
-      { status: 200 },
-    );
+    return NextResponse.json({ exists: 1 }, { status: 200 });
   } catch (err) {
     return NextResponse.json(
       err instanceof CustomError ? err.toJSON() : { message: "server error" },

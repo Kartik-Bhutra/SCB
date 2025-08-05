@@ -2,6 +2,7 @@
 import redis from "@/lib/redis";
 import { cookies } from "next/headers";
 import { CustomError } from "@/lib/error";
+import { redirect } from "next/navigation";
 interface session {
   adminType: boolean;
   sid: string;
@@ -38,22 +39,11 @@ export async function getCurrentUser() {
 }
 
 export async function logoutUser() {
-  try {
-    const cookieStore = await cookies();
-    const token = cookieStore.get("token")?.value;
-    if (!token) throw new CustomError("Unauthorized", 401);
-
-    const [userId] = token.split(":");
-    await redis.json.del(userId);
-    cookieStore.delete("token");
-    return {
-      success: true,
-      error: "",
-    };
-  } catch (err) {
-    return {
-      success: false,
-      error: err instanceof CustomError ? err.message : "something went wrong",
-    };
-  }
+  const cookieStore = await cookies();
+  const token = cookieStore.get("token")?.value;
+  if (!token) redirect("/login");
+  const [UIH] = token.split(":");
+  await redis.json.del(UIH);
+  cookieStore.delete("token");
+  redirect("/login");
 }

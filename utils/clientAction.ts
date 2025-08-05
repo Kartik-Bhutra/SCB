@@ -1,6 +1,5 @@
 import { CustomError } from "@/lib/error";
 import { getDB } from "@/lib/mySQL";
-import redis from "@/lib/redis";
 
 interface clientToken {
   token: string;
@@ -13,17 +12,6 @@ export async function mobileAuth(idToken: string) {
       throw new CustomError("Fill user details", 400);
     }
     const [MNH, sid] = idToken.split(":");
-    const data = (await redis.json.get(MNH)) as clientToken | null;
-    if (data) {
-      if (data.token !== sid) {
-        throw new CustomError("Unauthorized", 401);
-      }
-      return {
-        success: true,
-        error: "",
-        userType: data.userType,
-      };
-    }
 
     const db = getDB();
     const [rows] = await db.execute(
@@ -34,13 +22,6 @@ export async function mobileAuth(idToken: string) {
     if (token !== sid) {
       throw new CustomError("Unauthorized", 401);
     }
-
-    await redis.json.set(MNH, "$", {
-      token: token,
-      userType,
-    });
-
-    await redis.expire(MNH, 60 * 60 * 24);
 
     return {
       success: true,

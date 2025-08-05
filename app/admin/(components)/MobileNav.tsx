@@ -4,7 +4,7 @@ import Cross from "@/app/admin/(components)/Cross";
 import Logout from "./Logout";
 import Links from "./Links";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { logoutUser } from "@/utils/adminActions";
 import { navigation } from "@/constants/navbarItem";
 
@@ -14,7 +14,6 @@ interface MobileNavProps {
 }
 
 export default function MobileNav({ isOpen, setIsOpen }: MobileNavProps) {
-  const router = useRouter();
   const pathname = usePathname();
   return (
     <div className="md:hidden">
@@ -63,12 +62,7 @@ export default function MobileNav({ isOpen, setIsOpen }: MobileNavProps) {
 
               <div className="pt-4 border-t border-gray-200">
                 <button
-                  onClick={async () => {
-                    const { success } = await logoutUser();
-                    if (success) {
-                      router.replace("/login");
-                    }
-                  }}
+                  onClick={logoutUser}
                   className="w-full flex items-center px-3 py-2.5 text-base font-medium text-red-600 hover:bg-red-50 rounded-xl transition-all duration-200"
                 >
                   <Logout />
