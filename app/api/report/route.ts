@@ -83,8 +83,6 @@ export async function PATCH(request: NextRequest) {
     ]);
     return NextResponse.json({ message: "OK", error: false }, { status: 200 });
   } catch (err) {
-    console.error(err);
-
     return NextResponse.json(
       err instanceof CustomError ? err.toJSON() : { message: "server error" },
       { status: err instanceof CustomError ? err.statusCode : 500 },

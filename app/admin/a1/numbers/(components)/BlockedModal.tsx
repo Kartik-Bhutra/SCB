@@ -75,7 +75,6 @@ export default function BlockedModal({
           </label>
           <input
             accept=".txt,.csv"
-            onChange={async () => {}}
             type="file"
             name="file-input"
             id="file-input"

@@ -21,6 +21,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       {
         userType: userType || 1,
+        error: false,
       },
       { status: 200 },
     );

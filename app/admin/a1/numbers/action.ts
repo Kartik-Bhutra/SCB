@@ -110,9 +110,70 @@ export async function deleteNo(_: serverActionState, formData: FormData) {
 }
 
 export async function bulkUpload(_: serverActionState, formData: FormData) {
-  console.log(formData);
-  return {
-    success: false,
-    error: "",
-  };
+  try {
+    const { success, userId } = await getCurrentUser();
+    if (!success) {
+      throw new CustomError("Unauthorized", 401);
+    }
+
+    const file = formData.get("file-input");
+
+    if (!(file instanceof File) || !file.type.startsWith("text/")) {
+      throw new CustomError("Please upload a valid text file.", 400);
+    }
+
+    const text = await file.text();
+    const rawList = text
+      .split(/[\n, ]+/)
+      .map((n) => n.trim())
+      .filter(Boolean);
+    const validNumbers: string[] = [];
+    rawList.forEach((num) => {
+      let processedNum: string | null = null;
+      if (num.startsWith("+")) {
+        if (/^\+\d+$/.test(num)) {
+          processedNum = num;
+        }
+      } else {
+        if (/^\d+$/.test(num)) {
+          processedNum = `+91${num}`;
+        }
+      }
+      if (processedNum) {
+        validNumbers.push(processedNum);
+      }
+    });
+
+    if (validNumbers.length === 0) {
+      throw new CustomError("No valid numbers found in the file.", 400);
+    }
+
+    const insertData = validNumbers.map((number) => [
+      createHash(number),
+      encrypt(number),
+      userId,
+    ]);
+
+    const db = getDB();
+
+    await db.query(
+      "INSERT INTO numbers (MNH, MNE, blockedBy) VALUES ? ON DUPLICATE KEY UPDATE MNE = VALUES(MNE), blockedBy = VALUES(blockedBy)",
+      [insertData],
+    );
+    await messanger.send({
+      topic: "blockedUpdates",
+      data: { type: "refresh_block_list" },
+      android: { priority: "high" },
+    });
+
+    return {
+      success: true,
+      error: "",
+    };
+  } catch (err) {
+    return {
+      success: false,
+      error: err instanceof CustomError ? err.message : "Something went wrong.",
+    };
+  }
 }

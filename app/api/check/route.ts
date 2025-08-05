@@ -38,15 +38,15 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         {
           exists: 0,
-          departments: (rows as departments[]).filter(
-            ({ department }) => department !== "ALL",
+          departments: (rows as departments[]).map(
+            ({ department }) => department,
           ),
         },
         { status: 200 },
       );
     }
 
-    return NextResponse.json({ exists: 1 }, { status: 200 });
+    return NextResponse.json({ exists: 1, error: false }, { status: 200 });
   } catch (err) {
     return NextResponse.json(
       err instanceof CustomError ? err.toJSON() : { message: "server error" },
