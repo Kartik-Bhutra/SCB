@@ -20,7 +20,7 @@ export async function fetchData(page: number, length: number) {
       `SELECT MNE, RMNE FROM reports WHERE id > ? AND stat = 1 LIMIT ${length}`,
       [id],
     );
-    const [row] = await db.execute("SELECT id FROM numbers LIMIT 1");
+    const [row] = await db.execute("SELECT id FROM reports LIMIT 1");
     const lastId = (row as ids[])[0];
     const data = (rows as reportsData[]).map(({ MNE, RMNE }) => ({
       MNE: decrypt(MNE),
@@ -33,6 +33,7 @@ export async function fetchData(page: number, length: number) {
       lastPageNo: lastId ? Math.ceil(lastId.id / length) : 1,
     };
   } catch (err) {
+    console.error(err);
     return {
       data: [] as reportsData[],
       success: false,

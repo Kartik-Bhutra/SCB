@@ -14,7 +14,7 @@ export default function BlockNumber() {
   const [error, setError] = useState("");
   const [data, setData] = useState([] as reportsData[]);
   const [refresh, setRefresh] = useState(false);
-  const [page, setPage] = useState(25);
+  const [page, setPage] = useState(1);
   useEffect(() => {
     (async () => {
       setIsLoading(true);
