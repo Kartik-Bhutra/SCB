@@ -8,6 +8,8 @@
     "start": "next start"
   },
   "dependencies": {
+    "argon2": "^0.44.0",
+    "jsonwebtoken": "^9.0.3",
     "mysql2": "^3.15.3",
     "next": "16.0.7",
     "react": "19.2.0",
