@@ -42,4 +42,4 @@ if (os === "linux") {
   };
 }
 
-export const client = createClient(redisConfig).connect();
+export const client = await createClient(redisConfig).connect();
