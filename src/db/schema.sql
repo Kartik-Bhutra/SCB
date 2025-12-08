@@ -4,14 +4,12 @@ USE scb;
 
 CREATE TABLE IF NOT EXISTS admins(
   userId CHAR(8) PRIMARY KEY,
-  passHash CHAR(97) NOT NULL,
-  refTkn CHAR(76)
+  passHash CHAR(97) NOT NULL
 );
 
 INSERT IGNORE INTO admins VALUE(
   '00bankai',
-  '$argon2id$v=19$m=65536,t=3,p=4$gsvk4X+0pHCGpbKdyEEOwQ$Nn4Ou/DFPKbJMZ/ibG6T+PxZ1LDpdZCQ8oeJJrXd4EE',
-  'eyJhbGciOiJIUzI1NiJ9.MDBiYW5rYWk.HJJ0Q-RX1DbN3BdHIFQU8iAG6UsQ3QZoxB_VBa-8byM'
+  '$argon2id$v=19$m=65536,t=3,p=4$gsvk4X+0pHCGpbKdyEEOwQ$Nn4Ou/DFPKbJMZ/ibG6T+PxZ1LDpdZCQ8oeJJrXd4EE'
 );
 
 CREATE TABLE IF NOT EXISTS users(
@@ -36,4 +34,4 @@ CREATE TABLE IF NOT EXISTS reports(
   type SMALLINT,
   repBy VARBINARY(32) NOT NULL REFERENCES users(mobNoHS),
   actBy CHAR(8) REFERENCES admins(userId)
-)
+);

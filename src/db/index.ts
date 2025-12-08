@@ -1,12 +1,14 @@
+import { createClient, RedisClientOptions } from "redis";
 import { createPool, PoolOptions } from "mysql2/promise";
 import { platform } from "os";
+import { DB_NAME, DB_PASS, REDIS_PASS } from "../../env";
 
 const os = platform();
 
 const dbConfig: PoolOptions = {
   user: "root",
-  password: process.env.DB_PASS || "",
-  database: process.env.DB_NAME || "test",
+  password: DB_PASS,
+  database: DB_NAME,
   waitForConnections: true,
   connectionLimit: 10,
   maxIdle: 10,
@@ -26,3 +28,18 @@ if (os === "linux") {
 }
 
 export const pool = createPool(dbConfig);
+
+let redisConfig: RedisClientOptions = {
+  url: "redis://127.0.0.1:6379",
+  username: "default",
+  password: REDIS_PASS,
+};
+
+if (os === "linux") {
+  redisConfig.socket = {
+    path: "/var/run/redis/redis.sock",
+    tls: false,
+  };
+}
+
+export const client = createClient(redisConfig).connect();
