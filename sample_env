@@ -1,0 +1,9 @@
+DB_PASS = "Samay@6752"
+DB_NAME = "scb"
+DB_USER = "user"
+
+ENC_KEY = "w1LfCbS/uZaSwxavFXLxaKLYj5WxkWtZt8bq46bNw30="
+# node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+HASH_KEY = "kfjhsdjgh"
+
+REDIS_PASS = ""

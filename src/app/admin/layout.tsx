@@ -2,31 +2,20 @@
 import { headers } from "next/headers";
 import { redirect, RedirectType } from "next/navigation";
 import Dashboard from "./(components)/Dashboard";
+import { verify } from "@/server/verify";
 
 export default async function adminLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const { success, adminType, userId, department } = {
-    success: true,
-    adminType: true,
-    userId: "123",
-    department: "123",
-  };
-  if (!success) {
+  const verfied = await verify();
+  if (!verfied) {
     redirect("/login", RedirectType.replace);
   }
-  const header = await headers();
-  // const pathname = header.get("x-full-url");
-  // if (!pathname) {
-  //   redirect("/login", RedirectType.replace);
-  // }
-  // if (pathname.startsWith("/admin/a2/") && !adminType) {
-  //   redirect("/admin", RedirectType.replace);
-  // }
+
   return (
-    <Dashboard adminType={adminType} userId={userId} department={department}>
+    <Dashboard >
       {children}
     </Dashboard>
   );

@@ -14,7 +14,7 @@ interface blockDataRaw {
 }
 export async function fetchData(page: number) {
   const verified = await verify();
-  if (!verified) return false;
+  if (!verified) return "Unauthorized";
 
   const id = (page - 1) * 25;
 

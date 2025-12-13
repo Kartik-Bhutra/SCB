@@ -55,7 +55,7 @@ export default function Pagination({
         </button>
       </form>
 
-      <div className="flex items-center gap-2 text-sm">
+      {/* <div className="flex items-center gap-2 text-sm">
         <label htmlFor="length" className="text-gray-700">
           Rows:
         </label>
@@ -68,7 +68,7 @@ export default function Pagination({
           <option value={25}>25</option>
           <option value={50}>50</option>
         </select>
-      </div>
+      </div> */}
 
       {/* Page Navigation Buttons */}
       <div className="flex items-center gap-1 text-sm">

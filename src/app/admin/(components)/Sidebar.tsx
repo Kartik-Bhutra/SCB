@@ -1,12 +1,16 @@
 import { navigation } from "@/constants/navbarItem";
 import Logout from "./Logout";
-// import { logoutUser } from "@/utils/adminActions";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import Links from "./Links";
+import { logoutUser } from "../action";
 
 export default function Sidebar() {
   const pathname = usePathname();
+  const handleLogout = async () => {
+    await logoutUser();
+    window.location.href = "/login";
+  }
   return (
     <div className="hidden md:flex h-full flex-col">
       <nav className="flex-1">
@@ -37,7 +41,7 @@ export default function Sidebar() {
 
           <div className="p-4 border-t border-gray-100">
             <button
-              onClick={()=>{}}
+              onClick={handleLogout}
               className="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-red-600 hover:text-red-700 hover:bg-red-50 rounded-xl transition-all duration-200"
             >
               <Logout />

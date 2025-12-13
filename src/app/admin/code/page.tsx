@@ -3,35 +3,26 @@
 import { useEffect, useState } from "react";
 import Pagination from "../(components)/Pagination";
 import Error from "../(components)/Error";
-import { fetchData,maxPageNo } from "./action";
+import { fetchData } from "./action";
 import Table from "./(components)/Table";
-import { blockData } from "@/types/serverActions";
 
 export default function BlockNumber() {
   const [length, setLength] = useState(25);
   const [lastPageNo, setLastPageNo] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
-  const [data, setData] = useState([] as blockData[]);
+  const [data, setData] = useState([] as string[]);
   const [refresh, setRefresh] = useState(false);
   const [page, setPage] = useState(1);
   useEffect(() => {
     (async () => {
-      if (page > lastPageNo) {
-        setPage(lastPageNo);
-      }
       setIsLoading(true);
-      const result = await fetchData(
-        page,
-      );
-      console.log(result);
+      const result = await fetchData();
       setIsLoading(false);
       if (result==="Unauthorized") {
-        setError("Unauthorized");
+        setError(result);
         return;
       }
-
-      setLastPageNo(await maxPageNo());
       setData(result);
     })();
   }, [page, length, refresh]);

@@ -1,38 +1,37 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { clientData } from "@/types/serverActions";
 import Pagination from "../(components)/Pagination";
 import Error from "../(components)/Error";
-import { fetchData,maxPageNo } from "./action";
+import { fetchTotalPages, fetchData } from "./action";
 import Table from "./(components)/Table";
-import { blockData } from "@/types/serverActions";
 
 export default function BlockNumber() {
   const [length, setLength] = useState(25);
   const [lastPageNo, setLastPageNo] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
-  const [data, setData] = useState([] as blockData[]);
+  const [data, setData] = useState([] as clientData[]);
   const [refresh, setRefresh] = useState(false);
   const [page, setPage] = useState(1);
+  
   useEffect(() => {
     (async () => {
+      setIsLoading(true);
+      const data = await fetchData(
+        page,
+      );
+      setIsLoading(false);
+      if (data === "Unauthorized") {
+        setError(data);
+        return;
+      }
+      setLastPageNo(await fetchTotalPages());
       if (page > lastPageNo) {
         setPage(lastPageNo);
       }
-      setIsLoading(true);
-      const result = await fetchData(
-        page,
-      );
-      console.log(result);
-      setIsLoading(false);
-      if (result==="Unauthorized") {
-        setError("Unauthorized");
-        return;
-      }
-
-      setLastPageNo(await maxPageNo());
-      setData(result);
+      setData(data);
     })();
   }, [page, length, refresh]);
 
@@ -40,7 +39,12 @@ export default function BlockNumber() {
 
   return (
     <div className="container pb-5">
-      <Table data={data} isLoading={isLoading} setRefresh={setRefresh} />
+      <Table
+        data={data}
+        isLoading={isLoading}
+        setRefresh={setRefresh}
+        label="Manage"
+      />
       <Pagination
         currentPage={page}
         totalPages={lastPageNo}

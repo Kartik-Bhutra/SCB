@@ -6,7 +6,6 @@ const IV_LENGTH = 12;
 const TAG_LENGTH = 16;
 
 function tryDecodeCandidate(candidate: string | Buffer): Buffer | null {
-  // If it's a Buffer representing the *raw* key, return it if 32 bytes.
   if (Buffer.isBuffer(candidate) && candidate.length === 32) return candidate;
 
   const asStr = Buffer.isBuffer(candidate) ? candidate.toString("utf8") : String(candidate);
