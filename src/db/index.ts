@@ -1,12 +1,12 @@
 import { createClient, RedisClientOptions } from "redis";
 import { createPool, PoolOptions } from "mysql2/promise";
 import { platform } from "os";
-import { DB_NAME, DB_PASS, REDIS_PASS } from "../../env";
+import { DB_NAME, DB_PASS, DB_USER, REDIS_PASS } from "../../env";
 
 const os = platform();
 
 const dbConfig: PoolOptions = {
-  user: "root",
+  user: DB_USER,
   password: DB_PASS,
   database: DB_NAME,
   waitForConnections: true,
@@ -42,4 +42,4 @@ if (os === "linux") {
   };
 }
 
-export const client = await createClient(redisConfig).connect();
+export const client = await createClient().connect();  // change here
