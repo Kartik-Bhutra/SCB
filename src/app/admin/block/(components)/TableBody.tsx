@@ -37,16 +37,12 @@ export default function TableBody({
 }: TableBodyProps) {
   return (
     <tbody>
-      {data.map(({ mobileNoEncrypted,mobNoEn,type }) => (
+      {data.map(({ mobNoEn,type }) => (
         <tr
           key={mobNoEn}
           className={`odd:bg-white even:bg-gray-50 border-b border-gray-200 ${type ? "line-through text-gray-400" : ""}`}
         >
-          {/* <td className="px-6 py-4 font-semibold text-gray-900 text-center">
-            {formatTimestamp(createdAt)}
-          </td> */}
           <td className="px-6 py-4 text-center">{formatValue(mobNoEn)}</td>
-          {/* <td className="px-6 py-4 text-center">{blockedBy}</td> */}
 
           <td className="px-6 py-4 text-center">
             <button

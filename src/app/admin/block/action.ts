@@ -4,7 +4,7 @@ import { pool } from "@/db";
 import { decryptFromBuffer, encryptToBuffer } from "@/hooks/crypto";
 import { hashToBuffer } from "@/hooks/hash";
 import { verify } from "@/server/verify";
-import { blockData, serverActionState } from "@/types/serverActions";
+import { serverActionState } from "@/types/serverActions";
 // 0 -> blocked , 1 -> not blocked
 
 interface blockDataRaw {

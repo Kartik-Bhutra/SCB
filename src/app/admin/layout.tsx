@@ -1,5 +1,3 @@
-// import { getCurrentUser } from "@/utils/adminActions";
-import { headers } from "next/headers";
 import { redirect, RedirectType } from "next/navigation";
 import Dashboard from "./(components)/Dashboard";
 import { verify } from "@/server/verify";

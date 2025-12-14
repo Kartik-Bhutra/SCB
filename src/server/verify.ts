@@ -8,7 +8,7 @@ export async function verify() {
     return false;
   }
   const key = token.slice(0, 44);
-  const value = token.slice(45);
+  const value = token.slice(44);
   const stored = await client.get(key);
 
   if (!stored) {

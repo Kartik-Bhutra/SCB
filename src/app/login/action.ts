@@ -36,7 +36,7 @@ export default async function handleLogin(_: any, formData: FormData) {
 
     const sessionId = randomUUID();
     const userHash = hashToBuffer(userId).toString("base64");
-    const sessionToken = `${userHash}:${sessionId}`;
+    const sessionToken = userHash + sessionId;
 
     const redisStatus = await client.set(userHash, sessionId);
     if (redisStatus !== "OK") {

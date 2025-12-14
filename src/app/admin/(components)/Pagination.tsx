@@ -6,16 +6,12 @@ interface PaginationProps {
   currentPage: number;
   totalPages: number;
   setPage: Dispatch<SetStateAction<number>>;
-  length: number;
-  setLength: Dispatch<SetStateAction<number>>;
 }
 
 export default function Pagination({
   currentPage,
   totalPages,
   setPage,
-  length,
-  setLength,
 }: PaginationProps) {
   const handlePageSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -23,11 +19,6 @@ export default function Pagination({
     const rawPage = Number(formData.get("page"));
     const safePage = Math.min(Math.max(1, rawPage), totalPages);
     setPage(safePage);
-  };
-
-  const handleLengthChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const newLength = Number(e.target.value);
-    setLength(newLength);
   };
 
   return (
@@ -54,21 +45,6 @@ export default function Pagination({
           Go
         </button>
       </form>
-
-      {/* <div className="flex items-center gap-2 text-sm">
-        <label htmlFor="length" className="text-gray-700">
-          Rows:
-        </label>
-        <select
-          id="length"
-          value={length}
-          onChange={handleLengthChange}
-          className="px-3 py-1.5 border border-gray-300 rounded-md text-gray-800"
-        >
-          <option value={25}>25</option>
-          <option value={50}>50</option>
-        </select>
-      </div> */}
 
       {/* Page Navigation Buttons */}
       <div className="flex items-center gap-1 text-sm">

@@ -5,8 +5,8 @@ import Logout from "./Logout";
 import Links from "./Links";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-// import { logoutUser } from "@/utils/adminActions";
 import { navigation } from "@/constants/navbarItem";
+import { logoutUser } from "../action";
 
 interface MobileNavProps {
   isOpen: boolean;
@@ -15,6 +15,10 @@ interface MobileNavProps {
 
 export default function MobileNav({ isOpen, setIsOpen }: MobileNavProps) {
   const pathname = usePathname();
+  const handleLogout = async () => {
+    await logoutUser();
+    window.location.href = "/login";
+  };
   return (
     <div className="md:hidden">
       <button
@@ -62,7 +66,7 @@ export default function MobileNav({ isOpen, setIsOpen }: MobileNavProps) {
 
               <div className="pt-4 border-t border-gray-200">
                 <button
-                  onClick={()=>{}}
+                  onClick={handleLogout}
                   className="w-full flex items-center px-3 py-2.5 text-base font-medium text-red-600 hover:bg-red-50 rounded-xl transition-all duration-200"
                 >
                   <Logout />

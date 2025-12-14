@@ -8,20 +8,17 @@ import { fetchTotalPages, fetchData } from "./action";
 import Table from "./(components)/Table";
 
 export default function BlockNumber() {
-  const [length, setLength] = useState(25);
   const [lastPageNo, setLastPageNo] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [data, setData] = useState([] as clientData[]);
   const [refresh, setRefresh] = useState(false);
   const [page, setPage] = useState(1);
-  
+
   useEffect(() => {
     (async () => {
       setIsLoading(true);
-      const data = await fetchData(
-        page,
-      );
+      const data = await fetchData(page);
       setIsLoading(false);
       if (data === "Unauthorized") {
         setError(data);
@@ -33,7 +30,7 @@ export default function BlockNumber() {
       }
       setData(data);
     })();
-  }, [page, length, refresh]);
+  }, [page, refresh]);
 
   if (error) return <Error message={error} setRefresh={setRefresh} />;
 
@@ -49,8 +46,6 @@ export default function BlockNumber() {
         currentPage={page}
         totalPages={lastPageNo}
         setPage={setPage}
-        length={length}
-        setLength={setLength}
       />
     </div>
   );

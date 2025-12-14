@@ -2,7 +2,6 @@
 import Sidebar from "./Sidebar";
 import MobileNav from "./MobileNav";
 import React, { useEffect, useState } from "react";
-// import { AdminContext } from "@/hooks/useAdmin";
 
 interface DashboardProps {
   children: React.ReactNode;
