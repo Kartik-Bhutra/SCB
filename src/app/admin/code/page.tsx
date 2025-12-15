@@ -15,7 +15,7 @@ export default function BlockNumber() {
       setIsLoading(true);
       const result = await fetchData();
       setIsLoading(false);
-      if (result === "Unauthorized") {
+      if (result === "UNAUTHORIZED") {
         setError(result);
         return;
       }

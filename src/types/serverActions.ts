@@ -4,10 +4,6 @@ export interface blockData {
     mobileNohashed: string;
     mobileNoEncrypted: string;
 };
-export interface serverActionState {
-  success: boolean;
-  error: string;
-}
 export interface clientData{
   name: string;
   mobileNohashed: string;
@@ -19,3 +15,5 @@ export interface deleteItemClent{
   mobileNoHashed:string;
   type:number;
 }
+
+export type ActionResult = "OK" | "UNAUTHORIZED" | "INVALID_INPUT" | "INTERNAL_ERROR"

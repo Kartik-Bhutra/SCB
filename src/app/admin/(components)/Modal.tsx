@@ -1,6 +1,6 @@
 "use client";
 
-import { serverActionState } from "@/types/serverActions";
+import { ActionResult } from "@/types/serverActions";
 import {
   useEffect,
   useRef,
@@ -15,7 +15,7 @@ interface ModalProps {
   setOpen: Dispatch<SetStateAction<boolean>>;
   children: ReactNode;
   title: string;
-  onConfirm: (state: serverActionState, formData: FormData) => Promise<serverActionState>;
+  onConfirm: (state: string, formData: FormData) => Promise<ActionResult>;
   setRefresh: Dispatch<SetStateAction<boolean>>;
 }
 
@@ -42,10 +42,7 @@ export default function Modal({
     }
   };
 
-  const [state, actionHandler, isLoading] = useActionState(onConfirm, {
-    error: "",
-    success: false,
-  });
+  const [state, actionHandler, isLoading] = useActionState(onConfirm, "");
 
   useEffect(() => {
     if (open && ref.current && ref2.current) {
@@ -59,10 +56,12 @@ export default function Modal({
   }, [open]);
 
   useEffect(() => {
-    if (state.success) {
+    if (state === "OK") {
       setRefresh((prev) => !prev);
+      handleClose();
+    } else {
+      console.log(state);
     }
-    handleClose();
   }, [state]);
 
   return (

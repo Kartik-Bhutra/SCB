@@ -1,6 +1,5 @@
 import Modal from "../../(components)/Modal";
 import Select from "../../(components)/Select";
-import SeqInput from "../../(components)/SeqInput";
 import codes from "@/constants/CountryCodes.json";
 import { addActionState, removeActionState } from "../action";
 import { Dispatch, SetStateAction } from "react";

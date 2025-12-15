@@ -1,8 +1,12 @@
 import { useRef } from "react";
 
-export default function SeqInput(
-  { value, setValue }: { value: string; setValue: React.Dispatch<React.SetStateAction<string>> }
-) {
+export default function SeqInput({
+  value,
+  setValue,
+}: {
+  value: string;
+  setValue: React.Dispatch<React.SetStateAction<string>>;
+}) {
   const inputRef = useRef<HTMLInputElement>(null);
 
   const formatValue = (val: string) => {
@@ -48,6 +52,7 @@ export default function SeqInput(
         className="w-full font-mono text-xl tracking-widest text-center px-4 py-2 border border-gray-300 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
         maxLength={12}
         inputMode="numeric"
+        required
       />
 
       <input type="hidden" name="number" value={value} />

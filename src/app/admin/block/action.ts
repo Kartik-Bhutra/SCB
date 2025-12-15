@@ -4,129 +4,132 @@ import { pool } from "@/db";
 import { decryptFromBuffer, encryptToBuffer } from "@/hooks/crypto";
 import { hashToBuffer } from "@/hooks/hash";
 import { verify } from "@/server/verify";
-import { serverActionState } from "@/types/serverActions";
-// 0 -> blocked , 1 -> not blocked
+import { ActionResult } from "@/types/serverActions";
 
 interface blockDataRaw {
   type: boolean;
   mobileNohashed: Buffer;
   mobileNoEncrypted: Buffer;
 }
+
 export async function fetchData(page: number) {
   const verified = await verify();
   if (!verified) return "Unauthorized";
 
-  const id = (page - 1) * 25;
+  const offset = (page - 1) * 25;
 
   const [rows] = (await pool.execute(
     `SELECT 
-        mobNoEn as mobileNoEncrypted,
-        mobNoHs as mobileNohashed,
+        mobNoEn AS mobileNoEncrypted,
+        mobNoHs AS mobileNohashed,
         type
-     FROM blocks WHERE id > ${id} LIMIT 25`
+     FROM blocks WHERE id > ?
+     LIMIT 25 `,
+    [offset]
   )) as unknown as [blockDataRaw[]];
-  return rows.map((obj) => ({
-    
-    
-    mobileNohashed: Buffer.from(obj.mobileNohashed).toString('base64'),
-    type: obj.type,
-    mobileNoEncrypted: Buffer.from(obj.mobileNoEncrypted).toString('base64'),
-    mobNoEn: decryptFromBuffer(obj.mobileNoEncrypted),
+
+  return rows.map((r) => ({
+    mobileNohashed: Buffer.from(r.mobileNohashed).toString("base64"),
+    mobileNoEncrypted: Buffer.from(r.mobileNoEncrypted).toString("base64"),
+    type: r.type,
+    mobNoEn: decryptFromBuffer(r.mobileNoEncrypted),
   }));
 }
 
 export async function maxPageNo() {
-  const [rows] = (await pool.execute(
-    `SELECT COUNT(*) as count FROM blocks`
-  ));
+  const [rows] = await pool.execute("SELECT COUNT(*) AS count FROM blocks");
   const result = rows as { count: number }[];
   return Math.ceil(result[0].count / 25);
-
 }
 
-export async function addNo(mobileNo: string) {
+function normalizeMobile(code: string, number: string): string | null {
+  const n = number.trim();
+  if (!n) return null;
+  return `${code.trim()} ${n}`.trim();
+}
+
+export async function addNoAction(
+  _: string,
+  formData: FormData
+): Promise<ActionResult> {
   const verified = await verify();
-  if (!verified) return "Unauthorized";
+  if (!verified) return "UNAUTHORIZED";
 
-  const mobileNoEncrypted = encryptToBuffer(mobileNo);
-  const mobileNohashed = hashToBuffer(mobileNo);
+  const code = formData.get("code");
+  const number = String(formData.get("number"));
 
-  await pool.execute(
-    `INSERT INTO blocks (mobNoEn, mobNoHs) VALUES (?, ?)
-     ON DUPLICATE KEY UPDATE type = 0`,
-    [mobileNoEncrypted, mobileNohashed]
-  );
-}
+  const mobileNo = code + number;
+  if (!mobileNo) return "INVALID_INPUT";
 
-export async function changeType(mobileNohashed: Buffer) {
-  const verified = await verify();
-  if (!verified) return "Unauthorized";
-
-  await pool.execute(`UPDATE blocks SET type = 1 - type WHERE mobNoHs = ?`, [
-    mobileNohashed,
-  ]);
-}
-
-export async function addNoAction(_: serverActionState, formData: FormData): Promise<serverActionState> {
   try {
-    const code = formData.get("code")?.toString() || "";
-    const number = formData.get("number")?.toString() || "";
-    if (!number) return { success: false, error: "Missing number" };
-    const mobileNo = `${code} ${number}`.trim();
-    const res = await addNo(mobileNo);
-    if (res === "Unauthorized") return { success: false, error: "Unauthorized" };
-    return { success: true, error: "" };
-  } catch (e: any) {
-    return { success: false, error: String(e) };
+    await pool.execute(
+      `INSERT INTO blocks (mobNoEn, mobNoHs)
+       VALUES (?, ?)
+       ON DUPLICATE KEY UPDATE type = 0`,
+      [encryptToBuffer(mobileNo), hashToBuffer(mobileNo)]
+    );
+    return "OK";
+  } catch {
+    return "INTERNAL_ERROR";
   }
 }
 
-export async function changeTypeAction(_: serverActionState, formData: FormData): Promise<serverActionState> {
+export async function changeTypeAction(
+  _: string,
+  formData: FormData
+): Promise<ActionResult> {
+  const verified = await verify();
+  if (!verified) return "UNAUTHORIZED";
+
+  const mobile = String(formData.get("mobileNo"));
+
   try {
-    const mobile = formData.get("mobileNo")?.toString();
-    if (!mobile) return { success: false, error: "Missing mobileNo" };
-    const mobileNohashed = hashToBuffer(mobile);
-    const res = await changeType(mobileNohashed);
-    if (res === "Unauthorized") return { success: false, error: "Unauthorized" };
-    return { success: true, error: "" };
-  } catch (e: any) {
-    return { success: false, error: String(e) };
+    await pool.execute("UPDATE blocks SET type = 1 - type WHERE mobNoHs = ?", [
+      hashToBuffer(mobile),
+    ]);
+    return "OK";
+  } catch {
+    return "INTERNAL_ERROR";
   }
 }
 
-export async function bulkUploadAction(_: serverActionState, formData: FormData): Promise<serverActionState> {
+export async function bulkUploadAction(
+  _: string,
+  formData: FormData
+): Promise<ActionResult> {
+  const verified = await verify();
+  if (!verified) return "UNAUTHORIZED";
+
+  const file = formData.get("file-input");
+  if (!(file instanceof File)) return "INVALID_INPUT";
+
   try {
-    const verified = await verify();
-    if (!verified) return { success: false, error: "Unauthorized" };
-    
-    const file = formData.get("file-input") as File;
-    if (!file) return { success: false, error: "No file selected" };
-    
     const text = await file.text();
-    const lines = text.split("\n").map((line) => line.trim()).filter(Boolean);
-    
-    let successCount = 0;
-    let errorCount = 0;
-    
+    const lines = text
+      .split("\n")
+      .map((l) => l.trim())
+      .filter(Boolean);
+
+    if (lines.length === 0) return "INVALID_INPUT";
+
+    const values: Buffer[] = [];
+    const placeholders: string[] = [];
+
     for (const mobileNo of lines) {
-      try {
-        const mobileNoEncrypted = encryptToBuffer(mobileNo);
-        const mobileNohashed = hashToBuffer(mobileNo);
-        await pool.execute(
-          `INSERT INTO blocks (mobNoEn, mobNoHs, type) VALUES (?, ?, 0) ON DUPLICATE KEY UPDATE type = 0`,
-          [mobileNoEncrypted, mobileNohashed]
-        );
-        successCount++;
-      } catch (e) {
-        errorCount++;
-      }
+      placeholders.push("(?, ?, 0)");
+      values.push(encryptToBuffer(mobileNo), hashToBuffer(mobileNo));
     }
-    
-    if (errorCount > 0) {
-      return { success: true, error: `Imported ${successCount} numbers, ${errorCount} failed` };
-    }
-    return { success: true, error: `Imported ${successCount} numbers` };
-  } catch (e: any) {
-    return { success: false, error: String(e) };
+
+    const sql = `
+      INSERT INTO blocks (mobNoEn, mobNoHs, type)
+      VALUES ${placeholders.join(",")}
+      ON DUPLICATE KEY UPDATE type = 0
+    `;
+
+    await pool.execute(sql, values);
+
+    return "OK";
+  } catch {
+    return "INTERNAL_ERROR";
   }
 }

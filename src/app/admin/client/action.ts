@@ -1,9 +1,10 @@
 "use server";
 
 import { pool } from "@/db";
-import { decryptFromBuffer} from "@/hooks/crypto";
+import { decryptFromBuffer } from "@/hooks/crypto";
 import { verify } from "@/server/verify";
-import { clientData,serverActionState } from "@/types/serverActions";
+import { ActionResult, clientData } from "@/types/serverActions";
+
 interface data {
   name: string;
   mobileNohashed: Buffer;
@@ -13,65 +14,68 @@ interface data {
 
 export async function fetchData(page: number) {
   const verified = await verify();
-  if (!verified) {
-    return "Unauthorized";
-  }
-  const id = (page - 1) * 25;
-  try {
-    const [rows] = (await pool.execute(
-      `SELECT 
-         name, 
-         mobNoEn AS mobileNoEncrypted, 
-         mobNoHs AS mobileNohashed,
-         type
-       FROM users 
-       WHERE id > ? LIMIT 25`,
-      [id]
-    )) as unknown as [data[]];
-    return rows.map((obj) => ({
-      name: obj.name,
-      mobileNohashed: Buffer.from(obj.mobileNohashed).toString('base64'),
-      mobileNoEncrypted: Buffer.from(obj.mobileNoEncrypted).toString('base64'),
-      mobNoEn: decryptFromBuffer(obj.mobileNoEncrypted),
-      type: obj.type,
-    })) as clientData[];
-  } catch (e: any) {
-    console.error("fetchData DB error:", e);
-    throw e;
-  }
+  if (!verified) return "Unauthorized";
+
+  const offset = (page - 1) * 25;
+
+  const [rows] = (await pool.execute(
+    `SELECT 
+        name,
+        mobNoEn AS mobileNoEncrypted,
+        mobNoHs AS mobileNohashed,
+        type
+     FROM users
+     WHERE id > ?
+     LIMIT 25 `,
+    [offset]
+  )) as unknown as [data[]];
+
+  return rows.map((obj) => ({
+    name: obj.name,
+    mobileNohashed: Buffer.from(obj.mobileNohashed).toString("base64"),
+    mobileNoEncrypted: Buffer.from(obj.mobileNoEncrypted).toString("base64"),
+    mobNoEn: decryptFromBuffer(obj.mobileNoEncrypted),
+    type: obj.type,
+  })) as clientData[];
 }
 
 export async function fetchTotalPages() {
   const [rows] = (await pool.execute(
-    `SELECT COUNT(*) AS count FROM users;`
+    "SELECT COUNT(*) AS count FROM users"
   )) as unknown as [{ count: number }[]];
+
   return Math.ceil(rows[0].count / 25);
 }
 
-export async function changeType(type: number, mobileNohashed: Buffer) {
-  const verified =await verify();
-  if (!verified) {
-    return "Unauthorized";
+export async function changeTypeAction(
+  _: string,
+  formData: FormData
+): Promise<ActionResult> {
+  const verified = await verify();
+  if (!verified) return "UNAUTHORIZED";
+
+  const mobileRaw = String(formData.get("mobileNoHashed"));
+  const typeRaw = formData.get("type");
+
+  if (typeof mobileRaw !== "string") return "INVALID_INPUT";
+
+  const type = Number(typeRaw);
+  if (!Number.isInteger(type)) return "INVALID_INPUT";
+
+  let mobileNohashed: Buffer;
+  try {
+    mobileNohashed = Buffer.from(mobileRaw, "base64");
+  } catch {
+    return "INVALID_INPUT";
   }
 
-  await pool.execute(`UPDATE users SET type = ? WHERE mobNoHs = ?`, [
-    type,
-    mobileNohashed,
-  ]);
-}
-
-export async function changeTypeAction(_: serverActionState, formData: FormData): Promise<serverActionState> {
   try {
-    const mobile = formData.get("mobileNoHashed")?.toString();
-    const typeStr = formData.get("type")?.toString();
-    if (!mobile) return { success: false, error: "Missing mobileNo" };
-    const type = typeStr ? Number(typeStr) : 1;
-    if (Number.isNaN(type)) return { success: false, error: "Invalid type" };
-    const mobileNohashed = Buffer.from(mobile, 'base64');
-    const res = await changeType(type, mobileNohashed);
-    if (res === "Unauthorized") return { success: false, error: "Unauthorized" };
-    return { success: true, error: "" };
-  } catch (e: any) {
-    return { success: false, error: String(e) };
+    await pool.execute("UPDATE users SET type = ? WHERE mobNoHs = ?", [
+      type,
+      mobileNohashed,
+    ]);
+    return "OK";
+  } catch {
+    return "INTERNAL_ERROR";
   }
 }
