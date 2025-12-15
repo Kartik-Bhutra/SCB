@@ -4,16 +4,11 @@ import { hashToBuffer } from "@/hooks/hash";
 import { encryptToBuffer } from "@/hooks/crypto";
 import { randomUUID } from "node:crypto";
 
-interface Data {
-  mobileNo: string;
-  deviceId: string;
-}
-
 export async function POST(req: NextRequest) {
   try {
-    const { mobileNo, deviceId } = (await req.json()) as Data;
+    const mobileNo = (await req.text()).trim();
 
-    if (!mobileNo || !deviceId) {
+    if (!mobileNo) {
       return NextResponse.json(
         { error: "Missing mobileNo or deviceId" },
         { status: 400 }
@@ -21,32 +16,35 @@ export async function POST(req: NextRequest) {
     }
 
     const mobileHash = hashToBuffer(mobileNo);
-    const deviceHash = hashToBuffer(deviceId);
 
-    const [rows] = (await pool.execute(
+    const connection = await pool.getConnection();
+
+    const [rows] = (await connection.execute(
       {
         sql: `
           SELECT type
           FROM users
-          WHERE mobNoHs = ? AND devIdHs = ?
+          WHERE mobNoHs = ?
           LIMIT 1
         `,
         rowsAsArray: true,
       },
-      [mobileHash, deviceHash]
+      [mobileHash]
     )) as unknown as [number[][]];
 
     if (rows.length === 0) {
-      await pool.execute(
+      await connection.execute(
         `
-          INSERT INTO users (name, mobNoEn, mobNoHs, devIdHs, type)
+          INSERT INTO users (name, mobNoEn, mobNoHs, type)
           VALUES ('', ?, ?, ?, 0)
         `,
-        [encryptToBuffer(mobileNo), mobileHash, deviceHash]
+        [encryptToBuffer(mobileNo), mobileHash]
       );
 
       return NextResponse.json({ status: "not accepted" }, { status: 200 });
     }
+
+    connection.release();
 
     const userType = rows[0][0];
 
