@@ -12,9 +12,9 @@ interface data {
   type: number;
 }
 
-export async function fetchData(page: number) {
+export async function fetchData(page: number) : Promise<ActionResult|clientData[]> {
   const verified = await verify();
-  if (!verified) return "Unauthorized";
+  if (!verified) return "UNAUTHORIZED";
 
   const offset = (page - 1) * 25;
 
@@ -39,7 +39,7 @@ export async function fetchData(page: number) {
   })) as clientData[];
 }
 
-export async function fetchTotalPages() {
+export async function fetchTotalPages(): Promise<number> {
   const [rows] = (await pool.execute(
     "SELECT COUNT(*) AS count FROM users"
   )) as unknown as [{ count: number }[]];

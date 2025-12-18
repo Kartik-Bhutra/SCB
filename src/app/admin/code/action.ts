@@ -4,7 +4,7 @@ import { pool } from "@/db";
 import { verify } from "@/server/verify";
 import { ActionResult } from "@/types/serverActions";
 
-export async function fetchData(): Promise<string[] | "UNAUTHORIZED"> {
+export async function fetchData(): Promise<string[] | ActionResult> {
   const verified = await verify();
   if (!verified) return "UNAUTHORIZED";
 

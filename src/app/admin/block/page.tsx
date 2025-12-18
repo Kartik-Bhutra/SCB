@@ -5,7 +5,7 @@ import Pagination from "../(components)/Pagination";
 import Error from "../(components)/Error";
 import { fetchData, maxPageNo } from "./action";
 import Table from "./(components)/Table";
-import { blockData } from "@/types/serverActions";
+import { ActionResult, blockData } from "@/types/serverActions";
 
 export default function BlockNumber() {
   const [lastPageNo, setLastPageNo] = useState(1);
@@ -20,19 +20,18 @@ export default function BlockNumber() {
         setPage(lastPageNo);
       }
       setIsLoading(true);
-      const result = await fetchData(page);
-      console.log(result);
+      const result : (blockData[]|ActionResult) = await fetchData(page);
       setIsLoading(false);
-      if (result === "Unauthorized") {
-        setError("Unauthorized");
+      if (result === "UNAUTHORIZED") {
+        setError(result);
         return;
+      }else{
+        setLastPageNo(await maxPageNo());
+        setData(result as blockData[]);
       }
 
-      setLastPageNo(await maxPageNo());
-      setData(result);
     })();
   }, [page, refresh]);
-
   if (error) return <Error message={error} setRefresh={setRefresh} />;
 
   return (

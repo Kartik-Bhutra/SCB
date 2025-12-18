@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Error from "../(components)/Error";
 import { fetchData } from "./action";
 import Table from "./(components)/Table";
+import { ActionResult } from "@/types/serverActions";
 
 export default function BlockNumber() {
   const [isLoading, setIsLoading] = useState(false);
@@ -13,13 +14,13 @@ export default function BlockNumber() {
   useEffect(() => {
     (async () => {
       setIsLoading(true);
-      const result = await fetchData();
+      const result : (string[] | ActionResult) = await fetchData();
       setIsLoading(false);
       if (result === "UNAUTHORIZED") {
         setError(result);
         return;
       }
-      setData(result);
+      setData(result as string[]);
     })();
   }, [refresh]);
 

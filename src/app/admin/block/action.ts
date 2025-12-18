@@ -4,17 +4,16 @@ import { pool } from "@/db";
 import { decryptFromBuffer, encryptToBuffer } from "@/hooks/crypto";
 import { hashToBuffer } from "@/hooks/hash";
 import { verify } from "@/server/verify";
-import { ActionResult } from "@/types/serverActions";
-
+import { ActionResult, blockData } from "@/types/serverActions";
 interface blockDataRaw {
   type: boolean;
   mobileNohashed: Buffer;
   mobileNoEncrypted: Buffer;
 }
 
-export async function fetchData(page: number) {
+export async function fetchData(page: number) : Promise<ActionResult|blockData[]> {
   const verified = await verify();
-  if (!verified) return "Unauthorized";
+  if (!verified) return "UNAUTHORIZED";
 
   const offset = (page - 1) * 25;
 
@@ -36,7 +35,7 @@ export async function fetchData(page: number) {
   }));
 }
 
-export async function maxPageNo() {
+export async function maxPageNo() : Promise<number> {
   const [rows] = await pool.execute("SELECT COUNT(*) AS count FROM blocks");
   const result = rows as { count: number }[];
   return Math.ceil(result[0].count / 25);
@@ -82,7 +81,6 @@ export async function changeTypeAction(
   if (!verified) return "UNAUTHORIZED";
 
   const mobile = String(formData.get("mobileNo"));
-
   try {
     await pool.execute("UPDATE blocks SET type = 1 - type WHERE mobNoHs = ?", [
       hashToBuffer(mobile),

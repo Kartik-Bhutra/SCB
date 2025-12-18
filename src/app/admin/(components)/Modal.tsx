@@ -9,6 +9,7 @@ import {
   SetStateAction,
   useActionState,
 } from "react";
+import { toast } from "react-toastify";
 
 interface ModalProps {
   open: boolean;
@@ -56,13 +57,15 @@ export default function Modal({
   }, [open]);
 
   useEffect(() => {
+    if (!state || isLoading ) return;
     if (state === "OK") {
+      toast.success("Success!");
       setRefresh((prev) => !prev);
       handleClose();
     } else {
-      console.log(state);
+      toast.error(state);
     }
-  }, [state]);
+  }, [isLoading]);
 
   return (
     open && (
@@ -71,7 +74,7 @@ export default function Modal({
         style={{ background: "rgba(0, 0, 0, 0.5)" }}
         className="fixed transition-all duration-300 inset-0 bg-black flex items-center justify-center z-50"
       >
-        <form
+        <form 
           ref={ref2}
           action={actionHandler}
           className="bg-white transition-transform duration-300 rounded-lg shadow-lg max-w-md w-full p-6 relative"

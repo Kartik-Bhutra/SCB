@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { clientData } from "@/types/serverActions";
+import { ActionResult, clientData } from "@/types/serverActions";
 import Pagination from "../(components)/Pagination";
 import Error from "../(components)/Error";
 import { fetchTotalPages, fetchData } from "./action";
@@ -18,9 +18,9 @@ export default function BlockNumber() {
   useEffect(() => {
     (async () => {
       setIsLoading(true);
-      const data = await fetchData(page);
+      const data : (clientData[]|ActionResult) = await fetchData(page);
       setIsLoading(false);
-      if (data === "Unauthorized") {
+      if (data === "UNAUTHORIZED") {
         setError(data);
         return;
       }
@@ -28,7 +28,7 @@ export default function BlockNumber() {
       if (page > lastPageNo) {
         setPage(lastPageNo);
       }
-      setData(data);
+      setData(data as clientData[]);
     })();
   }, [page, refresh]);
 
