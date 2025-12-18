@@ -1,7 +1,7 @@
 import { Dispatch, SetStateAction } from "react";
-import { blockData } from "@/types/serverActions";
+import { Data } from "../action";
 interface TableBodyProps {
-  data: blockData[];
+  data: Data[];
   setOpenDelete: Dispatch<SetStateAction<boolean>>;
   setDeleteId: Dispatch<SetStateAction<string>>;
 }
@@ -37,20 +37,24 @@ export default function TableBody({
 }: TableBodyProps) {
   return (
     <tbody>
-      {data.map(({ mobNoEn,type }) => (
+      {data.map(({ mobileNo, type }) => (
         <tr
-          key={mobNoEn}
-          className={`odd:bg-white even:bg-gray-50 border-b border-gray-200 ${type ? "line-through text-gray-400" : ""}`}
+          key={mobileNo}
+          className={`odd:bg-white even:bg-gray-50 border-b border-gray-200 ${
+            type ? "line-through text-gray-400" : ""
+          }`}
         >
-          <td className="px-6 py-4 text-center">{formatValue(mobNoEn)}</td>
+          <td className="px-6 py-4 text-center">{formatValue(mobileNo)}</td>
 
           <td className="px-6 py-4 text-center">
             <button
               onClick={() => {
-                setDeleteId(mobNoEn);
+                setDeleteId(mobileNo);
                 setOpenDelete(true);
               }}
-              className={`${type ? "text-red-600" : "text-blue-600"} hover:underline`}
+              className={`${
+                type ? "text-red-600" : "text-blue-600"
+              } hover:underline`}
             >
               {type ? "Block again" : "Unblock"}
             </button>

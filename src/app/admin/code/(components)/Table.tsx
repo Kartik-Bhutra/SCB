@@ -14,7 +14,6 @@ export default function Table({ data, isLoading, setRefresh }: tableProps) {
   const [openCreate, setOpenCreate] = useState(false);
   const [openDelete, setOpenDelete] = useState(false);
   const [deleteId, setDeleteId] = useState("");
-  const [openUpload, setOpenUpload] = useState(false);
   return (
     <>
       <BlockedModal
@@ -23,8 +22,6 @@ export default function Table({ data, isLoading, setRefresh }: tableProps) {
         openDelete={openDelete}
         setOpenDelete={setOpenDelete}
         deleteId={deleteId}
-        openUpload={openUpload}
-        setOpenUpload={setOpenUpload}
         setRefresh={setRefresh}
       />
       <div className="bg-white rounded-lg shadow-sm mx-auto max-w-[100vw]">

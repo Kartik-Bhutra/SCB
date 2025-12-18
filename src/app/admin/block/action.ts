@@ -4,14 +4,20 @@ import { pool } from "@/db";
 import { decryptFromBuffer, encryptToBuffer } from "@/hooks/crypto";
 import { hashToBuffer } from "@/hooks/hash";
 import { verify } from "@/server/verify";
-import { ActionResult, blockData } from "@/types/serverActions";
-interface blockDataRaw {
+import { ActionResult } from "@/types/serverActions";
+
+interface DataRaw {
   type: boolean;
-  mobileNohashed: Buffer;
+  mobileNoHashed: Buffer;
   mobileNoEncrypted: Buffer;
 }
 
-export async function fetchData(page: number) : Promise<ActionResult|blockData[]> {
+export interface Data {
+  type: boolean;
+  mobileNo: string;
+}
+
+export async function fetchData(page: number): Promise<ActionResult | Data[]> {
   const verified = await verify();
   if (!verified) return "UNAUTHORIZED";
 
@@ -20,31 +26,29 @@ export async function fetchData(page: number) : Promise<ActionResult|blockData[]
   const [rows] = (await pool.execute(
     `SELECT 
         mobNoEn AS mobileNoEncrypted,
-        mobNoHs AS mobileNohashed,
+        mobNoHs AS mobileNoHashed,
         type
      FROM blocks WHERE id > ?
      LIMIT 25 `,
     [offset]
-  )) as unknown as [blockDataRaw[]];
+  )) as unknown as [DataRaw[]];
 
   return rows.map((r) => ({
-    mobileNohashed: Buffer.from(r.mobileNohashed).toString("base64"),
-    mobileNoEncrypted: Buffer.from(r.mobileNoEncrypted).toString("base64"),
     type: r.type,
-    mobNoEn: decryptFromBuffer(r.mobileNoEncrypted),
+    mobileNo: decryptFromBuffer(r.mobileNoEncrypted),
   }));
 }
 
-export async function maxPageNo() : Promise<number> {
-  const [rows] = await pool.execute("SELECT COUNT(*) AS count FROM blocks");
-  const result = rows as { count: number }[];
-  return Math.ceil(result[0].count / 25);
-}
+export async function maxPageNo(): Promise<number> {
+  const [rows] = await pool.execute(
+    "SELECT id FROM blocks ORDER BY id DESC LIMIT 1"
+  );
 
-function normalizeMobile(code: string, number: string): string | null {
-  const n = number.trim();
-  if (!n) return null;
-  return `${code.trim()} ${n}`.trim();
+  const result = rows as { id: number }[];
+
+  if (result.length === 0) return 0;
+
+  return Math.ceil(result[0].id / 25);
 }
 
 export async function addNoAction(

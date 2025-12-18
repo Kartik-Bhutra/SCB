@@ -2,17 +2,24 @@
 
 import { pool } from "@/db";
 import { decryptFromBuffer } from "@/hooks/crypto";
+import { hashToBuffer } from "@/hooks/hash";
 import { verify } from "@/server/verify";
-import { ActionResult, clientData } from "@/types/serverActions";
+import { ActionResult } from "@/types/serverActions";
 
-interface data {
+interface DataRaw {
   name: string;
   mobileNohashed: Buffer;
   mobileNoEncrypted: Buffer;
   type: number;
 }
 
-export async function fetchData(page: number) : Promise<ActionResult|clientData[]> {
+export interface Data {
+  name: string;
+  mobileNo: string;
+  type: number;
+}
+
+export async function fetchData(page: number): Promise<ActionResult | Data[]> {
   const verified = await verify();
   if (!verified) return "UNAUTHORIZED";
 
@@ -28,23 +35,23 @@ export async function fetchData(page: number) : Promise<ActionResult|clientData[
      WHERE id > ?
      LIMIT 25 `,
     [offset]
-  )) as unknown as [data[]];
+  )) as unknown as [DataRaw[]];
 
   return rows.map((obj) => ({
     name: obj.name,
-    mobileNohashed: Buffer.from(obj.mobileNohashed).toString("base64"),
-    mobileNoEncrypted: Buffer.from(obj.mobileNoEncrypted).toString("base64"),
-    mobNoEn: decryptFromBuffer(obj.mobileNoEncrypted),
     type: obj.type,
-  })) as clientData[];
+    mobileNo: decryptFromBuffer(obj.mobileNoEncrypted),
+  }));
 }
 
 export async function fetchTotalPages(): Promise<number> {
   const [rows] = (await pool.execute(
-    "SELECT COUNT(*) AS count FROM users"
-  )) as unknown as [{ count: number }[]];
+    "SELECT id FROM users ORDER BY id DESC LIMIT 1"
+  )) as unknown as [{ id: number }[]];
 
-  return Math.ceil(rows[0].count / 25);
+  if (rows.length === 0) return 0;
+
+  return Math.ceil(rows[0].id / 25);
 }
 
 export async function changeTypeAction(
@@ -54,20 +61,9 @@ export async function changeTypeAction(
   const verified = await verify();
   if (!verified) return "UNAUTHORIZED";
 
-  const mobileRaw = String(formData.get("mobileNoHashed"));
-  const typeRaw = formData.get("type");
-
-  if (typeof mobileRaw !== "string") return "INVALID_INPUT";
-
-  const type = Number(typeRaw);
-  if (!Number.isInteger(type)) return "INVALID_INPUT";
-
-  let mobileNohashed: Buffer;
-  try {
-    mobileNohashed = Buffer.from(mobileRaw, "base64");
-  } catch {
-    return "INVALID_INPUT";
-  }
+  const mobileType = String(formData.get("mobileType")).split(":");
+  const type = Number(mobileType[1]);
+  const mobileNohashed = hashToBuffer(mobileType[0]);
 
   try {
     await pool.execute("UPDATE users SET type = ? WHERE mobNoHs = ?", [

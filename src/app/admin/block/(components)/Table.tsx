@@ -3,9 +3,9 @@ import NoData from "@/app/admin/(components)/NoData";
 import { Dispatch, SetStateAction, useState } from "react";
 import TableBody from "./TableBody";
 import BlockedModal from "./BlockedModal";
-import { blockData } from "@/types/serverActions";
+import { Data } from "../action";
 interface tableProps {
-  data: blockData[];
+  data: Data[];
   isLoading: boolean;
   setRefresh: Dispatch<SetStateAction<boolean>>;
 }

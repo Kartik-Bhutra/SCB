@@ -26,7 +26,7 @@ export default function BlockedModal({
   setOpenUpload,
   setRefresh,
 }: BlockedModalProps) {
-  const [number, setNumber] = useState("");  
+  const [number, setNumber] = useState("");
   return (
     <>
       <Modal

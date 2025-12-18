@@ -10,8 +10,6 @@ interface BlockedModalProps {
   openDelete: boolean;
   setOpenDelete: Dispatch<SetStateAction<boolean>>;
   deleteId: string;
-  openUpload: boolean;
-  setOpenUpload: Dispatch<SetStateAction<boolean>>;
   setRefresh: Dispatch<SetStateAction<boolean>>;
 }
 
