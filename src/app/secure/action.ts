@@ -17,7 +17,7 @@ export async function serverAction(_: string, formData: FormData) {
 
     const [rows] = (await pool.execute(
       {
-        sql: `SELECT passHash, type FROM admins WHERE userId = ? AND type = 1 LIMIT 1`,
+        sql: `SELECT passHash FROM admins WHERE userId = ? AND type = 0 LIMIT 1`,
         rowsAsArray: true,
       },
       [userId]
@@ -34,7 +34,7 @@ export async function serverAction(_: string, formData: FormData) {
       return "Invalid credentials";
     }
 
-    const sessionId = randomBytes(16).toString("hex");
+    const sessionId = randomBytes(8).toString("hex");
     const userHash = hashToBuffer(userId).toString("base64");
     const sessionToken = userHash + sessionId;
 

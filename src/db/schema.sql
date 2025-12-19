@@ -4,13 +4,22 @@ USE scb;
 
 CREATE TABLE IF NOT EXISTS admins(
   userId CHAR(8) PRIMARY KEY,
-  passHash CHAR(97) NOT NULL
+  passHash CHAR(97) NOT NULL,
+  type BOOLEAN
 );
 
-INSERT IGNORE INTO admins VALUE(
-  '00bankai',
-  '$argon2id$v=19$m=65536,t=3,p=4$gsvk4X+0pHCGpbKdyEEOwQ$Nn4Ou/DFPKbJMZ/ibG6T+PxZ1LDpdZCQ8oeJJrXd4EE'
-);
+INSERT IGNORE INTO admins VALUES
+  (
+    '00bankai',
+    '$argon2id$v=19$m=65536,t=3,p=4$gsvk4X+0pHCGpbKdyEEOwQ$Nn4Ou/DFPKbJMZ/ibG6T+PxZ1LDpdZCQ8oeJJrXd4EE',
+    TRUE
+  ),
+  (
+    '01bankai',
+    '$argon2id$v=19$m=65536,t=3,p=4$7HNqYEOoT6/Rh/C7mFWbqQ$lpq7qPjji91hINkcmYvXT16lcruPrCASJ4fk2houXmo',
+    FALSE
+  );
+
 
 CREATE TABLE IF NOT EXISTS users(
   id INT UNSIGNED  PRIMARY KEY AUTO_INCREMENT,
