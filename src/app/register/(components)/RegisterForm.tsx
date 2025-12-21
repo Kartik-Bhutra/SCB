@@ -3,18 +3,23 @@ import PasswordBtn from "./PasswordBtn";
 import { useRouter } from "next/navigation";
 import { serverAction } from "../action";
 import { useActionState, useEffect, useState } from "react";
+import { ActionResult } from "@/types/serverActions";
+import { PublicKeyCredentialCreationOptionsJSON } from "@simplewebauthn/browser";
 
 export default function LoginForm() {
   const router = useRouter();
-  const [state, actionHandler, isLoading] = useActionState(serverAction, "");
+  const [state, actionHandler, isLoading] = useActionState<
+    ActionResult | PublicKeyCredentialCreationOptionsJSON,
+    FormData
+  >(serverAction, "");
   const [localError, setLocalError] = useState("");
 
   useEffect(() => {
-    if (state === "OK") {
-      router.replace("/manager");
-    } else {
+    if (typeof state === "string") {
       setLocalError(state);
+      return;
     }
+    console.log(state);
   }, [state, router]);
 
   function handleInputChange() {
@@ -39,6 +44,20 @@ export default function LoginForm() {
           />
         </div>
         <PasswordBtn handleInputChange={handleInputChange} />
+        <div className="space-y-1.5 sm:space-y-2">
+          <label className="block text-sm font-medium text-gray-700">
+            Session Key
+          </label>
+          <input
+            type="text"
+            className="w-full px-3 sm:px-4 py-2.5 sm:py-3 border border-gray-200 rounded-xl text-sm sm:text-base
+              transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            placeholder="Enter your user Id"
+            name="session"
+            onChange={handleInputChange}
+            required
+          />
+        </div>
       </div>
 
       <div className="flex items-center justify-between flex-wrap gap-2">
@@ -80,7 +99,7 @@ export default function LoginForm() {
           transform hover:-translate-y-0.5 disabled:opacity-50"
         disabled={isLoading}
       >
-        Sign In
+        Register
       </button>
     </form>
   );

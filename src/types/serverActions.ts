@@ -1,1 +1,11 @@
-export type ActionResult = "OK" | "UNAUTHORIZED" | "INVALID_INPUT" | "INTERNAL_ERROR"
+import { rpID } from "../../env";
+
+export type ActionResult =
+  | ""
+  | "OK"
+  | "UNAUTHORIZED"
+  | "INVALID_INPUT"
+  | "INVALID_CREDENTIALS"
+  | "INTERNAL_ERROR";
+
+export const origin = `https://${rpID}`;

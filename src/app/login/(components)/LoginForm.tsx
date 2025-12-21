@@ -7,7 +7,7 @@ import { useActionState, useEffect, useState } from "react";
 export default function LoginForm() {
   const router = useRouter();
   const [state, actionHandler, isLoading] = useActionState(serverAction, "");
-  const [localError, setLocalError] = useState<string | null>(null);
+  const [localError, setLocalError] = useState("");
 
   useEffect(() => {
     if (state === "OK") {
@@ -18,7 +18,7 @@ export default function LoginForm() {
   }, [state, router]);
 
   function handleInputChange() {
-    if (localError) setLocalError(null);
+    if (localError) setLocalError("");
   }
 
   return (

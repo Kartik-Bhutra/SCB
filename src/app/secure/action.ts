@@ -1,7 +1,7 @@
 "use server";
 
 import { cookies } from "next/headers";
-import { verify } from "argon2";
+import { verify } from "@node-rs/argon2";
 import { randomBytes } from "crypto";
 import { client, pool } from "@/db";
 import { hashToBuffer } from "@/hooks/hash";

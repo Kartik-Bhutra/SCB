@@ -8,11 +8,13 @@
     "start": "next start"
   },
   "dependencies": {
-    "argon2": "^0.44.0",
-    "mysql2": "^3.15.3",
-    "next": "16.0.10",
-    "react": "19.2.1",
-    "react-dom": "19.2.1",
+    "@node-rs/argon2": "^2.0.2",
+    "@simplewebauthn/browser": "^13.2.2",
+    "@simplewebauthn/server": "^13.2.2",
+    "mysql2": "^3.16.0",
+    "next": "16.1.0",
+    "react": "19.2.3",
+    "react-dom": "19.2.3",
     "react-toastify": "^11.0.5",
     "redis": "^5.10.0"
   },
