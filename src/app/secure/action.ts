@@ -2,17 +2,21 @@
 
 import { cookies } from "next/headers";
 import { verify } from "@node-rs/argon2";
-import { randomBytes } from "crypto";
+import { randomBytes } from "node:crypto";
 import { client, pool } from "@/db";
 import { hashToBuffer } from "@/hooks/hash";
+import { ActionResult } from "@/types/serverActions";
 
-export async function serverAction(_: string, formData: FormData) {
+export async function serverAction(
+  _: ActionResult,
+  formData: FormData
+): Promise<ActionResult> {
   try {
     const userId = String(formData.get("userId"));
     const plainPassword = String(formData.get("password"));
 
     if (!userId || !plainPassword) {
-      return "Enter credentials";
+      return "INVALID_INPUT";
     }
 
     const [rows] = (await pool.execute(
@@ -24,14 +28,14 @@ export async function serverAction(_: string, formData: FormData) {
     )) as unknown as [string[][]];
 
     if (rows.length !== 1) {
-      return "Invalid credentials";
+      return "INVALID_CREDENTIALS";
     }
 
     const [storedPasswordHash] = rows[0];
 
     const isPasswordValid = await verify(storedPasswordHash, plainPassword);
     if (!isPasswordValid) {
-      return "Invalid credentials";
+      return "INVALID_CREDENTIALS";
     }
 
     const sessionId = randomBytes(8).toString("hex");
@@ -40,7 +44,7 @@ export async function serverAction(_: string, formData: FormData) {
 
     const redisStatus = await client.set(userHash, sessionId);
     if (redisStatus !== "OK") {
-      return "Error occured";
+      return "INTERNAL_ERROR";
     }
 
     await client.expire(userHash, 60 * 60 * 24);
@@ -56,6 +60,6 @@ export async function serverAction(_: string, formData: FormData) {
 
     return "OK";
   } catch {
-    return "Error occured";
+    return "INTERNAL_ERROR";
   }
 }

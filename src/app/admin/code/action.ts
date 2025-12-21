@@ -17,7 +17,7 @@ export async function fetchData(): Promise<string[] | ActionResult> {
 }
 
 export async function addActionState(
-  _: string,
+  _: ActionResult,
   formData: FormData
 ): Promise<ActionResult> {
   const verified = await check(32);
@@ -34,7 +34,7 @@ export async function addActionState(
 }
 
 export async function removeActionState(
-  _: string,
+  _: ActionResult,
   formData: FormData
 ): Promise<ActionResult> {
   const verified = await check(32);

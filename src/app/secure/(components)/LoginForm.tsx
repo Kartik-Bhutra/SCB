@@ -3,10 +3,14 @@ import PasswordBtn from "./PasswordBtn";
 import { useRouter } from "next/navigation";
 import { serverAction } from "../action";
 import { useActionState, useEffect, useState } from "react";
+import { ActionResult } from "@/types/serverActions";
 
 export default function LoginForm() {
   const router = useRouter();
-  const [state, actionHandler, isLoading] = useActionState(serverAction, "");
+  const [state, actionHandler, isLoading] = useActionState<
+    ActionResult,
+    FormData
+  >(serverAction, "");
   const [localError, setLocalError] = useState("");
 
   useEffect(() => {

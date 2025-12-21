@@ -1,0 +1,4 @@
+127.0.0.1 {
+    reverse_proxy localhost:3000
+    tls internal
+}

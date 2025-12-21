@@ -52,7 +52,7 @@ export async function maxPageNo(): Promise<number> {
 }
 
 export async function addNoAction(
-  _: string,
+  _: ActionResult,
   formData: FormData
 ): Promise<ActionResult> {
   const verified = await check(32);
@@ -78,7 +78,7 @@ export async function addNoAction(
 }
 
 export async function changeTypeAction(
-  _: string,
+  _: ActionResult,
   formData: FormData
 ): Promise<ActionResult> {
   const verified = await check(32);
@@ -96,7 +96,7 @@ export async function changeTypeAction(
 }
 
 export async function bulkUploadAction(
-  _: string,
+  _: ActionResult,
   formData: FormData
 ): Promise<ActionResult> {
   const verified = await check(32);

@@ -55,7 +55,7 @@ export async function fetchTotalPages(): Promise<number> {
 }
 
 export async function changeTypeAction(
-  _: string,
+  _: ActionResult,
   formData: FormData
 ): Promise<ActionResult> {
   const verified = await check(32);

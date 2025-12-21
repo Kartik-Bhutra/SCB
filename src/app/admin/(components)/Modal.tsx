@@ -16,7 +16,7 @@ interface ModalProps {
   setOpen: Dispatch<SetStateAction<boolean>>;
   children: ReactNode;
   title: string;
-  onConfirm: (state: string, formData: FormData) => Promise<ActionResult>;
+  onConfirm: (state: ActionResult, formData: FormData) => Promise<ActionResult>;
   setRefresh: Dispatch<SetStateAction<boolean>>;
 }
 

@@ -5,7 +5,8 @@ import { client, pool } from "@/db";
 import { hashToBuffer } from "@/hooks/hash";
 import { PublicKeyCredentialCreationOptionsJSON } from "@simplewebauthn/browser";
 import { generateRegistrationOptions } from "@simplewebauthn/server";
-import { ActionResult, rpID, rpName } from "@/types/serverActions";
+import { ActionResult } from "@/types/serverActions";
+import { rpID, rpName } from "../../../env";
 
 export async function serverAction(
   _: ActionResult | PublicKeyCredentialCreationOptionsJSON,
@@ -51,10 +52,6 @@ export async function serverAction(
         rpName,
         rpID,
         userName: userId,
-        attestationType: "none",
-        authenticatorSelection: {
-          authenticatorAttachment: "platform",
-        },
       });
 
     return options;
