@@ -1,5 +1,5 @@
-import Loader from "@/app/admin/(components)/Loader";
-import NoData from "@/app/admin/(components)/NoData";
+import Loader from "@/app/(components)/Loader";
+import NoData from "@/app/(components)/NoData";
 import { Dispatch, SetStateAction, useState } from "react";
 import TableBody from "./TableBody";
 import BlockedModal from "./BlockedModal";
@@ -32,7 +32,7 @@ export default function Table({ data, isLoading, setRefresh }: tableProps) {
           <div className="inline-flex rounded-md shadow-xs" role="group">
             <button
               onClick={() => setOpenCreate(true)}
-              className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-s mr-[1px]"
+              className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-s mr-px"
             >
               Add Code
             </button>

@@ -6,7 +6,7 @@ import { fetchData } from "./action";
 import Table from "./(components)/Table";
 import { ActionResult } from "@/types/serverActions";
 
-export default function BlockNumber() {
+export default function Admins() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [data, setData] = useState([] as string[]);
@@ -14,7 +14,7 @@ export default function BlockNumber() {
   useEffect(() => {
     (async () => {
       setIsLoading(true);
-      const result : (string[] | ActionResult) = await fetchData();
+      const result: string[] | ActionResult = await fetchData();
       setIsLoading(false);
       if (result === "UNAUTHORIZED") {
         setError(result);

@@ -1,3 +1,5 @@
+"use server";
+
 import { client, pool } from "@/db";
 import { check } from "@/server/check";
 import { ActionResult } from "@/types/serverActions";
@@ -7,10 +9,10 @@ export async function fetchData(): Promise<string[] | ActionResult> {
   const verified = await check(16);
   if (!verified) return "UNAUTHORIZED";
 
-  const [rows] = pool.execute({
+  const [rows] = (await pool.execute({
     sql: `SELECT userId FROM admins WHERE type = 1`,
     rowsAsArray: true,
-  }) as unknown as [string[][]];
+  })) as unknown as [string[][]];
 
   return rows.map((r) => r[0]);
 }

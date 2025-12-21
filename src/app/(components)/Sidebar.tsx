@@ -1,22 +1,26 @@
-import { navigation } from "@/constants/navbarItem";
+import { adminNavigation, managerNavigation } from "@/constants/navbarItem";
 import Logout from "./Logout";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import Links from "./Links";
 import { logoutUser } from "../action";
 
-export default function Sidebar() {
+interface SidebarProps {
+  type: boolean;
+}
+
+export default function Sidebar({ type }: SidebarProps) {
   const pathname = usePathname();
   const handleLogout = async () => {
     await logoutUser();
     window.location.href = "/login";
-  }
+  };
   return (
     <div className="hidden md:flex h-full flex-col">
       <nav className="flex-1">
         <div className="h-full bg-white/80 backdrop-blur-sm border-r border-blue-100 w-64 flex flex-col">
           <div className="flex-1 px-3 py-4 space-y-1">
-            {navigation.map((item) => {
+            {(type ? adminNavigation : managerNavigation).map((item) => {
               const isActive = pathname === item.href;
               return (
                 <Link key={item.name} href={item.href}>

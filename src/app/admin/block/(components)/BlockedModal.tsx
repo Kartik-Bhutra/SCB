@@ -1,4 +1,4 @@
-import Modal from "../../(components)/Modal";
+import Modal from "../../../(components)/Modal";
 import Select from "../../(components)/Select";
 import SeqInput from "../../(components)/SeqInput";
 import codes from "@/constants/CountryCodes.json";

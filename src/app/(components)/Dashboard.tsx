@@ -5,10 +5,12 @@ import React, { useEffect, useState } from "react";
 
 interface DashboardProps {
   children: React.ReactNode;
+  type : boolean;
 }
 
 export default function Dashboard({
   children,
+  type
 }: DashboardProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [status, setStatus] = useState(true);
@@ -27,14 +29,15 @@ export default function Dashboard({
     };
   }, []);
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
+    <div className="min-h-screen bg-linear-to-br from-gray-50 to-blue-50">
       <header className="fixed top-0 right-0 left-0 z-30 flex h-16 items-center justify-between bg-white/80 backdrop-blur-sm px-4 shadow-md md:px-6 border-b border-blue-100">
         <div className="flex items-center gap-4">
           <MobileNav
             isOpen={isMobileMenuOpen}
             setIsOpen={setIsMobileMenuOpen}
+            type={type}
           />
-          <h1 className="text-xl font-semibold bg-gradient-to-r from-blue-600 to-blue-800 bg-clip-text text-transparent">
+          <h1 className="text-xl font-semibold bg-linear-to-br from-blue-600 to-blue-800 bg-clip-text text-transparent">
             Army Admin
           </h1>
         </div>
@@ -50,7 +53,7 @@ export default function Dashboard({
 
       <div className={`flex pt-16 ${isMobileMenuOpen ? "hidden md:flex" : ""}`}>
         <aside className="fixed left-0 hidden md:block w-64 h-[calc(100vh-4rem)] bg-white border-r border-gray-200">
-          <Sidebar />
+          <Sidebar type={type}/>
         </aside>
 
         <main className="w-full md:ml-64 min-h-[calc(100vh-4rem)] p-4 md:p-6">

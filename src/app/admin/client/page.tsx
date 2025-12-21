@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { ActionResult } from "@/types/serverActions";
-import Pagination from "../(components)/Pagination";
-import Error from "../(components)/Error";
+import Pagination from "../../(components)/Pagination";
+import Error from "@/app/(components)/Error";
 import { fetchTotalPages, fetchData, Data } from "./action";
 import Table from "./(components)/Table";
 

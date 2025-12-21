@@ -1,4 +1,4 @@
-import Modal from "../../(components)/Modal";
+import Modal from "../../../(components)/Modal";
 import { Dispatch, SetStateAction } from "react";
 import { changeTypeAction } from "../action";
 

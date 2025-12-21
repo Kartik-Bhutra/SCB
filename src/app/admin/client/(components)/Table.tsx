@@ -1,8 +1,8 @@
 import TableBody from "./TableBody";
 import { Dispatch, SetStateAction, useState } from "react";
-import Loader from "@/app/admin/(components)/Loader";
+import Loader from "@/app/(components)/Loader";
 import ClientModal from "./ClientModal";
-import NoData from "@/app/admin/(components)/NoData";
+import NoData from "@/app/(components)/NoData";
 import { Data } from "../action";
 
 interface tableProps {

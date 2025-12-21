@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Pagination from "../(components)/Pagination";
-import Error from "../(components)/Error";
+import Pagination from "../../(components)/Pagination";
+import Error from "@/app/(components)/Error";
 import { Data, fetchData, maxPageNo } from "./action";
 import Table from "./(components)/Table";
 import { ActionResult } from "@/types/serverActions";

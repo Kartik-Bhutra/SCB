@@ -1,23 +1,24 @@
 "use client";
 import MobileLinks from "./MobileLinks";
-import Cross from "@/app/admin/(components)/Cross";
+import Cross from "@/app/(components)/Cross";
 import Logout from "./Logout";
 import Links from "./Links";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { navigation } from "@/constants/navbarItem";
+import { adminNavigation, managerNavigation } from "@/constants/navbarItem";
 import { logoutUser } from "../action";
 
 interface MobileNavProps {
   isOpen: boolean;
   setIsOpen: (open: boolean) => void;
+  type: boolean;
 }
 
-export default function MobileNav({ isOpen, setIsOpen }: MobileNavProps) {
+export default function MobileNav({ isOpen, setIsOpen, type }: MobileNavProps) {
   const pathname = usePathname();
   const handleLogout = async () => {
     await logoutUser();
-    window.location.href = "/login";
+    window.location.href = `${type} ? "/login" : "/secure`;
   };
   return (
     <div className="md:hidden">
@@ -43,7 +44,7 @@ export default function MobileNav({ isOpen, setIsOpen }: MobileNavProps) {
 
             <nav className="mt-8 flex flex-col h-[calc(100vh-8rem)]">
               <div className="flex-1 space-y-1">
-                {navigation.map((item) => {
+                {(type ? adminNavigation : managerNavigation).map((item) => {
                   const isActive = pathname === item.href;
                   return (
                     <Link

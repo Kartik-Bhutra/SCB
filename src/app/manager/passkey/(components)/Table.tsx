@@ -2,50 +2,28 @@ import Loader from "@/app/(components)/Loader";
 import NoData from "@/app/(components)/NoData";
 import { Dispatch, SetStateAction, useState } from "react";
 import TableBody from "./TableBody";
-import BlockedModal from "./BlockedModal";
-import { Data } from "../action";
+import AdminModal from "./AdminModal";
+
 interface tableProps {
-  data: Data[];
+  data: string[];
   isLoading: boolean;
   setRefresh: Dispatch<SetStateAction<boolean>>;
 }
 
 export default function Table({ data, isLoading, setRefresh }: tableProps) {
-  const [openCreate, setOpenCreate] = useState(false);
   const [openDelete, setOpenDelete] = useState(false);
   const [deleteId, setDeleteId] = useState("");
-  const [openUpload, setOpenUpload] = useState(false);
   return (
     <>
-      <BlockedModal
-        openCreate={openCreate}
-        setOpenCreate={setOpenCreate}
-        openDelete={openDelete} 
+      <AdminModal
+        openDelete={openDelete}
         setOpenDelete={setOpenDelete}
         deleteId={deleteId}
-        openUpload={openUpload}
-        setOpenUpload={setOpenUpload}
         setRefresh={setRefresh}
       />
       <div className="bg-white rounded-lg shadow-sm mx-auto max-w-[100vw]">
         <div className="flex justify-between items-center gap-2 px-6 py-4 border-b border-gray-200">
-          <h2 className="text-lg font-semibold text-gray-800">
-            Blocked Numbers
-          </h2>
-          <div className="inline-flex rounded-md shadow-xs" role="group">
-            <button
-              onClick={() => setOpenCreate(true)}
-              className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-s mr-[1px]"
-            >
-              New Sequence
-            </button>
-            <button
-              onClick={() => setOpenUpload(true)}
-              className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-e"
-            >
-              Bulk Upload
-            </button>
-          </div>
+          <h2 className="text-lg font-semibold text-gray-800">Blocked Codes</h2>
         </div>
         {!data.length && !isLoading ? (
           <NoData />
@@ -55,7 +33,7 @@ export default function Table({ data, isLoading, setRefresh }: tableProps) {
               <thead className="text-xs text-gray-700 uppercase bg-gray-100">
                 <tr>
                   <th scope="col" className="px-6 py-3">
-                    Number
+                    Code
                   </th>
                   <th scope="col" className="px-6 py-3">
                     Action

@@ -1,4 +1,4 @@
-import Modal from "../../(components)/Modal";
+import Modal from "../../../(components)/Modal";
 import Select from "../../(components)/Select";
 import codes from "@/constants/CountryCodes.json";
 import { addActionState, removeActionState } from "../action";

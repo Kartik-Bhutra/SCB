@@ -7,13 +7,13 @@ export default async function adminLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const verfied = await check(32);
+  const verfied = await check(16);
   if (!verfied) {
-    redirect("/login", RedirectType.replace);
+    redirect("/secure", RedirectType.replace);
   }
 
   return (
-    <Dashboard type={true}>
+    <Dashboard type={false}>
       {children}
     </Dashboard>
   );
