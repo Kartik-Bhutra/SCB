@@ -1,11 +1,17 @@
 "use server";
 
 import { client, pool } from "@/db";
+import { hashToBuffer } from "@/hooks/hash";
 import { check } from "@/server/check";
 import { ActionResult } from "@/types/serverActions";
 import { randomBytes } from "node:crypto";
 
-export async function fetchData(): Promise<string[] | ActionResult> {
+export interface Data {
+  userId: string;
+  sessionId: string | null;
+}
+
+export async function fetchData(): Promise<Data[] | ActionResult> {
   const verified = await check(16);
   if (!verified) return "UNAUTHORIZED";
 
@@ -14,7 +20,19 @@ export async function fetchData(): Promise<string[] | ActionResult> {
     rowsAsArray: true,
   })) as unknown as [string[][]];
 
-  return rows.map((r) => r[0]);
+  const data: Data[] = await Promise.all(
+    rows.map(async (r) => {
+      const userId = r[0];
+      const key = hashToBuffer(userId).toString("hex");
+
+      return {
+        userId,
+        sessionId: await client.get(key),
+      };
+    })
+  );
+
+  return data;
 }
 
 export async function generateSession(
@@ -25,8 +43,24 @@ export async function generateSession(
   if (!verified) return "UNAUTHORIZED";
 
   const userId = String(formData.get("userId"));
-  const session = randomBytes(8).toString("hex");
+  const key = hashToBuffer(userId).toString("hex");
+  const session = randomBytes(4).toString("hex");
 
-  await client.set(userId, session);
+  await client.set(key, session);
+  await client.expire(key, 60 * 10);
+  return "OK";
+}
+
+export async function deleteSession(
+  _: ActionResult,
+  formData: FormData
+): Promise<ActionResult> {
+  const verified = await check(16);
+  if (!verified) return "UNAUTHORIZED";
+
+  const userId = String(formData.get("userId"));
+  const key = hashToBuffer(userId).toString("hex");
+
+  await client.del(key);
   return "OK";
 }

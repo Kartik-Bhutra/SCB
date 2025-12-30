@@ -2,25 +2,25 @@
 
 import { useEffect, useState } from "react";
 import Error from "@/app/(components)/Error";
-import { fetchData } from "./action";
+import { Data, fetchData } from "./action";
 import Table from "./(components)/Table";
 import { ActionResult } from "@/types/serverActions";
 
 export default function Admins() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
-  const [data, setData] = useState([] as string[]);
+  const [data, setData] = useState([] as Data[]);
   const [refresh, setRefresh] = useState(false);
   useEffect(() => {
     (async () => {
       setIsLoading(true);
-      const result: string[] | ActionResult = await fetchData();
+      const result: Data[] | ActionResult = await fetchData();
       setIsLoading(false);
       if (result === "UNAUTHORIZED") {
         setError(result);
         return;
       }
-      setData(result as string[]);
+      setData(result as Data[]);
     })();
   }, [refresh]);
 

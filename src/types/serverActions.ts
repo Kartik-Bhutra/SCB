@@ -8,4 +8,4 @@ export type ActionResult =
   | "INVALID_CREDENTIALS"
   | "INTERNAL_ERROR";
 
-export const origin = `https://${rpID}`;
+export const origin = `http://${rpID}:3000`;

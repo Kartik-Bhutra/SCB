@@ -3,9 +3,10 @@ import NoData from "@/app/(components)/NoData";
 import { Dispatch, SetStateAction, useState } from "react";
 import TableBody from "./TableBody";
 import AdminModal from "./AdminModal";
+import { Data } from "../action";
 
 interface tableProps {
-  data: string[];
+  data: Data[];
   isLoading: boolean;
   setRefresh: Dispatch<SetStateAction<boolean>>;
 }
@@ -13,12 +14,17 @@ interface tableProps {
 export default function Table({ data, isLoading, setRefresh }: tableProps) {
   const [openDelete, setOpenDelete] = useState(false);
   const [deleteId, setDeleteId] = useState("");
+  const [openCreate, setOpenCreate] = useState(false);
+  const [createId, setCreateId] = useState("");
   return (
     <>
       <AdminModal
         openDelete={openDelete}
         setOpenDelete={setOpenDelete}
         deleteId={deleteId}
+        openCreate={openCreate}
+        setOpenCreate={setOpenCreate}
+        createId={createId}
         setRefresh={setRefresh}
       />
       <div className="bg-white rounded-lg shadow-sm mx-auto max-w-[100vw]">
@@ -32,6 +38,9 @@ export default function Table({ data, isLoading, setRefresh }: tableProps) {
             <table className="w-full text-sm">
               <thead className="text-xs text-gray-700 uppercase bg-gray-100">
                 <tr>
+                  <th scope="col" className="px-6 py-3">
+                    adminId
+                  </th>
                   <th scope="col" className="px-6 py-3">
                     Code
                   </th>
@@ -53,6 +62,8 @@ export default function Table({ data, isLoading, setRefresh }: tableProps) {
                   data={data}
                   setOpenDelete={setOpenDelete}
                   setDeleteId={setDeleteId}
+                  setCreateId={setCreateId}
+                  setOpenCreate={setOpenCreate}
                 />
               )}
             </table>
