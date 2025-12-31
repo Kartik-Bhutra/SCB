@@ -1,24 +1,36 @@
 "use client";
 import PasswordBtn from "./PasswordBtn";
 import { useRouter } from "next/navigation";
-import { serverAction } from "../action";
+import { serverAction, verifyLogin } from "../action";
 import { useActionState, useEffect, useState } from "react";
 import { ActionResult } from "@/types/serverActions";
+import {
+  PublicKeyCredentialRequestOptionsJSON,
+  startAuthentication,
+} from "@simplewebauthn/browser";
 
 export default function LoginForm() {
   const router = useRouter();
   const [state, actionHandler, isLoading] = useActionState<
-    ActionResult,
+    ActionResult | PublicKeyCredentialRequestOptionsJSON,
     FormData
   >(serverAction, "");
   const [localError, setLocalError] = useState("");
 
   useEffect(() => {
-    if (state === "OK") {
-      router.replace("/admin");
-    } else {
+    if (typeof state === "string") {
       setLocalError(state);
+      return;
     }
+    (async () => {
+      const credential = await startAuthentication({ optionsJSON: state });
+      const result = await verifyLogin(credential);
+      if (result !== "OK") {
+        setLocalError(result);
+        return;
+      }
+      router.replace("/admin");
+    })();
   }, [state, router]);
 
   function handleInputChange() {

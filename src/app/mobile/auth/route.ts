@@ -4,11 +4,16 @@ import { hashToBuffer } from "@/hooks/hash";
 import { encryptToBuffer } from "@/hooks/crypto";
 import { randomUUID } from "node:crypto";
 
+interface reqData {
+  mobileNo: string;
+  deviceId: string;
+}
+
 export async function POST(req: NextRequest) {
   try {
-    const mobileNo = (await req.text()).trim();
+    const { mobileNo, deviceId } = (await req.json()) as reqData;
 
-    if (!mobileNo) {
+    if (!mobileNo && !deviceId) {
       return NextResponse.json(
         { error: "Missing mobileNo or deviceId" },
         { status: 400 }
@@ -24,21 +29,21 @@ export async function POST(req: NextRequest) {
         sql: `
           SELECT type
           FROM users
-          WHERE mobNoHs = ?
+          WHERE mobNoHs = ? and devId = ?
           LIMIT 1
         `,
         rowsAsArray: true,
       },
-      [mobileHash]
+      [mobileHash, deviceId]
     )) as unknown as [number[][]];
 
     if (rows.length === 0) {
       await connection.execute(
         `
-          INSERT INTO users (name, mobNoEn, mobNoHs, type)
-          VALUES ('', ?, ?, ?, 0)
+          INSERT INTO users (name, mobNoEn, mobNoHs, devId)
+          VALUES ('', ?, ?, ?)
         `,
-        [encryptToBuffer(mobileNo), mobileHash]
+        [encryptToBuffer(mobileNo), mobileHash, deviceId]
       );
 
       return NextResponse.json({ status: "not accepted" }, { status: 200 });
@@ -57,7 +62,7 @@ export async function POST(req: NextRequest) {
     }
 
     const sessionId = randomUUID();
-    const redisKey = mobileHash.toString("base64");
+    const redisKey = mobileHash.toString("base64") + deviceId;
     const token = redisKey + sessionId;
 
     await client.set(redisKey, sessionId);

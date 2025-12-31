@@ -6,12 +6,12 @@ export async function GET(req: NextRequest) {
   try {
     const token = await req.text();
 
-    if (!token || token.length < 45) {
+    if (!token || token.length < 80) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const key = token.slice(0, 44);
-    const value = token.slice(44);
+    const key = token.slice(0, 80);
+    const value = token.slice(80);
 
     const stored = await client.get(key);
     if (!stored || stored !== value) {

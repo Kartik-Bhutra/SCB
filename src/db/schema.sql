@@ -26,8 +26,7 @@ CREATE TABLE IF NOT EXISTS passkeys (
   userId CHAR(8) NOT NULL,
   webAuthnId VARBINARY(64) NOT NULL,
   counter BIGINT NOT NULL,
-  FOREIGN KEY (userId) REFERENCES admins(userId) ON DELETE CASCADE,
-
+  FOREIGN KEY (userId) REFERENCES admins(userId) ON DELETE CASCADE
 );
 
 
