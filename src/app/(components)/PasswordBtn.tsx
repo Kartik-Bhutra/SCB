@@ -1,6 +1,7 @@
+import { type ChangeEvent, useState } from "react";
 import EyeCloseIcon from "./EyeClose";
 import EyeOpenIcon from "./EyeOpen";
-import { ChangeEvent, useState } from "react";
+
 interface PasswordBtnProps {
   handleInputChange: (e: ChangeEvent<HTMLInputElement>) => void;
 }
@@ -9,7 +10,10 @@ export default function PasswordBtn({ handleInputChange }: PasswordBtnProps) {
   const [eye, setEye] = useState(false);
   return (
     <div className="space-y-2">
-      <label className="block text-sm font-medium text-gray-700">
+      <label
+        className="block text-sm font-medium text-gray-700"
+        htmlFor="password"
+      >
         Password
       </label>
       <div className="relative">

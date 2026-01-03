@@ -11,6 +11,7 @@ export default function Links({ icon }: LinksProps) {
       strokeWidth={1.5}
       stroke="currentColor"
       className="w-5 h-5"
+      aria-hidden="true"
     >
       <path strokeLinecap="round" strokeLinejoin="round" d={icon} />
     </svg>

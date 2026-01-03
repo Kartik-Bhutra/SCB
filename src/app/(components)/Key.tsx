@@ -6,6 +6,7 @@ export default function KeyIcon() {
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
+      aria-hidden="true"
     >
       <path
         strokeLinecap="round"

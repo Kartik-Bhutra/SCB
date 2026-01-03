@@ -1,5 +1,5 @@
-import { Dispatch, SetStateAction } from "react";
-import { Data } from "../action";
+import type { Dispatch, SetStateAction } from "react";
+import type { Data } from "../action";
 
 interface TableBodyProps {
   data: Data[];
@@ -18,9 +18,9 @@ export default function TableBody({
 }: TableBodyProps) {
   return (
     <tbody>
-      {data.map(({ sessionId, userId }, key) => (
+      {data.map(({ sessionId, userId }) => (
         <tr
-          key={key}
+          key={sessionId}
           className="odd:bg-white even:bg-gray-50 border-b border-gray-200"
         >
           <td className="px-6 py-4 text-center">{userId}</td>
@@ -30,6 +30,7 @@ export default function TableBody({
           <td className="px-6 py-4 text-center">
             {sessionId ? (
               <button
+                type="button"
                 onClick={() => {
                   setDeleteId(userId);
                   setOpenDelete(true);
@@ -40,6 +41,7 @@ export default function TableBody({
               </button>
             ) : (
               <button
+                type="button"
                 onClick={() => {
                   setCreateId(userId);
                   setOpenCreate(true);

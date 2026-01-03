@@ -1,5 +1,5 @@
-import { createClient, RedisClientOptions } from "redis";
-import { createPool, PoolOptions } from "mysql2/promise";
+import { createPool, type PoolOptions } from "mysql2/promise";
+import { createClient, type RedisClientOptions } from "redis";
 import {
   DB_HOST,
   DB_NAME,
@@ -7,7 +7,7 @@ import {
   DB_USER,
   REDIS_HOST,
   REDIS_PASS,
-} from "../../env";
+} from "../env";
 
 // import { platform } from "os";
 

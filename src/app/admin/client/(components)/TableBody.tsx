@@ -1,5 +1,5 @@
-import { Dispatch, SetStateAction } from "react";
-import { Data } from "../action";
+import type { Dispatch, SetStateAction } from "react";
+import type { Data } from "../action";
 
 interface TableBodyProps {
   data: Data[];
@@ -36,6 +36,7 @@ export default function TableBody({
             {type !== 0 ? (
               type === 1 ? (
                 <button
+                  type="button"
                   onClick={() => {
                     setDeleteItem(`${mobileNo}:2`);
                     setOpenCreate(true);
@@ -46,6 +47,7 @@ export default function TableBody({
                 </button>
               ) : (
                 <button
+                  type="button"
                   onClick={() => {
                     setDeleteItem(`${mobileNo}:1`);
                     setOpenCreate(true);
@@ -58,6 +60,7 @@ export default function TableBody({
             ) : (
               <div className="flex flex-row max-[900px]:flex-col gap-3 justify-center items-center">
                 <button
+                  type="button"
                   onClick={() => {
                     setDeleteItem(`${mobileNo}:1`);
                     setOpenCreate(true);
@@ -67,6 +70,7 @@ export default function TableBody({
                   Approve
                 </button>
                 <button
+                  type="button"
                   onClick={() => {
                     setDeleteItem(`${mobileNo}:2`);
                     setOpenCreate(true);

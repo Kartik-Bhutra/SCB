@@ -1,6 +1,6 @@
+import { type NextRequest, NextResponse } from "next/server";
 import { client } from "@/db";
 import { hashToBuffer } from "@/hooks/hash";
-import { NextRequest, NextResponse } from "next/server";
 
 interface reqData {
   mobileNo: string;
@@ -14,7 +14,7 @@ export async function GET(req: NextRequest) {
     if (!mobileNo && !deviceId) {
       return NextResponse.json(
         { error: "Missing mobileNo or deviceId" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -37,7 +37,7 @@ export async function GET(req: NextRequest) {
   } catch {
     return NextResponse.json(
       { error: "Internal Server Error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

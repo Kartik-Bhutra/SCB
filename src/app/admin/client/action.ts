@@ -4,7 +4,7 @@ import { pool } from "@/db";
 import { decryptFromBuffer } from "@/hooks/crypto";
 import { hashToBuffer } from "@/hooks/hash";
 import { check } from "@/server/check";
-import { ActionResult } from "@/types/serverActions";
+import type { ActionResult } from "@/types/serverActions";
 
 interface DataRaw {
   name: string;
@@ -34,7 +34,7 @@ export async function fetchData(page: number): Promise<ActionResult | Data[]> {
      FROM users
      WHERE id > ?
      LIMIT 25 `,
-    [offset]
+    [offset],
   )) as unknown as [DataRaw[]];
 
   return rows.map((obj) => ({
@@ -46,7 +46,7 @@ export async function fetchData(page: number): Promise<ActionResult | Data[]> {
 
 export async function fetchTotalPages(): Promise<number> {
   const [rows] = (await pool.execute(
-    "SELECT id FROM users ORDER BY id DESC LIMIT 1"
+    "SELECT id FROM users ORDER BY id DESC LIMIT 1",
   )) as unknown as [{ id: number }[]];
 
   if (rows.length === 0) return 0;
@@ -56,7 +56,7 @@ export async function fetchTotalPages(): Promise<number> {
 
 export async function changeTypeAction(
   _: ActionResult,
-  formData: FormData
+  formData: FormData,
 ): Promise<ActionResult> {
   const verified = await check(32);
   if (!verified) return "UNAUTHORIZED";

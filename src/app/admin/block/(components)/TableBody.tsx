@@ -1,22 +1,10 @@
-import { Dispatch, SetStateAction } from "react";
-import { Data } from "../action";
+import type { Dispatch, SetStateAction } from "react";
+import type { Data } from "../action";
+
 interface TableBodyProps {
   data: Data[];
   setOpenDelete: Dispatch<SetStateAction<boolean>>;
   setDeleteId: Dispatch<SetStateAction<string>>;
-}
-
-function formatTimestamp(timestamp: string | Date) {
-  if (!timestamp) return "N/A";
-  const date = new Date(timestamp);
-  return date.toLocaleString("en-IN", {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: true,
-  });
 }
 
 const formatValue = (val: string) => {
@@ -48,6 +36,7 @@ export default function TableBody({
 
           <td className="px-6 py-4 text-center">
             <button
+              type="button"
               onClick={() => {
                 setDeleteId(mobileNo);
                 setOpenDelete(true);

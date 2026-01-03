@@ -1,9 +1,8 @@
 "use server";
 
+import { randomUUID } from "node:crypto";
 import { verify as verifyHash } from "@node-rs/argon2";
-import { client, pool } from "@/db";
-import { hashToBuffer } from "@/hooks/hash";
-import {
+import type {
   PublicKeyCredentialCreationOptionsJSON,
   RegistrationResponseJSON,
 } from "@simplewebauthn/browser";
@@ -11,14 +10,15 @@ import {
   generateRegistrationOptions,
   verifyRegistrationResponse,
 } from "@simplewebauthn/server";
-import { ActionResult, origin } from "@/types/serverActions";
-import { rpID, rpName } from "../../../env";
-import { randomUUID } from "node:crypto";
 import { cookies } from "next/headers";
+import { client, pool } from "@/db";
+import { rpID, rpName } from "@/env";
+import { hashToBuffer } from "@/hooks/hash";
+import { type ActionResult, origin } from "@/types/serverActions";
 
 export async function serverAction(
   _: ActionResult | PublicKeyCredentialCreationOptionsJSON,
-  formData: FormData
+  formData: FormData,
 ): Promise<ActionResult | PublicKeyCredentialCreationOptionsJSON> {
   try {
     const userId = String(formData.get("userId") || "");
@@ -34,7 +34,7 @@ export async function serverAction(
         sql: `SELECT passHash, type FROM admins WHERE userId = ? AND type = 1 LIMIT 1`,
         rowsAsArray: true,
       },
-      [userId]
+      [userId],
     )) as unknown as [string[][]];
 
     if (rows.length !== 1) return "INVALID_CREDENTIALS";
@@ -52,7 +52,7 @@ export async function serverAction(
         sql: `SELECT id FROM passkeys WHERE userId = ?`,
         rowsAsArray: true,
       },
-      [userId]
+      [userId],
     )) as unknown as [string[][]];
 
     const excludeCredentials = creds.map((r) => ({
@@ -90,7 +90,7 @@ export async function serverAction(
 }
 
 export async function verifyRegistration(
-  credential: RegistrationResponseJSON
+  credential: RegistrationResponseJSON,
 ): Promise<ActionResult> {
   try {
     const cookieStore = await cookies();
@@ -128,14 +128,14 @@ export async function verifyRegistration(
       (id, publicKey, userId, webAuthnId, counter)
       VALUES (?, ?, ?, ?, ?)
       `,
-      [id, publicKey, userId, webAuthnId, counter]
+      [id, publicKey, userId, webAuthnId, counter],
     );
 
     await client.del(session);
     cookieStore.delete("session");
 
     return "OK";
-  } catch{
+  } catch {
     return "INTERNAL_ERROR";
   }
 }

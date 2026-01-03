@@ -1,6 +1,6 @@
 "use client";
 
-import { Dispatch, SetStateAction } from "react";
+import type { Dispatch, SetStateAction } from "react";
 
 interface PaginationProps {
   currentPage: number;
@@ -49,6 +49,7 @@ export default function Pagination({
       {/* Page Navigation Buttons */}
       <div className="flex items-center gap-1 text-sm">
         <button
+          type="button"
           onClick={() => setPage((prev) => Math.max(1, prev - 1))}
           className="px-3 py-2 bg-white border border-gray-300 text-gray-700 hover:bg-gray-100 rounded-l-md"
         >
@@ -62,6 +63,7 @@ export default function Pagination({
             return (
               <button
                 key={num}
+                type="button"
                 onClick={() => setPage(num)}
                 className="px-3 py-2 border border-gray-300 text-gray-700 hover:bg-gray-100"
               >
@@ -87,6 +89,7 @@ export default function Pagination({
             return (
               <button
                 key={num}
+                type="button"
                 onClick={() => setPage(num)}
                 className="px-3 py-2 border border-gray-300 text-gray-700 hover:bg-gray-100"
               >
@@ -97,6 +100,7 @@ export default function Pagination({
         )}
 
         <button
+          type="button"
           onClick={() => setPage((prev) => Math.min(totalPages, prev + 1))}
           className="px-3 py-2 bg-white border border-gray-300 text-gray-700 hover:bg-gray-100 rounded-r-md"
         >

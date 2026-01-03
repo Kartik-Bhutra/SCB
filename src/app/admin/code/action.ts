@@ -2,7 +2,7 @@
 
 import { pool } from "@/db";
 import { check } from "@/server/check";
-import { ActionResult } from "@/types/serverActions";
+import type { ActionResult } from "@/types/serverActions";
 
 export async function fetchData(): Promise<string[] | ActionResult> {
   const verified = await check(32);
@@ -18,7 +18,7 @@ export async function fetchData(): Promise<string[] | ActionResult> {
 
 export async function addActionState(
   _: ActionResult,
-  formData: FormData
+  formData: FormData,
 ): Promise<ActionResult> {
   const verified = await check(32);
   if (!verified) return "UNAUTHORIZED";
@@ -35,7 +35,7 @@ export async function addActionState(
 
 export async function removeActionState(
   _: ActionResult,
-  formData: FormData
+  formData: FormData,
 ): Promise<ActionResult> {
   const verified = await check(32);
   if (!verified) return "UNAUTHORIZED";

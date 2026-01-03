@@ -1,17 +1,14 @@
 "use client";
-import Sidebar from "./Sidebar";
+import { useEffect, useState } from "react";
 import MobileNav from "./MobileNav";
-import React, { useEffect, useState } from "react";
+import Sidebar from "./Sidebar";
 
 interface DashboardProps {
   children: React.ReactNode;
-  type : boolean;
+  type: boolean;
 }
 
-export default function Dashboard({
-  children,
-  type
-}: DashboardProps) {
+export default function Dashboard({ children, type }: DashboardProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [status, setStatus] = useState(true);
   useEffect(() => {
@@ -53,14 +50,12 @@ export default function Dashboard({
 
       <div className={`flex pt-16 ${isMobileMenuOpen ? "hidden md:flex" : ""}`}>
         <aside className="fixed left-0 hidden md:block w-64 h-[calc(100vh-4rem)] bg-white border-r border-gray-200">
-          <Sidebar type={type}/>
+          <Sidebar type={type} />
         </aside>
 
         <main className="w-full md:ml-64 min-h-[calc(100vh-4rem)] p-4 md:p-6">
           <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-            <div className="overflow-x-auto">
-                {children}
-            </div>
+            <div className="overflow-x-auto">{children}</div>
           </div>
         </main>
       </div>

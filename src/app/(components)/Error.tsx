@@ -1,14 +1,14 @@
-import FetchError from "./FetchError";
 import Link from "next/link";
-import { Dispatch, SetStateAction } from "react";
+import FetchError from "./FetchError";
+
 interface errorProps {
   message: string;
-  setRefresh: Dispatch<SetStateAction<boolean>>;
+  reload: () => void;
 }
 
-export default function Error({
+export default function ErrorPop({
   message = "Something went wrong!",
-  setRefresh,
+  reload,
 }: errorProps) {
   return (
     <div className="flex flex-col items-center justify-center min-h-[60vh] p-8 text-center">
@@ -19,7 +19,8 @@ export default function Error({
       <p className="text-gray-600 mb-6 max-w-md">{message}</p>
       <div className="flex gap-4">
         <button
-          onClick={() => setRefresh((prev) => !prev)}
+          type="button"
+          onClick={reload}
           className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200"
         >
           Try Again

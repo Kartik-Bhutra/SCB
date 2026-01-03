@@ -1,12 +1,12 @@
+import type { Dispatch, SetStateAction } from "react";
 import Modal from "@/app/(components)/Modal";
-import { Dispatch, SetStateAction } from "react";
 import { deleteSession, generateSession } from "../action";
 
 interface BlockedModalProps {
   openDelete: boolean;
   setOpenDelete: Dispatch<SetStateAction<boolean>>;
   deleteId: string;
-  setRefresh: Dispatch<SetStateAction<boolean>>;
+  reload: () => void;
   createId: string;
   setOpenCreate: Dispatch<SetStateAction<boolean>>;
   openCreate: boolean;
@@ -16,7 +16,7 @@ export default function BlockedModal({
   openDelete,
   setOpenDelete,
   deleteId,
-  setRefresh,
+  reload,
   createId,
   openCreate,
   setOpenCreate,
@@ -27,7 +27,7 @@ export default function BlockedModal({
         onConfirm={deleteSession}
         open={openDelete}
         setOpen={setOpenDelete}
-        setRefresh={setRefresh}
+        reload={reload}
         title="Delete Token"
       >
         <p>
@@ -39,7 +39,7 @@ export default function BlockedModal({
         onConfirm={generateSession}
         open={openCreate}
         setOpen={setOpenCreate}
-        setRefresh={setRefresh}
+        reload={reload}
         title="Generate Token"
       >
         <p>

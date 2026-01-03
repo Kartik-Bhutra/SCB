@@ -1,6 +1,6 @@
+import { type NextRequest, NextResponse } from "next/server";
 import { client, pool } from "@/db";
 import { decryptFromBuffer } from "@/hooks/crypto";
-import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(req: NextRequest) {
   try {
@@ -39,7 +39,7 @@ export async function GET(req: NextRequest) {
   } catch {
     return NextResponse.json(
       { error: "Internal Server Error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

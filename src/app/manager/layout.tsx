@@ -1,6 +1,6 @@
-import { redirect, RedirectType } from "next/navigation";
-import Dashboard from "../(components)/Dashboard";
+import { RedirectType, redirect } from "next/navigation";
 import { check } from "@/server/check";
+import Dashboard from "../(components)/Dashboard";
 
 export default async function adminLayout({
   children,
@@ -12,9 +12,5 @@ export default async function adminLayout({
     redirect("/secure", RedirectType.replace);
   }
 
-  return (
-    <Dashboard type={false}>
-      {children}
-    </Dashboard>
-  );
+  return <Dashboard type={false}>{children}</Dashboard>;
 }

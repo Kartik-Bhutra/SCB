@@ -1,4 +1,4 @@
-import { rpID } from "../../env";
+import { rpID } from "../env";
 
 export type ActionResult =
   | ""

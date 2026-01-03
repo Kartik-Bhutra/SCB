@@ -1,9 +1,9 @@
-import { adminNavigation, managerNavigation } from "@/constants/navbarItem";
-import Logout from "./Logout";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import Links from "./Links";
+import { adminNavigation, managerNavigation } from "@/constants/navbarItem";
 import { logoutUser } from "../action";
+import Links from "./Links";
+import Logout from "./Logout";
 
 interface SidebarProps {
   type: boolean;
@@ -45,6 +45,7 @@ export default function Sidebar({ type }: SidebarProps) {
 
           <div className="p-4 border-t border-gray-100">
             <button
+              type="button"
               onClick={handleLogout}
               className="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-red-600 hover:text-red-700 hover:bg-red-50 rounded-xl transition-all duration-200"
             >

@@ -1,12 +1,12 @@
 "use client";
-import MobileLinks from "./MobileLinks";
-import Cross from "@/app/(components)/Cross";
-import Logout from "./Logout";
-import Links from "./Links";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { adminNavigation, managerNavigation } from "@/constants/navbarItem";
 import { logoutUser } from "../action";
+import Cross from "./Cross";
+import Links from "./Links";
+import Logout from "./Logout";
+import MobileLinks from "./MobileLinks";
 
 interface MobileNavProps {
   isOpen: boolean;
@@ -23,6 +23,7 @@ export default function MobileNav({ isOpen, setIsOpen, type }: MobileNavProps) {
   return (
     <div className="md:hidden">
       <button
+        type="button"
         onClick={() => setIsOpen(!isOpen)}
         className="p-2 text-gray-600 hover:text-gray-900"
       >
@@ -35,6 +36,7 @@ export default function MobileNav({ isOpen, setIsOpen, type }: MobileNavProps) {
             <div className="flex items-center justify-between">
               <div className="text-xl font-semibold">Menu</div>
               <button
+                type="button"
                 onClick={() => setIsOpen(false)}
                 className="p-2 text-gray-600 hover:text-gray-900"
               >
@@ -67,6 +69,7 @@ export default function MobileNav({ isOpen, setIsOpen, type }: MobileNavProps) {
 
               <div className="pt-4 border-t border-gray-200">
                 <button
+                  type="button"
                   onClick={handleLogout}
                   className="w-full flex items-center px-3 py-2.5 text-base font-medium text-red-600 hover:bg-red-50 rounded-xl transition-all duration-200"
                 >

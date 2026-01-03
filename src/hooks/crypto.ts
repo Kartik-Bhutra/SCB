@@ -1,5 +1,10 @@
-import { createCipheriv, createDecipheriv, randomBytes, createHash } from "node:crypto";
-import { ENC_KEY } from "../../env";
+import {
+  createCipheriv,
+  createDecipheriv,
+  createHash,
+  randomBytes,
+} from "node:crypto";
+import { ENC_KEY } from "../env";
 
 const ALGORITHM = "aes-256-gcm";
 const IV_LENGTH = 12;
@@ -8,7 +13,9 @@ const TAG_LENGTH = 16;
 function tryDecodeCandidate(candidate: string | Buffer): Buffer | null {
   if (Buffer.isBuffer(candidate) && candidate.length === 32) return candidate;
 
-  const asStr = Buffer.isBuffer(candidate) ? candidate.toString("utf8") : String(candidate);
+  const asStr = Buffer.isBuffer(candidate)
+    ? candidate.toString("utf8")
+    : String(candidate);
 
   try {
     const b = Buffer.from(asStr, "base64");
@@ -51,10 +58,12 @@ function getKeyFromEnv(envKey: unknown): Buffer {
   const decoded = tryDecodeCandidate(candidate);
   if (decoded) return decoded;
 
-  const got = Buffer.isBuffer(candidate) ? `Buffer length ${candidate.length}` : `string length ${String(candidate).length}`;
+  const got = Buffer.isBuffer(candidate)
+    ? `Buffer length ${candidate.length}`
+    : `string length ${String(candidate).length}`;
   throw new Error(
     `ENC_KEY is not a valid 32-byte key. Tried base64/hex/utf8/passphrase decoding. Got ${got}. ` +
-    `Recommended: set ENC_KEY to a 32-byte key encoded as base64 (preferred) or hex.`
+      `Recommended: set ENC_KEY to a 32-byte key encoded as base64 (preferred) or hex.`,
   );
 }
 
@@ -64,7 +73,10 @@ export function encryptToBuffer(text: string): Buffer {
   const iv = randomBytes(IV_LENGTH);
   const cipher = createCipheriv(ALGORITHM, key, iv);
 
-  const ciphertext = Buffer.concat([cipher.update(text, "utf8"), cipher.final()]);
+  const ciphertext = Buffer.concat([
+    cipher.update(text, "utf8"),
+    cipher.final(),
+  ]);
   const tag = cipher.getAuthTag();
   return Buffer.concat([iv, tag, ciphertext]);
 }
@@ -77,6 +89,9 @@ export function decryptFromBuffer(buffer: Buffer): string {
   const decipher = createDecipheriv(ALGORITHM, key, iv);
   decipher.setAuthTag(tag);
 
-  const decrypted = Buffer.concat([decipher.update(ciphertext), decipher.final()]);
+  const decrypted = Buffer.concat([
+    decipher.update(ciphertext),
+    decipher.final(),
+  ]);
   return decrypted.toString("utf8");
 }

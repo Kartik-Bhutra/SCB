@@ -1,9 +1,9 @@
-import Modal from "../../../(components)/Modal";
+import { type Dispatch, type SetStateAction, useState } from "react";
+import Modal from "@/app/(components)/Modal";
+import codes from "@/constants/CountryCodes.json";
 import Select from "../../(components)/Select";
 import SeqInput from "../../(components)/SeqInput";
-import codes from "@/constants/CountryCodes.json";
-import { addNoAction, changeTypeAction, bulkUploadAction } from "../action";
-import { Dispatch, SetStateAction, useState } from "react";
+import { addNoAction, bulkUploadAction, changeTypeAction } from "../action";
 
 interface BlockedModalProps {
   openCreate: boolean;
@@ -13,7 +13,7 @@ interface BlockedModalProps {
   deleteId: string;
   openUpload: boolean;
   setOpenUpload: Dispatch<SetStateAction<boolean>>;
-  setRefresh: Dispatch<SetStateAction<boolean>>;
+  reload: () => void;
 }
 
 export default function BlockedModal({
@@ -24,7 +24,7 @@ export default function BlockedModal({
   deleteId,
   openUpload,
   setOpenUpload,
-  setRefresh,
+  reload,
 }: BlockedModalProps) {
   const [number, setNumber] = useState("");
   return (
@@ -33,7 +33,7 @@ export default function BlockedModal({
         onConfirm={addNoAction}
         open={openCreate}
         setOpen={setOpenCreate}
-        setRefresh={setRefresh}
+        reload={reload}
         title="Create Sequence"
       >
         <div>
@@ -51,7 +51,7 @@ export default function BlockedModal({
         onConfirm={changeTypeAction}
         open={openDelete}
         setOpen={setOpenDelete}
-        setRefresh={setRefresh}
+        reload={reload}
         title="Delete Sequence"
       >
         <p>
@@ -65,7 +65,7 @@ export default function BlockedModal({
         setOpen={setOpenUpload}
         title="Bulk Upload"
         onConfirm={bulkUploadAction}
-        setRefresh={setRefresh}
+        reload={reload}
       >
         <p className="text-sm mt-5 text-gray-500">
           Upload a text or CSV file of phone numbers to block.

@@ -1,8 +1,8 @@
-import { NextRequest, NextResponse } from "next/server";
-import { client, pool } from "@/db";
-import { hashToBuffer } from "@/hooks/hash";
-import { encryptToBuffer } from "@/hooks/crypto";
 import { randomUUID } from "node:crypto";
+import { type NextRequest, NextResponse } from "next/server";
+import { client, pool } from "@/db";
+import { encryptToBuffer } from "@/hooks/crypto";
+import { hashToBuffer } from "@/hooks/hash";
 
 interface reqData {
   mobileNo: string;
@@ -16,7 +16,7 @@ export async function POST(req: NextRequest) {
     if (!mobileNo && !deviceId) {
       return NextResponse.json(
         { error: "Missing mobileNo or deviceId" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -34,7 +34,7 @@ export async function POST(req: NextRequest) {
         `,
         rowsAsArray: true,
       },
-      [mobileHash, deviceId]
+      [mobileHash, deviceId],
     )) as unknown as [number[][]];
 
     if (rows.length === 0) {
@@ -43,7 +43,7 @@ export async function POST(req: NextRequest) {
           INSERT INTO users (name, mobNoEn, mobNoHs, devId)
           VALUES ('', ?, ?, ?)
         `,
-        [encryptToBuffer(mobileNo), mobileHash, deviceId]
+        [encryptToBuffer(mobileNo), mobileHash, deviceId],
       );
 
       return NextResponse.json({ status: "not accepted" }, { status: 200 });
@@ -71,7 +71,7 @@ export async function POST(req: NextRequest) {
   } catch {
     return NextResponse.json(
       { error: "Internal Server Error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

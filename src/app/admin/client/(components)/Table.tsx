@@ -1,17 +1,17 @@
-import TableBody from "./TableBody";
-import { Dispatch, SetStateAction, useState } from "react";
+import { useState } from "react";
 import Loader from "@/app/(components)/Loader";
-import ClientModal from "./ClientModal";
 import NoData from "@/app/(components)/NoData";
-import { Data } from "../action";
+import type { Data } from "../action";
+import ClientModal from "./ClientModal";
+import TableBody from "./TableBody";
 
 interface tableProps {
   data: Data[];
   isLoading: boolean;
-  setRefresh: Dispatch<SetStateAction<boolean>>;
+  reload: () => void;
 }
 
-export default function Table({ data, isLoading, setRefresh }: tableProps) {
+export default function Table({ data, isLoading, reload }: tableProps) {
   const [openCreate, setOpenCreate] = useState(false);
   const [deleteItem, setDeleteItem] = useState("");
   return (
@@ -20,7 +20,7 @@ export default function Table({ data, isLoading, setRefresh }: tableProps) {
         openCreate={openCreate}
         setOpenCreate={setOpenCreate}
         deleteItem={deleteItem}
-        setRefresh={setRefresh}
+        reload={reload}
       />
       <div className="bg-white rounded-lg shadow-sm mx-auto max-w-[100vw]">
         <div className="flex justify-between items-center gap-2 px-6 py-4 border-b border-gray-200">

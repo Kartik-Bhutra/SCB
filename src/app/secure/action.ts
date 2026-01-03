@@ -1,15 +1,15 @@
 "use server";
 
-import { cookies } from "next/headers";
-import { verify } from "@node-rs/argon2";
 import { randomBytes } from "node:crypto";
+import { verify } from "@node-rs/argon2";
+import { cookies } from "next/headers";
 import { client, pool } from "@/db";
 import { hashToBuffer } from "@/hooks/hash";
-import { ActionResult } from "@/types/serverActions";
+import type { ActionResult } from "@/types/serverActions";
 
 export async function serverAction(
   _: ActionResult,
-  formData: FormData
+  formData: FormData,
 ): Promise<ActionResult> {
   try {
     const userId = String(formData.get("userId"));
@@ -24,7 +24,7 @@ export async function serverAction(
         sql: `SELECT passHash FROM admins WHERE userId = ? AND type = 0 LIMIT 1`,
         rowsAsArray: true,
       },
-      [userId]
+      [userId],
     )) as unknown as [string[][]];
 
     if (rows.length !== 1) {

@@ -1,24 +1,24 @@
 "use server";
 
-import { cookies } from "next/headers";
-import { verify } from "@node-rs/argon2";
 import { randomBytes, randomUUID } from "node:crypto";
-import { client, pool } from "@/db";
-import { ActionResult, origin } from "@/types/serverActions";
+import { verify } from "@node-rs/argon2";
+import type {
+  AuthenticationResponseJSON,
+  PublicKeyCredentialRequestOptionsJSON,
+} from "@simplewebauthn/browser";
 import {
   generateAuthenticationOptions,
   verifyAuthenticationResponse,
 } from "@simplewebauthn/server";
-import { rpID } from "../../../env";
-import {
-  AuthenticationResponseJSON,
-  PublicKeyCredentialRequestOptionsJSON,
-} from "@simplewebauthn/browser";
+import { cookies } from "next/headers";
+import { client, pool } from "@/db";
+import { rpID } from "@/env";
 import { hashToBuffer } from "@/hooks/hash";
+import { type ActionResult, origin } from "@/types/serverActions";
 
 export async function serverAction(
   _: ActionResult | PublicKeyCredentialRequestOptionsJSON,
-  formData: FormData
+  formData: FormData,
 ): Promise<ActionResult | PublicKeyCredentialRequestOptionsJSON> {
   try {
     const userId = String(formData.get("userId"));
@@ -33,7 +33,7 @@ export async function serverAction(
         sql: `SELECT passHash, type FROM admins WHERE userId = ? AND type = 1 LIMIT 1`,
         rowsAsArray: true,
       },
-      [userId]
+      [userId],
     )) as unknown as [string[][]];
 
     if (rows.length !== 1) {
@@ -52,7 +52,7 @@ export async function serverAction(
         sql: `SELECT id FROM passkeys WHERE userId = ?`,
         rowsAsArray: true,
       },
-      [userId]
+      [userId],
     )) as unknown as [string[][]];
 
     const allowCredentials = creds.map((r) => ({
@@ -81,7 +81,7 @@ export async function serverAction(
 }
 
 export async function verifyLogin(
-  credential: AuthenticationResponseJSON
+  credential: AuthenticationResponseJSON,
 ): Promise<ActionResult> {
   try {
     const cookieStore = await cookies();
@@ -107,7 +107,7 @@ export async function verifyLogin(
         `,
         rowsAsArray: true,
       },
-      [webAuthnId, userId]
+      [webAuthnId, userId],
     )) as unknown as [[string, Buffer, number][]];
 
     if (rows.length !== 1) return "UNAUTHORIZED";

@@ -6,6 +6,7 @@ export default function NoData() {
       viewBox="0 0 24 24"
       stroke="currentColor"
       className="w-24 h-24"
+      aria-hidden="true"
     >
       <path
         strokeLinecap="round"

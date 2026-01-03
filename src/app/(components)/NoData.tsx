@@ -1,5 +1,5 @@
-import NoDataIcon from "./NotFound";
 import Link from "next/link";
+import NoDataIcon from "./NotFound";
 
 export default function NoData() {
   return (

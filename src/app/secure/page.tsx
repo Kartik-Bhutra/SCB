@@ -1,7 +1,7 @@
-import LoginForm from "./(components)/LoginForm";
-import KeyIcon from "./(components)/Key";
-import { check } from "@/server/check";
 import { redirect } from "next/navigation";
+import KeyIcon from "@/app/(components)/Key";
+import { check } from "@/server/check";
+import LoginForm from "./(components)/LoginForm";
 
 export default async function LoginPage() {
   const isLoggedIn = await check(16);
@@ -9,8 +9,8 @@ export default async function LoginPage() {
     redirect("/manager");
   }
   return (
-    <div className="min-h-screen w-full flex justify-center items-center bg-gradient-to-br from-blue-50 via-gray-50 to-indigo-50 px-4 sm:px-6 lg:px-8">
-      <div className="bg-white p-6 sm:p-8 rounded-2xl shadow-xl w-full sm:w-[95%] max-w-[400px] transition-all duration-300 hover:shadow-2xl">
+    <div className="min-h-screen w-full flex justify-center items-center bg-linear-to-br from-blue-50 via-gray-50 to-indigo-50 px-4 sm:px-6 lg:px-8">
+      <div className="bg-white p-6 sm:p-8 rounded-2xl shadow-xl w-full sm:w-[95%] max-w-100 transition-all duration-300 hover:shadow-2xl">
         <div className="space-y-6 sm:space-y-8">
           <div className="text-center space-y-2">
             <div className="flex justify-center mb-4 sm:mb-6">

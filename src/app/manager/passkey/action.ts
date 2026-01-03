@@ -1,10 +1,10 @@
 "use server";
 
+import { randomBytes } from "node:crypto";
 import { client, pool } from "@/db";
 import { hashToBuffer } from "@/hooks/hash";
 import { check } from "@/server/check";
-import { ActionResult } from "@/types/serverActions";
-import { randomBytes } from "node:crypto";
+import type { ActionResult } from "@/types/serverActions";
 
 export interface Data {
   userId: string;
@@ -29,7 +29,7 @@ export async function fetchData(): Promise<Data[] | ActionResult> {
         userId,
         sessionId: await client.get(key),
       };
-    })
+    }),
   );
 
   return data;
@@ -37,7 +37,7 @@ export async function fetchData(): Promise<Data[] | ActionResult> {
 
 export async function generateSession(
   _: ActionResult,
-  formData: FormData
+  formData: FormData,
 ): Promise<ActionResult> {
   const verified = await check(16);
   if (!verified) return "UNAUTHORIZED";
@@ -53,7 +53,7 @@ export async function generateSession(
 
 export async function deleteSession(
   _: ActionResult,
-  formData: FormData
+  formData: FormData,
 ): Promise<ActionResult> {
   const verified = await check(16);
   if (!verified) return "UNAUTHORIZED";

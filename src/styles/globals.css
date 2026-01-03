@@ -73,5 +73,5 @@ button {
   }
 }
 .cursor_pointer {
-  cursor: pointer !important;
+  cursor: pointer;
 }

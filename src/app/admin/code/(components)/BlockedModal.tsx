@@ -1,8 +1,8 @@
-import Modal from "../../../(components)/Modal";
-import Select from "../../(components)/Select";
+import type { Dispatch, SetStateAction } from "react";
+import Modal from "@/app/(components)/Modal";
 import codes from "@/constants/CountryCodes.json";
+import Select from "../../(components)/Select";
 import { addActionState, removeActionState } from "../action";
-import { Dispatch, SetStateAction } from "react";
 
 interface BlockedModalProps {
   openCreate: boolean;
@@ -10,7 +10,7 @@ interface BlockedModalProps {
   openDelete: boolean;
   setOpenDelete: Dispatch<SetStateAction<boolean>>;
   deleteId: string;
-  setRefresh: Dispatch<SetStateAction<boolean>>;
+  reload: () => void;
 }
 
 export default function BlockedModal({
@@ -19,7 +19,7 @@ export default function BlockedModal({
   openDelete,
   setOpenDelete,
   deleteId,
-  setRefresh,
+  reload,
 }: BlockedModalProps) {
   return (
     <>
@@ -27,7 +27,7 @@ export default function BlockedModal({
         onConfirm={addActionState}
         open={openCreate}
         setOpen={setOpenCreate}
-        setRefresh={setRefresh}
+        reload={reload}
         title="Block Code"
       >
         <div>
@@ -43,12 +43,11 @@ export default function BlockedModal({
         onConfirm={removeActionState}
         open={openDelete}
         setOpen={setOpenDelete}
-        setRefresh={setRefresh}
+        reload={reload}
         title="Unblock Code"
       >
         <p>
-          Are you sure you want to unblock the code{" "}
-          <strong>{deleteId}</strong>?
+          Are you sure you want to unblock the code <strong>{deleteId}</strong>?
         </p>
         <input type="hidden" name="code" value={deleteId}></input>
       </Modal>

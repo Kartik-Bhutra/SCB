@@ -1,32 +1,30 @@
-import Modal from "../../../(components)/Modal";
-import { Dispatch, SetStateAction } from "react";
+import type { Dispatch, SetStateAction } from "react";
+import Modal from "@/app/(components)/Modal";
 import { changeTypeAction } from "../action";
 
 interface ClientModalProps {
   openCreate: boolean;
   setOpenCreate: Dispatch<SetStateAction<boolean>>;
   deleteItem: string;
-  setRefresh: Dispatch<SetStateAction<boolean>>;
+  reload: () => void;
 }
 
 export default function ClientModal({
   openCreate,
   setOpenCreate,
   deleteItem,
-  setRefresh,
+  reload,
 }: ClientModalProps) {
   return (
-    <>
-      <Modal
-        onConfirm={changeTypeAction}
-        open={openCreate}
-        setOpen={setOpenCreate}
-        setRefresh={setRefresh}
-        title="Create Sequence"
-      >
-        <p>Are you sure you want to do that</p>
-        <input type="hidden" name="mobileType" value={deleteItem} />
-      </Modal>
-    </>
+    <Modal
+      onConfirm={changeTypeAction}
+      open={openCreate}
+      setOpen={setOpenCreate}
+      reload={reload}
+      title="Create Sequence"
+    >
+      <p>Are you sure you want to do that</p>
+      <input type="hidden" name="mobileType" value={deleteItem} />
+    </Modal>
   );
 }

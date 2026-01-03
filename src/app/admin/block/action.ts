@@ -4,7 +4,7 @@ import { pool } from "@/db";
 import { decryptFromBuffer, encryptToBuffer } from "@/hooks/crypto";
 import { hashToBuffer } from "@/hooks/hash";
 import { check } from "@/server/check";
-import { ActionResult } from "@/types/serverActions";
+import type { ActionResult } from "@/types/serverActions";
 
 interface DataRaw {
   type: boolean;
@@ -30,7 +30,7 @@ export async function fetchData(page: number): Promise<ActionResult | Data[]> {
         type
      FROM blocks WHERE id > ?
      LIMIT 25 `,
-    [offset]
+    [offset],
   )) as unknown as [DataRaw[]];
 
   return rows.map((r) => ({
@@ -41,7 +41,7 @@ export async function fetchData(page: number): Promise<ActionResult | Data[]> {
 
 export async function maxPageNo(): Promise<number> {
   const [rows] = await pool.execute(
-    "SELECT id FROM blocks ORDER BY id DESC LIMIT 1"
+    "SELECT id FROM blocks ORDER BY id DESC LIMIT 1",
   );
 
   const result = rows as { id: number }[];
@@ -53,7 +53,7 @@ export async function maxPageNo(): Promise<number> {
 
 export async function addNoAction(
   _: ActionResult,
-  formData: FormData
+  formData: FormData,
 ): Promise<ActionResult> {
   const verified = await check(32);
   if (!verified) return "UNAUTHORIZED";
@@ -69,7 +69,7 @@ export async function addNoAction(
       `INSERT INTO blocks (mobNoEn, mobNoHs)
        VALUES (?, ?)
        ON DUPLICATE KEY UPDATE type = 0`,
-      [encryptToBuffer(mobileNo), hashToBuffer(mobileNo)]
+      [encryptToBuffer(mobileNo), hashToBuffer(mobileNo)],
     );
     return "OK";
   } catch {
@@ -79,7 +79,7 @@ export async function addNoAction(
 
 export async function changeTypeAction(
   _: ActionResult,
-  formData: FormData
+  formData: FormData,
 ): Promise<ActionResult> {
   const verified = await check(32);
   if (!verified) return "UNAUTHORIZED";
@@ -97,7 +97,7 @@ export async function changeTypeAction(
 
 export async function bulkUploadAction(
   _: ActionResult,
-  formData: FormData
+  formData: FormData,
 ): Promise<ActionResult> {
   const verified = await check(32);
   if (!verified) return "UNAUTHORIZED";

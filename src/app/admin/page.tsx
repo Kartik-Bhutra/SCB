@@ -13,15 +13,32 @@ export default function HomePage() {
       <div className="p-6">
         <h3 className="text font-semibold text-gray-900">Quick Links</h3>
         <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          <Link href="/admin/client" className="bg-white rounded-lg shadow p-4 hover:shadow-md transition-shadow duration-200 cursor-pointer">
-            <h4 className="text-lg font-medium text-gray-900">Manage Clients</h4>
-            <p className="mt-1 text-gray-600">View and manage client accounts.</p>
+          <Link
+            href="/admin/client"
+            className="bg-white rounded-lg shadow p-4 hover:shadow-md transition-shadow duration-200 cursor-pointer"
+          >
+            <h4 className="text-lg font-medium text-gray-900">
+              Manage Clients
+            </h4>
+            <p className="mt-1 text-gray-600">
+              View and manage client accounts.
+            </p>
           </Link>
-          <Link href="/admin/block" className="bg-white rounded-lg shadow p-4 hover:shadow-md transition-shadow duration-200 cursor-pointer">
-            <h4 className="text-lg font-medium text-gray-900">Blocked Numbers</h4>
-            <p className="mt-1 text-gray-600">Review and update blocked numbers.</p>
+          <Link
+            href="/admin/block"
+            className="bg-white rounded-lg shadow p-4 hover:shadow-md transition-shadow duration-200 cursor-pointer"
+          >
+            <h4 className="text-lg font-medium text-gray-900">
+              Blocked Numbers
+            </h4>
+            <p className="mt-1 text-gray-600">
+              Review and update blocked numbers.
+            </p>
           </Link>
-          <Link href="/admin/code" className="bg-white rounded-lg shadow p-4 hover:shadow-md transition-shadow duration-200 cursor-pointer">
+          <Link
+            href="/admin/code"
+            className="bg-white rounded-lg shadow p-4 hover:shadow-md transition-shadow duration-200 cursor-pointer"
+          >
             <h4 className="text-lg font-medium text-gray-900">Blocked Codes</h4>
             <p className="mt-1 text-gray-600">Manage blocked area codes.</p>
           </Link>

@@ -1,13 +1,13 @@
 "use client";
-import PasswordBtn from "./PasswordBtn";
-import { useRouter } from "next/navigation";
-import { serverAction, verifyLogin } from "../action";
-import { useActionState, useEffect, useState } from "react";
-import { ActionResult } from "@/types/serverActions";
 import {
-  PublicKeyCredentialRequestOptionsJSON,
+  type PublicKeyCredentialRequestOptionsJSON,
   startAuthentication,
 } from "@simplewebauthn/browser";
+import { useRouter } from "next/navigation";
+import { useActionState, useEffect, useState } from "react";
+import PasswordBtn from "@/app/(components)/PasswordBtn";
+import type { ActionResult } from "@/types/serverActions";
+import { serverAction, verifyLogin } from "../action";
 
 export default function LoginForm() {
   const router = useRouter();
@@ -41,7 +41,10 @@ export default function LoginForm() {
     <form className="space-y-4 sm:space-y-6" action={actionHandler}>
       <div className="space-y-4 sm:space-y-5">
         <div className="space-y-1.5 sm:space-y-2">
-          <label className="block text-sm font-medium text-gray-700">
+          <label
+            className="block text-sm font-medium text-gray-700"
+            htmlFor="userId"
+          >
             User Id
           </label>
           <input

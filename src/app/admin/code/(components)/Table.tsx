@@ -1,16 +1,16 @@
+import { useState } from "react";
 import Loader from "@/app/(components)/Loader";
 import NoData from "@/app/(components)/NoData";
-import { Dispatch, SetStateAction, useState } from "react";
-import TableBody from "./TableBody";
 import BlockedModal from "./BlockedModal";
+import TableBody from "./TableBody";
 
 interface tableProps {
   data: string[];
   isLoading: boolean;
-  setRefresh: Dispatch<SetStateAction<boolean>>;
+  reload: () => void;
 }
 
-export default function Table({ data, isLoading, setRefresh }: tableProps) {
+export default function Table({ data, isLoading, reload }: tableProps) {
   const [openCreate, setOpenCreate] = useState(false);
   const [openDelete, setOpenDelete] = useState(false);
   const [deleteId, setDeleteId] = useState("");
@@ -22,21 +22,20 @@ export default function Table({ data, isLoading, setRefresh }: tableProps) {
         openDelete={openDelete}
         setOpenDelete={setOpenDelete}
         deleteId={deleteId}
-        setRefresh={setRefresh}
+        reload={reload}
       />
       <div className="bg-white rounded-lg shadow-sm mx-auto max-w-[100vw]">
         <div className="flex justify-between items-center gap-2 px-6 py-4 border-b border-gray-200">
-          <h2 className="text-lg font-semibold text-gray-800">
-            Blocked Codes
-          </h2>
-          <div className="inline-flex rounded-md shadow-xs" role="group">
+          <h2 className="text-lg font-semibold text-gray-800">Blocked Codes</h2>
+          <fieldset className="inline-flex rounded-md shadow-xs">
             <button
+              type="button"
               onClick={() => setOpenCreate(true)}
               className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-s mr-px"
             >
               Add Code
             </button>
-          </div>
+          </fieldset>
         </div>
         {!data.length && !isLoading ? (
           <NoData />

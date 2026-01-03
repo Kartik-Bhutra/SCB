@@ -8,6 +8,7 @@ export default function MobileLinks({ isOpen }: MobileLinksProps) {
       className="w-6 h-6"
       fill="none"
       viewBox="0 0 24 24"
+      aria-hidden="true"
       stroke="currentColor"
     >
       {isOpen ? (
