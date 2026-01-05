@@ -23,6 +23,7 @@ export default function PasswordBtn({ handleInputChange }: PasswordBtnProps) {
           placeholder="Enter your password"
           name="password"
           onChange={handleInputChange}
+          onFocus={handleInputChange}
           required
         />
         <button

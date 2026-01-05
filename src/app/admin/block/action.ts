@@ -3,7 +3,7 @@
 import { pool } from "@/db";
 import { decryptFromBuffer, encryptToBuffer } from "@/hooks/crypto";
 import { hashToBuffer } from "@/hooks/hash";
-import { check } from "@/server/check";
+import { isAdmin } from "@/server/auth";
 import type { ActionResult } from "@/types/serverActions";
 
 interface DataRaw {
@@ -18,7 +18,7 @@ export interface Data {
 }
 
 export async function fetchData(page: number): Promise<ActionResult | Data[]> {
-  const verified = await check(32);
+  const verified = await isAdmin();
   if (!verified) return "UNAUTHORIZED";
 
   const offset = (page - 1) * 25;
@@ -55,7 +55,7 @@ export async function addNoAction(
   _: ActionResult,
   formData: FormData,
 ): Promise<ActionResult> {
-  const verified = await check(32);
+  const verified = await isAdmin();
   if (!verified) return "UNAUTHORIZED";
 
   const code = formData.get("code");
@@ -81,7 +81,7 @@ export async function changeTypeAction(
   _: ActionResult,
   formData: FormData,
 ): Promise<ActionResult> {
-  const verified = await check(32);
+  const verified = await isAdmin();
   if (!verified) return "UNAUTHORIZED";
 
   const mobile = String(formData.get("mobileNo"));
@@ -99,7 +99,7 @@ export async function bulkUploadAction(
   _: ActionResult,
   formData: FormData,
 ): Promise<ActionResult> {
-  const verified = await check(32);
+  const verified = await isAdmin();
   if (!verified) return "UNAUTHORIZED";
 
   const file = formData.get("file-input");

@@ -1,5 +1,5 @@
 import { RedirectType, redirect } from "next/navigation";
-import { check } from "@/server/check";
+import { isAdmin, isAuthorized } from "@/server/auth";
 import Dashboard from "../(components)/Dashboard";
 
 export default async function adminLayout({
@@ -7,7 +7,7 @@ export default async function adminLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const verfied = await check(32);
+  const verfied = await isAdmin();
   if (!verfied) {
     redirect("/login", RedirectType.replace);
   }

@@ -1,12 +1,15 @@
-import { redirect } from "next/navigation";
-import { check } from "@/server/check";
+import { redirect, RedirectType } from "next/navigation";
+import { isAuthorized } from "@/server/auth";
 import KeyIcon from "../(components)/Key";
 import LoginForm from "./(components)/LoginForm";
 
 export default async function LoginPage() {
-  const isLoggedIn = await check(32);
+  const isLoggedIn = await isAuthorized();
   if (isLoggedIn) {
     redirect("/admin");
+  }
+  if (isLoggedIn !== null) {
+    redirect("/manager", RedirectType.replace);
   }
   return (
     <div className="min-h-screen w-full flex justify-center items-center bg-linear-to-br from-blue-50 via-gray-50 to-indigo-50 px-4 sm:px-6 lg:px-8">

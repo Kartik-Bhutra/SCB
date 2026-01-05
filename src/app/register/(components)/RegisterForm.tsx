@@ -55,6 +55,7 @@ export default function LoginForm() {
             placeholder="Enter your user Id"
             name="userId"
             onChange={handleInputChange}
+            onFocus={handleInputChange}
             required
           />
         </div>
@@ -75,6 +76,7 @@ export default function LoginForm() {
             placeholder="Enter your user Id"
             name="session"
             onChange={handleInputChange}
+            onFocus={handleInputChange}
             required
           />
         </div>

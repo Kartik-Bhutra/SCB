@@ -1,13 +1,7 @@
-import { redirect } from "next/navigation";
 import KeyIcon from "@/app/(components)/Key";
-import { check } from "@/server/check";
-import LoginForm from "./(components)/RegisterForm";
+import RegisterForm from "./(components)/RegisterForm";
 
 export default async function LoginPage() {
-  const isLoggedIn = await check(32);
-  if (isLoggedIn) {
-    redirect("/admin");
-  }
   return (
     <div className="min-h-screen w-full flex justify-center items-center bg-linear-to-br from-blue-50 via-gray-50 to-indigo-50 px-4 sm:px-6 lg:px-8">
       <div className="bg-white p-6 sm:p-8 rounded-2xl shadow-xl w-full sm:w-[95%] max-w-100 transition-all duration-300 hover:shadow-2xl">
@@ -25,7 +19,7 @@ export default async function LoginPage() {
               Please enter your details to sign in
             </p>
           </div>
-          <LoginForm />
+          <RegisterForm />
         </div>
       </div>
     </div>

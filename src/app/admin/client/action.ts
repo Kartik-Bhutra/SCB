@@ -3,7 +3,7 @@
 import { pool } from "@/db";
 import { decryptFromBuffer } from "@/hooks/crypto";
 import { hashToBuffer } from "@/hooks/hash";
-import { check } from "@/server/check";
+import { isAdmin } from "@/server/auth";
 import type { ActionResult } from "@/types/serverActions";
 
 interface DataRaw {
@@ -20,7 +20,7 @@ export interface Data {
 }
 
 export async function fetchData(page: number): Promise<ActionResult | Data[]> {
-  const verified = await check(32);
+  const verified = await isAdmin();
   if (!verified) return "UNAUTHORIZED";
 
   const offset = (page - 1) * 25;
@@ -58,7 +58,7 @@ export async function changeTypeAction(
   _: ActionResult,
   formData: FormData,
 ): Promise<ActionResult> {
-  const verified = await check(32);
+  const verified = await isAdmin();
   if (!verified) return "UNAUTHORIZED";
 
   const mobileType = String(formData.get("mobileType")).split(":");

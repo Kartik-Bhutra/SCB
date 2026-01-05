@@ -3,7 +3,7 @@
 import { randomBytes } from "node:crypto";
 import { client, pool } from "@/db";
 import { hashToBuffer } from "@/hooks/hash";
-import { check } from "@/server/check";
+import { isManager } from "@/server/auth";
 import type { ActionResult } from "@/types/serverActions";
 
 export interface Data {
@@ -12,7 +12,7 @@ export interface Data {
 }
 
 export async function fetchData(): Promise<Data[] | ActionResult> {
-  const verified = await check(16);
+  const verified = await isManager();
   if (!verified) return "UNAUTHORIZED";
 
   const [rows] = (await pool.execute({
@@ -39,7 +39,7 @@ export async function generateSession(
   _: ActionResult,
   formData: FormData,
 ): Promise<ActionResult> {
-  const verified = await check(16);
+  const verified = await isManager();
   if (!verified) return "UNAUTHORIZED";
 
   const userId = String(formData.get("userId"));
@@ -55,7 +55,7 @@ export async function deleteSession(
   _: ActionResult,
   formData: FormData,
 ): Promise<ActionResult> {
-  const verified = await check(16);
+  const verified = await isManager();
   if (!verified) return "UNAUTHORIZED";
 
   const userId = String(formData.get("userId"));

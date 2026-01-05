@@ -1,6 +1,6 @@
 "use server";
 
-import { randomBytes, randomUUID } from "node:crypto";
+import { randomUUID } from "node:crypto";
 import { verify } from "@node-rs/argon2";
 import type {
   AuthenticationResponseJSON,
@@ -14,37 +14,62 @@ import { cookies } from "next/headers";
 import { client, pool } from "@/db";
 import { rpID } from "@/env";
 import { hashToBuffer } from "@/hooks/hash";
-import { type ActionResult, origin } from "@/types/serverActions";
+import { type authActionResult, origin } from "@/types/serverActions";
 
 export async function serverAction(
-  _: ActionResult | PublicKeyCredentialRequestOptionsJSON,
+  _: authActionResult | PublicKeyCredentialRequestOptionsJSON,
   formData: FormData,
-): Promise<ActionResult | PublicKeyCredentialRequestOptionsJSON> {
+): Promise<authActionResult | PublicKeyCredentialRequestOptionsJSON> {
   try {
-    const userId = String(formData.get("userId"));
-    const plainPassword = String(formData.get("password"));
+    const userId = String(formData.get("userId") || "");
+    const password = String(formData.get("password") || "");
 
-    if (!userId || !plainPassword) {
-      return "INVALID_INPUT";
-    }
+    if (!userId || !password) return "INVALID_INPUT";
 
     const [rows] = (await pool.execute(
       {
-        sql: `SELECT passHash, type FROM admins WHERE userId = ? AND type = 1 LIMIT 1`,
+        sql: `SELECT passHash, type FROM admins WHERE userId = ? LIMIT 1`,
         rowsAsArray: true,
       },
       [userId],
-    )) as unknown as [string[][]];
+    )) as unknown as [[string, boolean][]];
 
-    if (rows.length !== 1) {
+    if (!rows.length) return "INVALID_CREDENTIALS";
+
+    const [passHash, type] = rows[0];
+    if (!(await verify(passHash, password))) {
       return "INVALID_CREDENTIALS";
     }
 
-    const [storedPasswordHash] = rows[0];
+    const cookieStore = await cookies();
 
-    const isPasswordValid = await verify(storedPasswordHash, plainPassword);
-    if (!isPasswordValid) {
-      return "INVALID_CREDENTIALS";
+    if (!type) {
+      const sessionId = randomUUID();
+      const userHash = hashToBuffer(userId).toString("base64url");
+
+      await client.set(
+        userHash,
+        JSON.stringify({
+          sessionId,
+          type: false,
+        }),
+        {
+          expiration: {
+            type: "EX",
+            value: 86400,
+          },
+        },
+      );
+
+      cookieStore.set("token", `${userHash}:${sessionId}`, {
+        httpOnly: true,
+        secure: true,
+        sameSite: "strict",
+        maxAge: 86400,
+        path: "/",
+      });
+
+      return "OK";
     }
 
     const [creds] = (await pool.execute(
@@ -54,6 +79,8 @@ export async function serverAction(
       },
       [userId],
     )) as unknown as [string[][]];
+
+    if (!creds.length) return "PASSKEY_NOT_FOUND";
 
     const allowCredentials = creds.map((r) => ({
       id: r[0],
@@ -65,35 +92,49 @@ export async function serverAction(
         allowCredentials,
       });
 
-    const key = randomUUID();
-    await client.set(key, userId + options.challenge);
-    await client.expire(key, 300);
+    const sessionKey = randomUUID();
 
-    const cookieStore = await cookies();
-    cookieStore.set("session", key, {
+    await client.set(
+      sessionKey,
+      JSON.stringify({
+        userId,
+        challenge: options.challenge,
+      }),
+      {
+        expiration: {
+          type: "EX",
+          value: 300,
+        },
+      },
+    );
+
+    cookieStore.set("webauthn_session", sessionKey, {
+      httpOnly: true,
+      secure: true,
+      sameSite: "strict",
       maxAge: 300,
+      path: "/",
     });
 
     return options;
-  } catch {
+  } catch (err) {
+    console.error(err);
     return "INTERNAL_ERROR";
   }
 }
 
 export async function verifyLogin(
   credential: AuthenticationResponseJSON,
-): Promise<ActionResult> {
+): Promise<authActionResult> {
   try {
     const cookieStore = await cookies();
-    const session = cookieStore.get("session")?.value;
-    if (!session) return "INVALID_CREDENTIALS";
+    const sessionKey = cookieStore.get("webauthn_session")?.value;
+    if (!sessionKey) return "SESSION_EXPIRED";
 
-    const redisVal = await client.get(session);
-    if (!redisVal) return "INVALID_CREDENTIALS";
+    const sessionData = await client.get(sessionKey);
+    if (!sessionData) return "SESSION_EXPIRED";
 
-    const userId = redisVal.slice(0, 8);
-    const expectedChallenge = redisVal.slice(8);
-    if (!userId || !expectedChallenge) return "UNAUTHORIZED";
+    const { userId, challenge } = JSON.parse(sessionData);
 
     const webAuthnId = Buffer.from(credential.id, "base64url");
 
@@ -110,59 +151,62 @@ export async function verifyLogin(
       [webAuthnId, userId],
     )) as unknown as [[string, Buffer, number][]];
 
-    if (rows.length !== 1) return "UNAUTHORIZED";
+    if (!rows.length) return "PASSKEY_NOT_FOUND";
 
-    const [storedId, storedPublicKey, storedCounter] = rows[0];
+    const [storedId, publicKey, counter] = rows[0];
 
     const verification = await verifyAuthenticationResponse({
       response: credential,
-      expectedChallenge,
+      expectedChallenge: challenge,
       expectedOrigin: origin,
       expectedRPID: rpID,
       requireUserVerification: true,
       credential: {
         id: storedId,
-        publicKey: new Uint8Array(storedPublicKey),
-        counter: storedCounter,
+        publicKey: new Uint8Array(publicKey),
+        counter,
       },
     });
 
     if (!verification.verified || !verification.authenticationInfo) {
-      return "UNAUTHORIZED";
+      return "WEBAUTHN_FAILED";
     }
 
-    const { newCounter } = verification.authenticationInfo;
-
     await pool.execute(`UPDATE passkeys SET counter = ? WHERE webAuthnId = ?`, [
-      newCounter,
+      verification.authenticationInfo.newCounter,
       webAuthnId,
     ]);
 
-    await client.del(session);
-    cookieStore.delete("session");
+    await client.del(sessionKey);
+    cookieStore.delete("webauthn_session");
 
-    const sessionId = randomBytes(16).toString("hex");
-    const userHash = hashToBuffer(userId).toString("base64");
-    const sessionToken = userHash + sessionId;
+    const sessionId = randomUUID();
+    const userHash = hashToBuffer(userId).toString("base64url");
 
-    const redisStatus = await client.set(userHash, sessionId);
-    if (redisStatus !== "OK") {
-      return "INTERNAL_ERROR";
-    }
+    await client.set(
+      userHash,
+      JSON.stringify({
+        sessionId,
+        type: true,
+      }),
+      {
+        expiration: {
+          type: "EX",
+          value: 86400,
+        },
+      },
+    );
 
-    await client.expire(userHash, 60 * 60 * 24);
-
-    cookieStore.set("token", sessionToken, {
-      maxAge: 60 * 60 * 24,
-      // httpOnly: true,
-      // secure: true,
-      // sameSite: "strict",
-      // path: "/",
+    cookieStore.set("token", `${userHash}:${sessionId}`, {
+      httpOnly: true,
+      secure: true,
+      sameSite: "strict",
+      maxAge: 86400,
+      path: "/",
     });
 
     return "OK";
-  } catch (err) {
-    console.error(err);
+  } catch {
     return "INTERNAL_ERROR";
   }
 }

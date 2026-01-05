@@ -33,7 +33,7 @@ export default function Table({ data, isLoading, reload }: tableProps) {
           <h2 className="text-lg font-semibold text-gray-800">
             Blocked Numbers
           </h2>
-          <fieldset className="inline-flex rounded-md shadow-xs">
+          <div className="inline-flex rounded-md shadow-xs">
             <button
               type="button"
               onClick={() => setOpenCreate(true)}
@@ -48,7 +48,7 @@ export default function Table({ data, isLoading, reload }: tableProps) {
             >
               Bulk Upload
             </button>
-          </fieldset>
+          </div>
         </div>
         {!data.length && !isLoading ? (
           <NoData />

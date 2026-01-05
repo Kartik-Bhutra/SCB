@@ -1,11 +1,11 @@
 "use server";
 
 import { pool } from "@/db";
-import { check } from "@/server/check";
+import { isAdmin } from "@/server/auth";
 import type { ActionResult } from "@/types/serverActions";
 
 export async function fetchData(): Promise<string[] | ActionResult> {
-  const verified = await check(32);
+  const verified = await isAdmin();
   if (!verified) return "UNAUTHORIZED";
 
   const [rows] = (await pool.execute({
@@ -20,7 +20,7 @@ export async function addActionState(
   _: ActionResult,
   formData: FormData,
 ): Promise<ActionResult> {
-  const verified = await check(32);
+  const verified = await isAdmin();
   if (!verified) return "UNAUTHORIZED";
 
   const code = formData.get("code");
@@ -37,7 +37,7 @@ export async function removeActionState(
   _: ActionResult,
   formData: FormData,
 ): Promise<ActionResult> {
-  const verified = await check(32);
+  const verified = await isAdmin();
   if (!verified) return "UNAUTHORIZED";
 
   const code = formData.get("code");
