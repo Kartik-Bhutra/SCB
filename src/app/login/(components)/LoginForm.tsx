@@ -7,14 +7,14 @@ import {
 import { useRouter } from "next/navigation";
 import { useActionState, useEffect, useState } from "react";
 import PasswordBtn from "@/app/(components)/PasswordBtn";
-import type { authActionResult } from "@/types/serverActions";
+import type { loginActionResult } from "@/types/serverActions";
 import { serverAction, verifyLogin } from "../action";
 
 export default function LoginForm() {
   const router = useRouter();
 
   const [state, actionHandler, isLoading] = useActionState<
-    authActionResult | PublicKeyCredentialRequestOptionsJSON,
+    loginActionResult | PublicKeyCredentialRequestOptionsJSON,
     FormData
   >(serverAction, "");
 

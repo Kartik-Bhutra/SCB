@@ -14,12 +14,12 @@ import { cookies } from "next/headers";
 import { client, pool } from "@/db";
 import { rpID } from "@/env";
 import { hashToBuffer } from "@/hooks/hash";
-import { type authActionResult, origin } from "@/types/serverActions";
+import { type loginActionResult, origin } from "@/types/serverActions";
 
 export async function serverAction(
-  _: authActionResult | PublicKeyCredentialRequestOptionsJSON,
+  _: loginActionResult | PublicKeyCredentialRequestOptionsJSON,
   formData: FormData,
-): Promise<authActionResult | PublicKeyCredentialRequestOptionsJSON> {
+): Promise<loginActionResult | PublicKeyCredentialRequestOptionsJSON> {
   try {
     const userId = String(formData.get("userId") || "");
     const password = String(formData.get("password") || "");
@@ -117,15 +117,14 @@ export async function serverAction(
     });
 
     return options;
-  } catch (err) {
-    console.error(err);
+  } catch {
     return "INTERNAL_ERROR";
   }
 }
 
 export async function verifyLogin(
   credential: AuthenticationResponseJSON,
-): Promise<authActionResult> {
+): Promise<loginActionResult> {
   try {
     const cookieStore = await cookies();
     const sessionKey = cookieStore.get("webauthn_session")?.value;
@@ -136,7 +135,7 @@ export async function verifyLogin(
 
     const { userId, challenge } = JSON.parse(sessionData);
 
-    const webAuthnId = Buffer.from(credential.id, "base64url");
+    const webAuthnId = Buffer.from(credential.rawId);
 
     const [rows] = (await pool.execute(
       {
