@@ -8,7 +8,7 @@ import { useRouter } from "next/navigation";
 import { useActionState, useEffect, useState } from "react";
 import PasswordBtn from "@/app/(components)/PasswordBtn";
 import type { loginActionResult } from "@/types/serverActions";
-import { serverAction, verifyLogin } from "../action";
+import { serverAction, verifyLogin } from "./action";
 
 export default function LoginForm() {
   const router = useRouter();

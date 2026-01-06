@@ -11,7 +11,7 @@ export type loginActionResult =
   | "WEBAUTHN_FAILED"
   | "INTERNAL_ERROR";
 
-export type registerActionResult =
+export type keyActionResult =
   | ""
   | "OK"
   | "INVALID_INPUT"
@@ -20,6 +20,14 @@ export type registerActionResult =
   | "SESSION_EXPIRED"
   | "PASSKEY_ALREADY_EXISTS"
   | "WEBAUTHN_FAILED"
+  | "INTERNAL_ERROR";
+
+export type passwordActionResult =
+  | ""
+  | "OK"
+  | "INVALID_INPUT"
+  | "INVALID_PASSWORD"
+  | "INVALID_CREDENTIALS"
   | "INTERNAL_ERROR";
 
 export type ActionResult =

@@ -14,12 +14,12 @@ import { cookies } from "next/headers";
 import { client, pool } from "@/db";
 import { rpID, rpName } from "@/env";
 import { hashToBuffer } from "@/hooks/hash";
-import { origin, type registerActionResult } from "@/types/serverActions";
+import { origin, type keyActionResult } from "@/types/serverActions";
 
 export async function serverAction(
-  _: registerActionResult | PublicKeyCredentialCreationOptionsJSON,
+  _: keyActionResult | PublicKeyCredentialCreationOptionsJSON,
   formData: FormData,
-): Promise<registerActionResult | PublicKeyCredentialCreationOptionsJSON> {
+): Promise<keyActionResult | PublicKeyCredentialCreationOptionsJSON> {
   try {
     const userId = String(formData.get("userId") || "");
     const password = String(formData.get("password") || "");
@@ -42,7 +42,7 @@ export async function serverAction(
       [userId],
     )) as unknown as [string[][]];
 
-    if (rows.length !== 1) return "INVALID_CREDENTIALS";
+    if (!rows.length) return "INVALID_CREDENTIALS";
 
     if (!(await verify(rows[0][0], password))) {
       return "INVALID_CREDENTIALS";
@@ -105,7 +105,7 @@ export async function serverAction(
 
 export async function verifyRegistration(
   credential: RegistrationResponseJSON,
-): Promise<registerActionResult> {
+): Promise<keyActionResult> {
   try {
     const cookieStore = await cookies();
     const challengeKey = cookieStore.get("session")?.value;

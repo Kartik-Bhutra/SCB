@@ -6,13 +6,13 @@ import {
 import { useRouter } from "next/navigation";
 import { useActionState, useEffect, useState } from "react";
 import PasswordBtn from "@/app/(components)/PasswordBtn";
-import type { registerActionResult } from "@/types/serverActions";
-import { serverAction, verifyRegistration } from "../action";
+import type { keyActionResult } from "@/types/serverActions";
+import { serverAction, verifyRegistration } from "./action";
 
 export default function LoginForm() {
   const router = useRouter();
   const [state, actionHandler, isLoading] = useActionState<
-    registerActionResult | PublicKeyCredentialCreationOptionsJSON,
+    keyActionResult | PublicKeyCredentialCreationOptionsJSON,
     FormData
   >(serverAction, "");
   const [localError, setLocalError] = useState("");
@@ -98,7 +98,7 @@ export default function LoginForm() {
           transition-all duration-200 hover:bg-blue-700 focus:outline-none
           focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
       >
-        Register
+        Add Passkey
       </button>
     </form>
   );

@@ -1,16 +1,7 @@
-import { redirect, RedirectType } from "next/navigation";
-import { isAuthorized } from "@/server/auth";
-import KeyIcon from "../(components)/Key";
-import LoginForm from "./LoginForm";
+import KeyIcon from "@/app/(components)/Key";
+import RegisterForm from "./PasswordForm";
 
 export default async function LoginPage() {
-  const isLoggedIn = await isAuthorized();
-  if (isLoggedIn) {
-    redirect("/admin");
-  }
-  if (isLoggedIn !== null) {
-    redirect("/manager", RedirectType.replace);
-  }
   return (
     <div className="min-h-screen w-full flex justify-center items-center bg-linear-to-br from-blue-50 via-gray-50 to-indigo-50 px-4 sm:px-6 lg:px-8">
       <div className="bg-white p-6 sm:p-8 rounded-2xl shadow-xl w-full sm:w-[95%] max-w-100 transition-all duration-300 hover:shadow-2xl">
@@ -28,7 +19,7 @@ export default async function LoginPage() {
               Please enter your details to sign in
             </p>
           </div>
-          <LoginForm />
+          <RegisterForm />
         </div>
       </div>
     </div>

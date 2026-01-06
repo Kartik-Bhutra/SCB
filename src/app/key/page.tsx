@@ -1,7 +1,7 @@
 import KeyIcon from "@/app/(components)/Key";
-import RegisterForm from "./(components)/RegisterForm";
+import KeyForm from "./KeyForm";
 
-export default async function LoginPage() {
+export default function LoginPage() {
   return (
     <div className="min-h-screen w-full flex justify-center items-center bg-linear-to-br from-blue-50 via-gray-50 to-indigo-50 px-4 sm:px-6 lg:px-8">
       <div className="bg-white p-6 sm:p-8 rounded-2xl shadow-xl w-full sm:w-[95%] max-w-100 transition-all duration-300 hover:shadow-2xl">
@@ -16,10 +16,10 @@ export default async function LoginPage() {
               Welcome back!
             </h1>
             <p className="text-sm sm:text-base text-gray-500">
-              Please enter your details to sign in
+              Please enter your details to add key
             </p>
           </div>
-          <RegisterForm />
+          <KeyForm />
         </div>
       </div>
     </div>

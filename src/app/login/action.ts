@@ -187,6 +187,7 @@ export async function verifyLogin(
       JSON.stringify({
         sessionId,
         type: true,
+        userId,
       }),
       {
         expiration: {

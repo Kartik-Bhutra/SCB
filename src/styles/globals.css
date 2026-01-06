@@ -75,3 +75,13 @@ button {
 .cursor_pointer {
   cursor: pointer;
 }
+
+/* Edge / IE password reveal eye */
+input[type="password"]::-ms-reveal {
+  display: none;
+}
+
+/* Chrome / Edge password reveal eye */
+input[type="password"]::-webkit-credentials-auto-fill-button {
+  visibility: hidden;
+}
