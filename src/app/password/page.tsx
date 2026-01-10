@@ -1,5 +1,5 @@
 import KeyIcon from "@/app/(components)/Key";
-import RegisterForm from "./PasswordForm";
+import PasswordForm from "./PasswordForm";
 
 export default async function LoginPage() {
   return (
@@ -19,7 +19,7 @@ export default async function LoginPage() {
               Please enter your details to sign in
             </p>
           </div>
-          <RegisterForm />
+          <PasswordForm />
         </div>
       </div>
     </div>

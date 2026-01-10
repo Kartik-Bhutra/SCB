@@ -4,16 +4,18 @@ import { client, pool } from "@/db";
 import { encryptToBuffer } from "@/hooks/crypto";
 import { hashToBuffer } from "@/hooks/hash";
 
-interface reqData {
+interface ReqData {
   mobileNo: string;
   deviceId: string;
 }
 
 export async function POST(req: NextRequest) {
-  try {
-    const { mobileNo, deviceId } = (await req.json()) as reqData;
+  let connection;
 
-    if (!mobileNo && !deviceId) {
+  try {
+    const { mobileNo, deviceId } = (await req.json()) as ReqData;
+
+    if (!mobileNo || !deviceId) {
       return NextResponse.json(
         { error: "Missing mobileNo or deviceId" },
         { status: 400 },
@@ -22,14 +24,31 @@ export async function POST(req: NextRequest) {
 
     const mobileHash = hashToBuffer(mobileNo);
 
-    const connection = await pool.getConnection();
+    connection = await pool.getConnection();
+
+    const [blocked] = (await connection.execute(
+      {
+        sql: `
+          SELECT 1
+          FROM blocks
+          WHERE mobNoHs = ?
+          LIMIT 1
+        `,
+        rowsAsArray: true,
+      },
+      [mobileHash],
+    )) as unknown as [number[][]];
+
+    if (blocked.length) {
+      return NextResponse.json({ status: "blocked" }, { status: 403 });
+    }
 
     const [rows] = (await connection.execute(
       {
         sql: `
           SELECT type
           FROM users
-          WHERE mobNoHs = ? and devId = ?
+          WHERE mobNoHs = ? AND devId = ?
           LIMIT 1
         `,
         rowsAsArray: true,
@@ -49,23 +68,27 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ status: "not accepted" }, { status: 200 });
     }
 
-    connection.release();
+    const type = rows[0][0];
 
-    const userType = rows[0][0];
-
-    if (userType === 2) {
-      return NextResponse.json({ status: "not authorized" }, { status: 200 });
+    if (type === 2) {
+      return NextResponse.json({ status: "not authorized" }, { status: 403 });
     }
 
-    if (userType === 0) {
+    if (type === 0) {
       return NextResponse.json({ status: "not accepted" }, { status: 200 });
     }
 
-    const sessionId = randomUUID();
-    const redisKey = mobileHash.toString("base64") + deviceId;
-    const token = redisKey + sessionId;
+    const session = randomUUID();
+    const redisKey = `${mobileHash.toString("base64url")}:${deviceId}`;
 
-    await client.set(redisKey, sessionId);
+    await client.set(redisKey, JSON.stringify({ session, type }), {
+      expiration: {
+        type: "EX",
+        value: 604800,
+      },
+    });
+
+    const token = `${redisKey}.${session}`;
 
     return NextResponse.json({ status: "accepted", token }, { status: 200 });
   } catch {
@@ -73,5 +96,7 @@ export async function POST(req: NextRequest) {
       { error: "Internal Server Error" },
       { status: 500 },
     );
+  } finally {
+    if (connection) connection.release();
   }
 }

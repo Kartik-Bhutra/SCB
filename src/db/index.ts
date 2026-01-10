@@ -1,13 +1,6 @@
 import { createPool, type PoolOptions } from "mysql2/promise";
 import { createClient, type RedisClientOptions } from "redis";
-import {
-  DB_HOST,
-  DB_NAME,
-  DB_PASS,
-  DB_USER,
-  REDIS_HOST,
-  REDIS_PASS,
-} from "../env";
+import { DB_HOST, DB_NAME, DB_PASS, REDIS_HOST } from "../env";
 
 // import { platform } from "os";
 
@@ -27,9 +20,9 @@ import {
 // };
 
 const dbConfig: PoolOptions = {
-  host: DB_HOST || "localhost",
+  host: DB_HOST,
   port: 3306,
-  user: DB_USER || "root",
+  user: "root",
   password: DB_PASS,
   database: DB_NAME,
   waitForConnections: true,
@@ -70,8 +63,6 @@ const redisConfig: RedisClientOptions = {
     host: REDIS_HOST,
     port: 6379,
   },
-  username: "default",
-  password: REDIS_PASS || undefined,
 };
 
 export const client = await createClient(redisConfig).connect();
