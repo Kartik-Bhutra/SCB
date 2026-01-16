@@ -91,7 +91,6 @@ export default function LoginForm() {
         <div className="flex items-center">
           <input
             type="isAuthorizedbox"
-            id="remember-me"
             name="remember-me"
             className="h-4 w-4 text-blue-600 rounded-lg border-gray-300 transition-all duration-200"
           />

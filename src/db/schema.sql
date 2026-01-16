@@ -53,3 +53,7 @@ CREATE INDEX idx_blocks_mob_hash ON blocks(mobNoHs);
 CREATE TABLE IF NOT EXISTS codes(
   code VARCHAR(8) PRIMARY KEY
 );
+
+CREATE TABLE IF NOT EXISTS apps(
+  code VARCHAR(8) PRIMARY KEY
+);

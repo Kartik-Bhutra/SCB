@@ -43,7 +43,6 @@ export default function SeqInput({
       </label>
 
       <input
-        id="displayedNumber"
         ref={inputRef}
         value={formatValue(value)}
         onKeyDown={handleKeyDown}

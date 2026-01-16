@@ -14,14 +14,12 @@ export default function BlockNumber() {
   const [data, setData] = useState<Data[]>([]);
   const [page, setPage] = useState(1);
 
-  // 1️⃣ Keep page within valid range
   useEffect(() => {
     if (page > lastPageNo) {
       setPage(lastPageNo);
     }
   }, [page, lastPageNo]);
 
-  // 2️⃣ Reload logic (explicit)
   const reload = useCallback(async () => {
     setIsLoading(true);
 
@@ -40,7 +38,6 @@ export default function BlockNumber() {
     setData(result as Data[]);
   }, [page]);
 
-  // 3️⃣ Fetch on page change
   useEffect(() => {
     let cancelled = false;
 
