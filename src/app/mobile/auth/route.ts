@@ -83,7 +83,7 @@ export async function POST(req: NextRequest) {
     const session = randomUUID();
     const redisKey = `${mobileHash.toString("base64url")}:${deviceId}`;
 
-    await client.set(redisKey, JSON.stringify({ session, type }), {
+    await client.set(redisKey, JSON.stringify({ session, type, mobileNo }), {
       expiration: {
         type: "EX",
         value: 604800,

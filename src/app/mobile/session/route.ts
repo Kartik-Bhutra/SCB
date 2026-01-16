@@ -1,23 +1,9 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { client, pool } from "@/db";
-import { STATUS_MAP } from "@/types/serverActions";
+import { statusResponse } from "@/server/response";
 
 interface ReqData {
   token: string;
-}
-
-function statusResponse(type: number) {
-  const status = STATUS_MAP.get(type);
-
-  if (!status) {
-    return NextResponse.json({ error: "Invalid user type" }, { status: 500 });
-  }
-
-  if (type === 2) {
-    return NextResponse.json({ status, type }, { status: 403 });
-  }
-
-  return NextResponse.json({ status, type }, { status: 200 });
 }
 
 export async function POST(req: NextRequest) {
