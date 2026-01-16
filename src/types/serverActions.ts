@@ -40,3 +40,9 @@ export type ActionResult =
   | "INTERNAL_ERROR";
 
 export const origin = `http://${rpID}:3000`;
+
+export const STATUS_MAP = new Map<number, string>([
+  [0, "not accepted"],
+  [1, "accepted"],
+  [2, "not authorized"],
+]);

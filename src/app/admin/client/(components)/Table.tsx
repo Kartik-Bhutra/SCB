@@ -37,6 +37,9 @@ export default function Table({ data, isLoading, reload }: tableProps) {
                     Name
                   </th>
                   <th scope="col" className="px-6 py-3">
+                    deviceId
+                  </th>
+                  <th scope="col" className="px-6 py-3">
                     Number
                   </th>
                   <th scope="col" className="px-6 py-3">

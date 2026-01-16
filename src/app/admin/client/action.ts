@@ -1,6 +1,6 @@
 "use server";
 
-import { pool } from "@/db";
+import { client, pool } from "@/db";
 import { decryptFromBuffer } from "@/hooks/crypto";
 import { hashToBuffer } from "@/hooks/hash";
 import { isAdmin } from "@/server/auth";
@@ -11,12 +11,14 @@ interface DataRaw {
   mobileNohashed: Buffer;
   mobileNoEncrypted: Buffer;
   type: number;
+  deviceId: string;
 }
 
 export interface Data {
   name: string;
   mobileNo: string;
   type: number;
+  deviceId: string;
 }
 
 export async function fetchData(page: number): Promise<ActionResult | Data[]> {
@@ -30,6 +32,7 @@ export async function fetchData(page: number): Promise<ActionResult | Data[]> {
         name,
         mobNoEn AS mobileNoEncrypted,
         mobNoHs AS mobileNohashed,
+        devId as deviceId,
         type
      FROM users
      WHERE id > ?
@@ -41,6 +44,7 @@ export async function fetchData(page: number): Promise<ActionResult | Data[]> {
     name: obj.name,
     type: obj.type,
     mobileNo: decryptFromBuffer(obj.mobileNoEncrypted),
+    deviceId: obj.deviceId,
   }));
 }
 
@@ -61,15 +65,40 @@ export async function changeTypeAction(
   const verified = await isAdmin();
   if (!verified) return "UNAUTHORIZED";
 
-  const mobileType = String(formData.get("mobileType")).split(":");
-  const type = Number(mobileType[1]);
-  const mobileNohashed = hashToBuffer(mobileType[0]);
+  const mobileDeviceType = String(formData.get("mobileDeviceType")).split(":");
+  const type = Number(mobileDeviceType[1]);
+
+  const [mobileNo, deviceId] = mobileDeviceType[0].split(".");
+  const mobileNohashed = hashToBuffer(mobileNo);
+
+  const redisKey = `${mobileNohashed.toString("base64url")}:${deviceId}`;
 
   try {
-    await pool.execute("UPDATE users SET type = ? WHERE mobNoHs = ?", [
-      type,
-      mobileNohashed,
-    ]);
+    await pool.execute(
+      "UPDATE users SET type = ? WHERE mobNoHs = ? AND devId = ?",
+      [type, mobileNohashed, deviceId],
+    );
+
+    const cached = await client.get(redisKey);
+
+    if (cached) {
+      const parsed = JSON.parse(cached);
+
+      await client.set(
+        redisKey,
+        JSON.stringify({
+          session: parsed.session,
+          type,
+        }),
+        {
+          expiration: {
+            type: "EX",
+            value: 604800,
+          },
+        },
+      );
+    }
+
     return "OK";
   } catch {
     return "INTERNAL_ERROR";

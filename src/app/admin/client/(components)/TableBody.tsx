@@ -25,12 +25,13 @@ export default function TableBody({
 }: TableBodyProps) {
   return (
     <tbody>
-      {data.map(({ name, mobileNo, type }) => (
+      {data.map(({ name, mobileNo, type, deviceId }) => (
         <tr
-          key={mobileNo}
+          key={mobileNo + deviceId}
           className="odd:bg-white even:bg-gray-50 border-b border-gray-200"
         >
           <td className="px-6 py-4 text-center">{name}</td>
+          <td className="px-6 py-4 text-center">{deviceId}</td>
           <td className="px-6 py-4 text-center">{formatValue(mobileNo)}</td>
           <td className="px-6 py-4 flex justify-center text-center">
             {type !== 0 ? (
@@ -38,7 +39,7 @@ export default function TableBody({
                 <button
                   type="button"
                   onClick={() => {
-                    setDeleteItem(`${mobileNo}:2`);
+                    setDeleteItem(`${mobileNo}.${deviceId}:2`);
                     setOpenCreate(true);
                   }}
                   className="text-red-500 hover:underline"
@@ -49,7 +50,7 @@ export default function TableBody({
                 <button
                   type="button"
                   onClick={() => {
-                    setDeleteItem(`${mobileNo}:1`);
+                    setDeleteItem(`${mobileNo}.${deviceId}:1`);
                     setOpenCreate(true);
                   }}
                   className="text-green-500 hover:underline"
@@ -62,7 +63,7 @@ export default function TableBody({
                 <button
                   type="button"
                   onClick={() => {
-                    setDeleteItem(`${mobileNo}:1`);
+                    setDeleteItem(`${mobileNo}.${deviceId}:1`);
                     setOpenCreate(true);
                   }}
                   className="text-green-500 hover:underline"
@@ -72,7 +73,7 @@ export default function TableBody({
                 <button
                   type="button"
                   onClick={() => {
-                    setDeleteItem(`${mobileNo}:2`);
+                    setDeleteItem(`${mobileNo}.${deviceId}:2`);
                     setOpenCreate(true);
                   }}
                   className="text-red-500 hover:underline"

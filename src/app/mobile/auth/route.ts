@@ -3,6 +3,7 @@ import { type NextRequest, NextResponse } from "next/server";
 import { client, pool } from "@/db";
 import { encryptToBuffer } from "@/hooks/crypto";
 import { hashToBuffer } from "@/hooks/hash";
+import { STATUS_MAP } from "@/types/serverActions";
 
 interface ReqData {
   mobileNo: string;
@@ -23,7 +24,6 @@ export async function POST(req: NextRequest) {
     }
 
     const mobileHash = hashToBuffer(mobileNo);
-
     connection = await pool.getConnection();
 
     const [blocked] = (await connection.execute(
@@ -56,6 +56,8 @@ export async function POST(req: NextRequest) {
       [mobileHash, deviceId],
     )) as unknown as [number[][]];
 
+    let type: number = 0;
+
     if (rows.length === 0) {
       await connection.execute(
         `
@@ -64,18 +66,18 @@ export async function POST(req: NextRequest) {
         `,
         [encryptToBuffer(mobileNo), mobileHash, deviceId],
       );
-
-      return NextResponse.json({ status: "not accepted" }, { status: 200 });
+    } else {
+      type = rows[0][0];
     }
 
-    const type = rows[0][0];
+    const status = STATUS_MAP.get(type);
+
+    if (!status) {
+      return NextResponse.json({ error: "Invalid user type" }, { status: 500 });
+    }
 
     if (type === 2) {
-      return NextResponse.json({ status: "not authorized" }, { status: 403 });
-    }
-
-    if (type === 0) {
-      return NextResponse.json({ status: "not accepted" }, { status: 200 });
+      return NextResponse.json({ status, type }, { status: 403 });
     }
 
     const session = randomUUID();
@@ -90,7 +92,7 @@ export async function POST(req: NextRequest) {
 
     const token = `${redisKey}.${session}`;
 
-    return NextResponse.json({ status: "accepted", token }, { status: 200 });
+    return NextResponse.json({ status, token }, { status: 200 });
   } catch {
     return NextResponse.json(
       { error: "Internal Server Error" },

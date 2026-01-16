@@ -1,11 +1,26 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { client, pool } from "@/db";
+import { STATUS_MAP } from "@/types/serverActions";
 
 interface ReqData {
   token: string;
 }
 
-export async function GET(req: NextRequest) {
+function statusResponse(type: number) {
+  const status = STATUS_MAP.get(type);
+
+  if (!status) {
+    return NextResponse.json({ error: "Invalid user type" }, { status: 500 });
+  }
+
+  if (type === 2) {
+    return NextResponse.json({ status, type }, { status: 403 });
+  }
+
+  return NextResponse.json({ status, type }, { status: 200 });
+}
+
+export async function POST(req: NextRequest) {
   let connection;
 
   try {
@@ -15,7 +30,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "Missing token" }, { status: 400 });
     }
 
-    let parts = token.split(".");
+    const parts = token.split(".");
     if (parts.length !== 2) {
       return NextResponse.json({ status: "invalid session" }, { status: 401 });
     }
@@ -34,19 +49,15 @@ export async function GET(req: NextRequest) {
         );
       }
 
-      return NextResponse.json(
-        { status: "accepted", type: parsed.type },
-        { status: 200 },
-      );
+      return statusResponse(parsed.type);
     }
 
-    parts = redisKey.split(":");
-    if (parts.length !== 2) {
+    const keyParts = redisKey.split(":");
+    if (keyParts.length !== 2) {
       return NextResponse.json({ error: "Invalid token" }, { status: 400 });
     }
 
-    const [mobHashBase64Url, deviceId] = parts;
-
+    const [mobHashBase64Url, deviceId] = keyParts;
     const mobHash = Buffer.from(mobHashBase64Url, "base64url");
 
     connection = await pool.getConnection();
@@ -68,17 +79,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ status: "post request" }, { status: 200 });
     }
 
-    const type = rows[0][0];
-
-    if (type === 0) {
-      return NextResponse.json({ status: "not accepted" }, { status: 200 });
-    }
-
-    if (type === 2) {
-      return NextResponse.json({ status: "not authorized" }, { status: 403 });
-    }
-
-    return NextResponse.json({ status: "accepted", type }, { status: 200 });
+    return statusResponse(rows[0][0]);
   } catch {
     return NextResponse.json(
       { error: "Internal Server Error" },

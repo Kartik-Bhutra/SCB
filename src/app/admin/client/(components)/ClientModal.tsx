@@ -24,7 +24,7 @@ export default function ClientModal({
       title="Create Sequence"
     >
       <p>Are you sure you want to do that</p>
-      <input type="hidden" name="mobileType" value={deleteItem} />
+      <input type="hidden" name="mobileDeviceType" value={deleteItem} />
     </Modal>
   );
 }
