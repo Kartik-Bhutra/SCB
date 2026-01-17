@@ -4,6 +4,7 @@ import { pool } from "@/db";
 import { decryptFromBuffer, encryptToBuffer } from "@/hooks/crypto";
 import { hashToBuffer } from "@/hooks/hash";
 import { isAdmin } from "@/server/auth";
+import { sendHighPriorityAndroid } from "@/server/message";
 import type { ActionResult } from "@/types/serverActions";
 
 interface DataRaw {
@@ -71,6 +72,8 @@ export async function addNoAction(
        ON DUPLICATE KEY UPDATE type = 0`,
       [encryptToBuffer(mobileNo), hashToBuffer(mobileNo)],
     );
+
+    await sendHighPriorityAndroid();
     return "OK";
   } catch {
     return "INTERNAL_ERROR";
@@ -89,6 +92,8 @@ export async function changeTypeAction(
     await pool.execute("UPDATE blocks SET type = 1 - type WHERE mobNoHs = ?", [
       hashToBuffer(mobile),
     ]);
+
+    await sendHighPriorityAndroid();
     return "OK";
   } catch {
     return "INTERNAL_ERROR";
@@ -130,6 +135,7 @@ export async function bulkUploadAction(
 
     await pool.execute(sql, values);
 
+    await sendHighPriorityAndroid();
     return "OK";
   } catch {
     return "INTERNAL_ERROR";

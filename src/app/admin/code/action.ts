@@ -2,6 +2,7 @@
 
 import { pool } from "@/db";
 import { isAdmin } from "@/server/auth";
+import { sendHighPriorityAndroid } from "@/server/message";
 import type { ActionResult } from "@/types/serverActions";
 
 export async function fetchData(): Promise<string[] | ActionResult> {
@@ -27,6 +28,7 @@ export async function addActionState(
 
   try {
     await pool.execute("INSERT IGNORE INTO codes (code) VALUES (?)", [code]);
+    await sendHighPriorityAndroid();
     return "OK";
   } catch {
     return "INTERNAL_ERROR";
@@ -44,6 +46,8 @@ export async function removeActionState(
 
   try {
     await pool.execute("DELETE FROM codes WHERE code = ?", [code]);
+
+    await sendHighPriorityAndroid();
     return "OK";
   } catch {
     return "INTERNAL_ERROR";

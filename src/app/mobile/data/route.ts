@@ -42,7 +42,14 @@ export async function GET(req: NextRequest) {
 
     const codes = codeRows.map(([code]) => code);
 
-    return NextResponse.json({ data, codes }, { status: 200 });
+    const [appRows] = (await pool.execute({
+      sql: `SELECT code FROM apps`,
+      rowsAsArray: true,
+    })) as unknown as [string[][]];
+
+    const apps = appRows.map(([code]) => code);
+
+    return NextResponse.json({ data, codes, apps }, { status: 200 });
   } catch {
     return NextResponse.json(
       { error: "Internal Server Error" },

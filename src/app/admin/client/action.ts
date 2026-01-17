@@ -89,7 +89,7 @@ export async function changeTypeAction(
         JSON.stringify({
           session: parsed.session,
           type,
-          mobileNo
+          mobileNo,
         }),
         {
           expiration: {
