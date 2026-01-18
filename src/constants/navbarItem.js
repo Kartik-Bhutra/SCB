@@ -31,7 +31,7 @@ export const adminNavigation = [
   },
   {
     name: "Password change",
-    href: "/key",
+    href: "/password",
     icon: "M18 7.5a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM6 18.75a6.75 6.75 0 0113.5 0v.375A1.875 1.875 0 0117.625 21H7.875A1.875 1.875 0 016 19.125v-.375zM19.5 9v3m-1.5-1.5h3",
   },
 

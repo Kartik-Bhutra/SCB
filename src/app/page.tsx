@@ -7,6 +7,9 @@ export default function Home() {
       <Link className="text-blue-600 m-10 text-xl" href="/login">
         Login
       </Link>
+      <Link className="text-blue-600 m-10 text-xl" href="/key">
+        key
+      </Link>
     </main>
   );
 }

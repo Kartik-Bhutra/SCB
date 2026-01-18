@@ -39,7 +39,7 @@ export type ActionResult =
   | "SESSION_EXPIRED"
   | "INTERNAL_ERROR";
 
-export const origin = `http://${rpID}:3000`;
+export const origin = `https://${rpID}`;
 
 export const STATUS_MAP = new Map<number, string>([
   [0, "not accepted"],
