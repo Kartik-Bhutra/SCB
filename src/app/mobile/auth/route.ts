@@ -92,7 +92,7 @@ export async function POST(req: NextRequest) {
 
     const token = `${redisKey}.${session}`;
 
-    return NextResponse.json({ status, token }, { status: 200 });
+    return NextResponse.json({ status, token, type }, { status: 200 });
   } catch {
     return NextResponse.json(
       { error: "Internal Server Error" },
