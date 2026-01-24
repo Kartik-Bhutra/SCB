@@ -21,20 +21,14 @@ export async function POST(req: NextRequest) {
 
     const parts = token.split(".");
     if (parts.length !== 2) {
-      return NextResponse.json(
-        { error: "Invalid token" },
-        { status: 401 },
-      );
+      return NextResponse.json({ error: "Invalid token" }, { status: 401 });
     }
 
     const [redisKey] = parts;
 
     const keyParts = redisKey.split(":");
     if (keyParts.length !== 2) {
-      return NextResponse.json(
-        { error: "Invalid token" },
-        { status: 400 },
-      );
+      return NextResponse.json({ error: "Invalid token" }, { status: 400 });
     }
 
     const [mobHashBase64Url, deviceId] = keyParts;
@@ -57,16 +51,10 @@ export async function POST(req: NextRequest) {
     const { affectedRows } = result as { affectedRows: number };
 
     if (affectedRows === 0) {
-      return NextResponse.json(
-        { status: "user not found" },
-        { status: 200 },
-      );
+      return NextResponse.json({ status: "user not found" }, { status: 200 });
     }
 
-    return NextResponse.json(
-      { status: "name updated" },
-      { status: 200 },
-    );
+    return NextResponse.json({ status: "name updated" }, { status: 200 });
   } catch {
     return NextResponse.json(
       { error: "Internal Server Error" },

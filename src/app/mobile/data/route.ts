@@ -2,15 +2,15 @@ import { type NextRequest, NextResponse } from "next/server";
 import { pool } from "@/db";
 import { decryptFromBuffer } from "@/hooks/crypto";
 
-export async function GET(req: NextRequest) {
+export async function POST(req: NextRequest) {
   try {
-    const fromTime = await req.text();
+    const { formTime } = await req.json();
 
-    if (!fromTime) {
-      return NextResponse.json({ error: "Missing fromTime" }, { status: 400 });
+    if (!formTime) {
+      return NextResponse.json({ error: "Missing formTime" }, { status: 400 });
     }
 
-    const date = new Date(fromTime);
+    const date = new Date(formTime);
     if (isNaN(date.getTime())) {
       return NextResponse.json(
         { error: "Invalid time format" },
@@ -28,12 +28,20 @@ export async function GET(req: NextRequest) {
         rowsAsArray: true,
       },
       [date],
-    )) as unknown as [[Buffer, boolean][]];
+    )) as unknown as [[Buffer, number][]];
 
-    const data = rows.map(([mobNoEn, type]) => ({
-      mobNo: decryptFromBuffer(mobNoEn),
-      type,
-    }));
+    const blocked: string[] = [];
+    const unBlocked: string[] = [];
+
+    for (const [mobNoEn, type] of rows) {
+      const mobNo = decryptFromBuffer(mobNoEn);
+
+      if (type === 1) {
+        unBlocked.push(mobNo);
+      } else {
+        blocked.push(mobNo);
+      }
+    }
 
     const [codeRows] = (await pool.execute({
       sql: `SELECT code FROM codes`,
@@ -49,7 +57,10 @@ export async function GET(req: NextRequest) {
 
     const apps = appRows.map(([code]) => code);
 
-    return NextResponse.json({ data, codes, apps }, { status: 200 });
+    return NextResponse.json(
+      { blocked, unBlocked, codes, apps },
+      { status: 200 },
+    );
   } catch {
     return NextResponse.json(
       { error: "Internal Server Error" },

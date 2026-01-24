@@ -2,3 +2,12 @@ localhost {
     reverse_proxy localhost:3000
     tls internal
 }
+
+spamcallblocker.duckdns.org {
+    reverse_proxy localhost:3000
+}
+
+10.196.61.72 {
+    reverse_proxy localhost:3000
+    tls internal
+}
