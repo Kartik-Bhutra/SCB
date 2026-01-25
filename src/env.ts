@@ -6,3 +6,4 @@ export const ENC_KEY = Buffer.from(process.env.ENC_KEY || "", "utf8");
 export const HASH_KEY = process.env.HASH_KEY || "";
 export const rpName = process.env.RP_NAME || "scb";
 export const rpID = process.env.RP_ID || "localhost";
+export const rpPORT = process.env.RP_PORT || 3000;

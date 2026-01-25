@@ -41,20 +41,26 @@ export async function serverAction(
       },
       [userId],
     )) as unknown as [string[][]];
-
+    console.log("pass1");
+    
     if (!rows.length) return "INVALID_CREDENTIALS";
+    console.log("pass2");
 
     if (!(await verify(rows[0][0], password))) {
       return "INVALID_CREDENTIALS";
     }
+    console.log("pass3");
 
     const redisKey = hashToBuffer(userId).toString("hex");
     const storedSession = await client.get(redisKey);
+    console.log("pass4");
 
     if (!storedSession) return "SESSION_EXPIRED";
     await client.del(redisKey);
+    console.log("pass5");
 
     if (storedSession !== sessionKey) return "UNAUTHORIZED";
+    console.log("pass6");
 
     const [creds] = (await pool.execute(
       {
@@ -63,6 +69,7 @@ export async function serverAction(
       },
       [userId],
     )) as unknown as [string[][]];
+    console.log("pass7");
 
     const excludeCredentials = creds.map((r) => ({
       id: r[0],
@@ -88,6 +95,7 @@ export async function serverAction(
       }),
       { expiration: { type: "EX", value: 300 } },
     );
+    console.log("pass8");
 
     (await cookies()).set("session", challengeKey, {
       httpOnly: true,
@@ -98,7 +106,9 @@ export async function serverAction(
     });
 
     return options;
-  } catch {
+  } catch (err){
+    console.log(err);
+    
     return "INTERNAL_ERROR";
   }
 }
@@ -147,7 +157,9 @@ export async function verifyRegistration(
     cookieStore.delete("session");
 
     return "OK";
-  } catch {
+  } catch (err){
+    console.log(err);
+    
     return "INTERNAL_ERROR";
   }
 }

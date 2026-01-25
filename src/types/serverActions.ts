@@ -1,4 +1,4 @@
-import { rpID } from "../env";
+import { rpID, rpPORT } from "../env";
 
 export type loginActionResult =
   | ""
@@ -39,7 +39,7 @@ export type ActionResult =
   | "SESSION_EXPIRED"
   | "INTERNAL_ERROR";
 
-export const origin = `https://${rpID}`;
+export const origin = `http://${rpID}:${rpPORT}`;
 
 export const STATUS_MAP = new Map<number, string>([
   [0, "not accepted"],

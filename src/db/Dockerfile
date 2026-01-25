@@ -1,4 +1,4 @@
-FROM mysql:latest
+FROM mysql:8.4.7
 
 COPY schema.sql /docker-entrypoint-initdb.d/db.sql
 
