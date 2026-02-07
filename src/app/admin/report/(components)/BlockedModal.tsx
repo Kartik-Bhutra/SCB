@@ -24,7 +24,7 @@ export default function BlockedModal({
       title="Delete Sequence"
     >
       <p>Are you sure you want to delete the sequence? It cannot be undone.</p>
-      <input type="hidden" name="mobileNo" value={deleteId} />
+      <input type="hidden" name="mobileType" value={deleteId} />
     </Modal>
   );
 }

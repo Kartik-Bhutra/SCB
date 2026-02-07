@@ -90,25 +90,50 @@ export async function POST(req: NextRequest) {
     const reportedHash = hashToBuffer(reportedNumber);
     const reportedEncrypted = encryptToBuffer(reportedNumber);
 
-    await connection.execute(
+    const [repCheck] = (await connection.execute(
       `
-      INSERT IGNORE INTO reported (mobNoEn, mobNoHs)
-      VALUES (?, ?)
-      `,
-      [reportedEncrypted, reportedHash],
-    );
+  SELECT 1
+  FROM reported
+  WHERE mobNoHs = ?
+  LIMIT 1
+  `,
+      [reportedHash],
+    )) as unknown as [number[][]];
+
+    if (repCheck.length === 0) {
+      await connection.execute(
+        `
+    INSERT INTO reported (mobNoEn, mobNoHs)
+    VALUES (?, ?)
+    `,
+        [reportedEncrypted, reportedHash],
+      );
+    }
+
+    const [exists] = (await connection.execute(
+      `
+  SELECT 1
+  FROM reporter
+  WHERE mobNoHs = ? AND repNoHs = ?
+  LIMIT 1
+  `,
+      [reporterMobHash, reportedHash],
+    )) as unknown as [number[][]];
+
+    if (exists.length > 0) {
+      return NextResponse.json({ status: "ALREADY_REPORTED" }, { status: 200 });
+    }
 
     await connection.execute(
       `
-      INSERT IGNORE INTO reporter (mobNoHs, repNoHs)
-      VALUES (?, ?)
-      `,
+  INSERT INTO reporter (mobNoHs, repNoHs)
+  VALUES (?, ?)
+  `,
       [reporterMobHash, reportedHash],
     );
 
     return NextResponse.json({ status: "OK" }, { status: 200 });
-  } catch (err) {
-    console.error(err);
+  } catch {
     return NextResponse.json(
       { error: "Internal Server Error" },
       { status: 500 },

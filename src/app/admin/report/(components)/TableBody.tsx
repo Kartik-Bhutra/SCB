@@ -35,18 +35,54 @@ export default function TableBody({
           <td className="px-6 py-4 text-center">{formatValue(mobileNo)}</td>
           <td className="px-6 py-4 text-center">{reporter}</td>
           <td className="px-6 py-4 text-center">
-            <button
-              type="button"
-              onClick={() => {
-                setDeleteId(mobileNo);
-                setOpenDelete(true);
-              }}
-              className={`${
-                type ? "text-red-600" : "text-blue-600"
-              } hover:underline`}
-            >
-              {type ? "Block again" : "Unblock"}
-            </button>
+            {type !== 0 ? (
+              type === 1 ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setDeleteId(`${mobileNo}:2`);
+                    setOpenDelete(true);
+                  }}
+                  className="text-red-500 hover:underline"
+                >
+                  Remove
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setDeleteId(`${mobileNo}:1`);
+                    setOpenDelete(true);
+                  }}
+                  className="text-green-500 hover:underline"
+                >
+                  Add Back
+                </button>
+              )
+            ) : (
+              <div className="flex flex-row max-[900px]:flex-col gap-3 justify-center items-center">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setDeleteId(`${mobileNo}:1`);
+                    setOpenDelete(true);
+                  }}
+                  className="text-green-500 hover:underline"
+                >
+                  Approve
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setDeleteId(`${mobileNo}:2`);
+                    setOpenDelete(true);
+                  }}
+                  className="text-red-500 hover:underline"
+                >
+                  Decline
+                </button>
+              </div>
+            )}
           </td>
         </tr>
       ))}

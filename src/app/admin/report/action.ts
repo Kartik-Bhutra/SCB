@@ -7,13 +7,8 @@ import { isAdmin } from "@/server/auth";
 import { sendHighPriorityAndroid } from "@/server/message";
 import type { ActionResult } from "@/types/serverActions";
 
-interface DataRaw {
-  type: boolean;
-  mobileNoEncrypted: Buffer;
-}
-
 export interface Data {
-  type: boolean;
+  type: number;
   mobileNo: string;
   reporter: number;
 }
@@ -27,7 +22,7 @@ export async function fetchData(page: number): Promise<ActionResult | Data[]> {
   const [rows] = (await pool.execute(
     `
     SELECT
-      id,
+    type,
       mobNoEn AS mobileNoEncrypted,
       mobNoHs AS reportedHash
     FROM reported
@@ -37,12 +32,12 @@ export async function fetchData(page: number): Promise<ActionResult | Data[]> {
     `,
     [offset],
   )) as unknown as [
-    {
-      id: number;
-      mobileNoEncrypted: Buffer;
-      reportedHash: Buffer;
-    }[],
-  ];
+      {
+        type: number
+        mobileNoEncrypted: Buffer;
+        reportedHash: Buffer;
+      }[],
+    ];
 
   if (rows.length === 0) return [];
 
@@ -57,10 +52,10 @@ export async function fetchData(page: number): Promise<ActionResult | Data[]> {
     `,
     reportedHashes,
   )) as unknown as [
-    {
-      repNoHs: Buffer;
-    }[],
-  ];
+      {
+        repNoHs: Buffer;
+      }[],
+    ];
 
   const countMap = new Map<string, number>();
 
@@ -70,7 +65,7 @@ export async function fetchData(page: number): Promise<ActionResult | Data[]> {
   }
 
   return rows.map((r) => ({
-    type: false,
+    type: r.type,
     mobileNo: decryptFromBuffer(r.mobileNoEncrypted),
     reporter: countMap.get(r.reportedHash.toString("hex")) ?? 0,
   }));
@@ -95,16 +90,70 @@ export async function changeTypeAction(
   const verified = await isAdmin();
   if (!verified) return "UNAUTHORIZED";
 
-  const mobile = String(formData.get("mobileNo"));
+  const raw = String(formData.get("mobileType"));
+  if (!raw) return "INVALID_INPUT";
+
+  const [mobileNo, typeStr] = raw.split(":");
+  const type = Number(typeStr);
+
+  if (!mobileNo) {
+    return "INVALID_INPUT";
+  }
+
+  const mobHash = hashToBuffer(mobileNo);
+
+  const connection = await pool.getConnection();
+
   try {
-    await pool.execute(
-      "UPDATE reported SET type = 1 - type WHERE mobNoHs = ?",
-      [hashToBuffer(mobile)],
+    await connection.beginTransaction();
+
+
+    await connection.execute(
+      "UPDATE reported SET type = ? WHERE mobNoHs = ?",
+      [type, mobHash],
     );
 
+
+    const [blockRows] = (await connection.execute(
+      "SELECT 1 FROM blocks WHERE mobNoHs = ? LIMIT 1",
+      [mobHash],
+    )) as unknown as [unknown[]];
+
+    const existsInBlocks = blockRows.length > 0;
+
+    if (type === 2) {
+      if (existsInBlocks) {
+
+        await connection.execute(
+          "UPDATE blocks SET type = 1 WHERE mobNoHs = ?",
+          [mobHash],
+        );
+      } else {
+
+        await connection.execute(
+          `
+          INSERT INTO blocks (mobNoEn, mobNoHs, type)
+          VALUES (?, ?, 1)
+          `,
+          [encryptToBuffer(mobileNo), mobHash],
+        );
+      }
+    } else {
+
+      await connection.execute(
+        "UPDATE blocks SET type = 0 WHERE mobNoHs = ?",
+        [mobHash],
+      );
+    }
+
+    await connection.commit();
     await sendHighPriorityAndroid();
     return "OK";
-  } catch {
+  } catch (err) {
+    await connection.rollback();
+    console.error(err);
     return "INTERNAL_ERROR";
+  } finally {
+    connection.release();
   }
 }
