@@ -95,8 +95,8 @@ export async function changeTypeAction(
 
     await sendHighPriorityAndroid();
     return "OK";
-  } catch(err) {
-    console.error(err)
+  } catch (err) {
+    console.error(err);
     return "INTERNAL_ERROR";
   }
 }

@@ -15,7 +15,17 @@
     "indentWidth": 2
   },
   "linter": {
-    "enabled": false
+    "enabled": false,
+    "rules": {
+      "recommended": true,
+      "suspicious": {
+        "noUnknownAtRules": "off"
+      }
+    },
+    "domains": {
+      "next": "recommended",
+      "react": "recommended"
+    }
   },
   "assist": {
     "actions": {

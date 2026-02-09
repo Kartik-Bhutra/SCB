@@ -32,12 +32,12 @@ export async function fetchData(page: number): Promise<ActionResult | Data[]> {
     `,
     [offset],
   )) as unknown as [
-      {
-        type: number
-        mobileNoEncrypted: Buffer;
-        reportedHash: Buffer;
-      }[],
-    ];
+    {
+      type: number;
+      mobileNoEncrypted: Buffer;
+      reportedHash: Buffer;
+    }[],
+  ];
 
   if (rows.length === 0) return [];
 
@@ -52,10 +52,10 @@ export async function fetchData(page: number): Promise<ActionResult | Data[]> {
     `,
     reportedHashes,
   )) as unknown as [
-      {
-        repNoHs: Buffer;
-      }[],
-    ];
+    {
+      repNoHs: Buffer;
+    }[],
+  ];
 
   const countMap = new Map<string, number>();
 
@@ -107,12 +107,10 @@ export async function changeTypeAction(
   try {
     await connection.beginTransaction();
 
-
-    await connection.execute(
-      "UPDATE reported SET type = ? WHERE mobNoHs = ?",
-      [type, mobHash],
-    );
-
+    await connection.execute("UPDATE reported SET type = ? WHERE mobNoHs = ?", [
+      type,
+      mobHash,
+    ]);
 
     const [blockRows] = (await connection.execute(
       "SELECT 1 FROM blocks WHERE mobNoHs = ? LIMIT 1",
@@ -123,13 +121,11 @@ export async function changeTypeAction(
 
     if (type === 2) {
       if (existsInBlocks) {
-
         await connection.execute(
           "UPDATE blocks SET type = 1 WHERE mobNoHs = ?",
           [mobHash],
         );
       } else {
-
         await connection.execute(
           `
           INSERT INTO blocks (mobNoEn, mobNoHs, type)
@@ -139,11 +135,9 @@ export async function changeTypeAction(
         );
       }
     } else {
-
-      await connection.execute(
-        "UPDATE blocks SET type = 0 WHERE mobNoHs = ?",
-        [mobHash],
-      );
+      await connection.execute("UPDATE blocks SET type = 0 WHERE mobNoHs = ?", [
+        mobHash,
+      ]);
     }
 
     await connection.commit();

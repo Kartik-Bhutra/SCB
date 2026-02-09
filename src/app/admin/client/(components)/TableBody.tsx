@@ -9,7 +9,7 @@ interface TableBodyProps {
 
 const formatValue = (val: string) => {
   const chunks = [];
-  for (let i = 0; i < val.length;) {
+  for (let i = 0; i < val.length; ) {
     const remaining = val.length - i;
     const size = remaining > 4 ? 3 : remaining;
     chunks.push(val.slice(i, i + size));

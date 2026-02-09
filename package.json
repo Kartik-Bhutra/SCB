@@ -1,20 +1,21 @@
 {
-  "name": "scb",
+  "name": "cba",
   "version": "0.1.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
+    "lint": "biome check",
     "format": "biome format --write"
   },
   "dependencies": {
     "@node-rs/argon2": "^2.0.2",
     "@simplewebauthn/browser": "^13.2.2",
     "@simplewebauthn/server": "^13.2.2",
-    "firebase-admin": "^13.6.0",
-    "mysql2": "^3.16.0",
-    "next": "16.1.1",
+    "firebase-admin": "^13.6.1",
+    "mysql2": "^3.16.3",
+    "next": "16.1.6",
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "react-toastify": "^11.0.5",
@@ -26,6 +27,7 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "babel-plugin-react-compiler": "1.0.0",
     "tailwindcss": "^4",
     "typescript": "^5"
   }
