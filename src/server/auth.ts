@@ -1,44 +1,55 @@
 import { cookies } from "next/headers";
 import { redis } from "@/db/index";
 
-export async function isAuthorized(): Promise<null | boolean> {
+interface SessionData {
+  sessionId: string;
+  type: boolean;
+  userId: string;
+}
+
+async function resolveSession(): Promise<SessionData | null> {
   try {
     const token = (await cookies()).get("token")?.value;
-    if (!token) {
-      return null;
-    }
+    if (!token) return null;
 
     const parts = token.split(":");
-    if (parts.length !== 2) {
-      return null;
-    }
+    if (parts.length !== 2) return null;
 
     const [key, value] = parts;
+
     const stored = await redis.get(key);
-    if (!stored) {
-      return null;
-    }
+    if (!stored) return null;
 
-    const { sessionId, type } = JSON.parse(stored);
-    if (sessionId === value) {
-      return type;
-    }
+    const parsed: SessionData = JSON.parse(stored);
 
-    return null;
+    if (parsed.sessionId !== value) return null;
+
+    return parsed;
   } catch {
     return null;
   }
 }
 
-export async function isAdmin() {
-  const isLoggedIn = await isAuthorized();
-  if (!isLoggedIn) return false;
-  return true;
+export async function isAuthorized(): Promise<null | boolean> {
+  const session = await resolveSession();
+  if (!session) return null;
+  return session.type;
 }
 
-export async function isManager() {
-  const isLoggedIn = await isAuthorized();
-  console.log(isLoggedIn);
-  if (isLoggedIn === false) return true;
-  return false;
+export async function isAdmin(): Promise<boolean> {
+  const session = await resolveSession();
+  if (!session) return false;
+  return session.type === true;
+}
+
+export async function isManager(): Promise<boolean> {
+  const session = await resolveSession();
+  if (!session) return false;
+  return session.type === false;
+}
+
+export async function getAdmin(): Promise<string | null> {
+  const session = await resolveSession();
+  if (!session || session.type !== true) return null;
+  return session.userId;
 }

@@ -19,43 +19,39 @@ export async function POST(req: NextRequest) {
     }
 
     const [rows] = (await db.execute(
-      {
-        sql: `
-          SELECT mobNoEn, type
-          FROM blocks
-          WHERE updated_at > ?
-        `,
-        rowsAsArray: true,
-      },
+      `
+        SELECT encrypted_number, type
+        FROM blocks
+        WHERE updated_at > ?
+        ORDER BY updated_at ASC
+      `,
       [date],
-    )) as unknown as [[Buffer, number][]];
+    )) as unknown as [{ encrypted_number: Buffer; type: number }[]];
 
     const blocked: string[] = [];
     const unBlocked: string[] = [];
 
-    for (const [mobNoEn, type] of rows) {
-      const mobNo = decryptFromBuffer(mobNoEn);
+    for (const row of rows) {
+      const mobileNo = decryptFromBuffer(row.encrypted_number);
 
-      if (type === 1) {
-        unBlocked.push(mobNo);
+      if (row.type === 1) {
+        blocked.push(mobileNo);
       } else {
-        blocked.push(mobNo);
+        unBlocked.push(mobileNo);
       }
     }
 
-    const [codeRows] = (await db.execute({
-      sql: `SELECT code FROM codes`,
-      rowsAsArray: true,
-    })) as unknown as [string[][]];
+    const [codeRows] = (await db.execute(
+      `SELECT code FROM codes`,
+    )) as unknown as [{ code: string }[]];
 
-    const codes = codeRows.map(([code]) => code);
+    const codes = codeRows.map((r) => r.code);
 
-    const [appRows] = (await db.execute({
-      sql: `SELECT code FROM apps`,
-      rowsAsArray: true,
-    })) as unknown as [string[][]];
+    const [appRows] = (await db.execute(`SELECT app FROM apps`)) as unknown as [
+      { app: string }[],
+    ];
 
-    const apps = appRows.map(([code]) => code);
+    const apps = appRows.map((r) => r.app);
 
     return NextResponse.json(
       { blocked, unBlocked, codes, apps },

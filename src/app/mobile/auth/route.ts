@@ -24,54 +24,75 @@ export async function POST(req: NextRequest) {
     }
 
     const mobileHash = hashToBuffer(mobileNo);
+
     connection = await db.getConnection();
+    await connection.beginTransaction();
 
-    const [blocked] = (await connection.execute(
-      {
-        sql: `
-          SELECT 1
-          FROM blocks
-          WHERE mobNoHs = ?
-          LIMIT 1
-        `,
-        rowsAsArray: true,
-      },
+    const [blockedRows] = (await connection.execute(
+      `
+        SELECT type
+        FROM blocks
+        WHERE hashed_number = ?
+        LIMIT 1
+      `,
       [mobileHash],
-    )) as unknown as [number[][]];
+    )) as unknown as [{ type: number }[]];
 
-    if (blocked.length) {
+    if (blockedRows.length && blockedRows[0].type === 1) {
+      await connection.rollback();
       return NextResponse.json({ status: "blocked" }, { status: 403 });
     }
 
-    const [rows] = (await connection.execute(
-      {
-        sql: `
-          SELECT type
-          FROM users
-          WHERE mobNoHs = ? AND devId = ?
-          LIMIT 1
-        `,
-        rowsAsArray: true,
-      },
-      [mobileHash, deviceId],
-    )) as unknown as [number[][]];
+    const [userRows] = (await connection.execute(
+      `
+        SELECT 1
+        FROM users
+        WHERE hashed_number = ?
+        LIMIT 1
+      `,
+      [mobileHash],
+    )) as unknown as [unknown[]];
 
-    let type: number = 0;
-
-    if (rows.length === 0) {
+    if (!userRows.length) {
       await connection.execute(
         `
-          INSERT INTO users (name, mobNoEn, mobNoHs, devId)
-          VALUES ('', ?, ?, ?)
+          INSERT INTO users
+            (hashed_number, encrypted_number, name)
+          VALUES (?, ?, '')
         `,
-        [encryptToBuffer(mobileNo), mobileHash, deviceId],
+        [mobileHash, encryptToBuffer(mobileNo)],
       );
-    } else {
-      type = rows[0][0];
     }
 
-    const status = STATUS_MAP.get(type);
+    const [deviceRows] = (await connection.execute(
+      `
+        SELECT type
+        FROM devices
+        WHERE hashed_number = ?
+          AND device_id = ?
+        LIMIT 1
+      `,
+      [mobileHash, deviceId],
+    )) as unknown as [{ type: number }[]];
 
+    let type = 0;
+
+    if (!deviceRows.length) {
+      await connection.execute(
+        `
+          INSERT INTO devices
+            (device_id, hashed_number, type)
+          VALUES (?, ?, 0)
+        `,
+        [deviceId, mobileHash],
+      );
+    } else {
+      type = deviceRows[0].type;
+    }
+
+    await connection.commit();
+
+    const status = STATUS_MAP.get(type);
     if (!status) {
       return NextResponse.json({ error: "Invalid user type" }, { status: 500 });
     }
@@ -80,15 +101,25 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ status, type }, { status: 403 });
     }
 
-    const session = randomUUID();
+    const sessionId = randomUUID();
     const redisKey = `${mobileHash.toString("base64url")}:${deviceId}`;
 
-    await redis.set(redisKey, JSON.stringify({ session, type, mobileNo }));
+    await redis.set(
+      redisKey,
+      JSON.stringify({
+        session: sessionId,
+        type,
+      }),
+      {
+        expiration: { type: "EX", value: 604800 },
+      },
+    );
 
-    const token = `${redisKey}.${session}`;
+    const token = `${redisKey}.${sessionId}`;
 
     return NextResponse.json({ status, token, type }, { status: 200 });
   } catch {
+    if (connection) await connection.rollback();
     return NextResponse.json(
       { error: "Internal Server Error" },
       { status: 500 },

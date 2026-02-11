@@ -1,3 +1,4 @@
+drop DATABASE striking_app;
 CREATE DATABASE IF NOT EXISTS striking_app;
 USE striking_app;
 
@@ -36,7 +37,7 @@ CREATE TABLE IF NOT EXISTS users (
 );
 
 CREATE TABLE IF NOT EXISTS devices (
-  id INT UNSIGNED PRIMARY KEY,
+  id INT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
   device_id CHAR(36) UNIQUE NOT NULL,
   hashed_number BINARY(32) NOT NULL,
   reviewed_by CHAR(8) DEFAULT NULL,
@@ -50,7 +51,7 @@ CREATE TABLE IF NOT EXISTS devices (
 );
 
 CREATE TABLE IF NOT EXISTS blocks (
-  id INT PRIMARY KEY,
+  id INT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
   encrypted_number VARBINARY(50) NOT NULL,
   hashed_number BINARY(32) NOT NULL UNIQUE,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -92,8 +93,9 @@ CREATE TABLE IF NOT EXISTS notifications (
 );
 
 CREATE TABLE IF NOT EXISTS reported (
+  id INT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
   encrypted_number VARBINARY(50) NOT NULL,
-  hashed_number BINARY(32) PRIMARY KEY,
+  hashed_number BINARY(32) UNIQUE NOT NULL,
   type SMALLINT DEFAULT 0
 );
 
@@ -109,4 +111,3 @@ CREATE TABLE IF NOT EXISTS reporters (
     REFERENCES reported(hashed_number)
     ON DELETE CASCADE
 );
-

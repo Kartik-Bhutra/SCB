@@ -1,33 +1,40 @@
 "use server";
 
 import { db } from "@/db";
-import { isAdmin } from "@/server/auth";
+import { getAdmin } from "@/server/auth";
 import { sendHighPriorityAndroid } from "@/server/message";
 import type { ActionResult } from "@/types/serverActions";
 
 export async function fetchData(): Promise<string[] | ActionResult> {
-  const verified = await isAdmin();
-  if (!verified) return "UNAUTHORIZED";
+  const adminId = await getAdmin();
+  if (!adminId) return "UNAUTHORIZED";
 
-  const [rows] = (await db.execute({
-    sql: "SELECT code FROM apps",
-    rowsAsArray: true,
-  })) as unknown as [string[][]];
+  const [rows] = (await db.execute("SELECT app FROM apps")) as unknown as [
+    { app: string }[],
+  ];
 
-  return rows.map((r) => r[0]);
+  return rows.map((r) => r.app);
 }
 
 export async function addActionState(
   _: ActionResult,
   formData: FormData,
 ): Promise<ActionResult> {
-  const verified = await isAdmin();
-  if (!verified) return "UNAUTHORIZED";
+  const adminId = await getAdmin();
+  if (!adminId) return "UNAUTHORIZED";
 
-  const code = formData.get("code");
+  const app = String(formData.get("code") || "").trim();
+  if (!app) return "INVALID INPUT";
 
   try {
-    await db.execute("INSERT IGNORE INTO apps (code) VALUES (?)", [code]);
+    await db.execute(
+      `
+        INSERT IGNORE INTO apps (app, blocked_by)
+        VALUES (?, ?)
+      `,
+      [app, adminId],
+    );
+
     await sendHighPriorityAndroid();
     return "OK";
   } catch {
@@ -39,13 +46,21 @@ export async function removeActionState(
   _: ActionResult,
   formData: FormData,
 ): Promise<ActionResult> {
-  const verified = await isAdmin();
-  if (!verified) return "UNAUTHORIZED";
+  const adminId = await getAdmin();
+  if (!adminId) return "UNAUTHORIZED";
 
-  const code = formData.get("code");
+  const app = String(formData.get("code") || "").trim();
+  if (!app) return "INVALID INPUT";
 
   try {
-    await db.execute("DELETE FROM apps WHERE code = ?", [code]);
+    await db.execute(
+      `
+        DELETE FROM apps
+        WHERE app = ?
+      `,
+      [app],
+    );
+
     await sendHighPriorityAndroid();
     return "OK";
   } catch {

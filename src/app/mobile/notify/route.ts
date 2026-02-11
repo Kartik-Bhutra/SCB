@@ -1,6 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { redis, db } from "@/db";
-import { encryptToBuffer } from "@/hooks/crypto";
 import { statusResponse } from "@/server/response";
 
 interface ReqData {
@@ -10,7 +9,6 @@ interface ReqData {
 
 export async function POST(req: NextRequest) {
   let connection;
-  let mobNoEn: Buffer | null = null;
 
   try {
     const { token, code } = (await req.json()) as ReqData;
@@ -27,62 +25,64 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ status: "invalid session" }, { status: 401 });
     }
 
-    const [redisKey, session] = parts;
+    const [redisKey, sessionId] = parts;
+
+    let mobHash: Buffer | null = null;
+    let userType: number | null = null;
 
     const cached = await redis.get(redisKey);
 
     if (cached) {
       const parsed = JSON.parse(cached);
 
-      if (parsed.session !== session) {
+      if (parsed.session !== sessionId) {
         return NextResponse.json(
           { status: "invalid session" },
           { status: 401 },
         );
       }
 
-      if (parsed.type === 2 || parsed.type === 0) {
-        return statusResponse(parsed.type);
+      userType = parsed.type;
+
+      if (userType === 2 || userType === 0) {
+        return statusResponse(userType);
       }
 
-      mobNoEn = encryptToBuffer(parsed.mobileNo);
+      const [hashBase64] = redisKey.split(":");
+      mobHash = Buffer.from(hashBase64, "base64url");
     }
 
-    if (!mobNoEn) {
+    if (!mobHash) {
       const keyParts = redisKey.split(":");
       if (keyParts.length !== 2) {
         return NextResponse.json({ error: "Invalid token" }, { status: 400 });
       }
 
-      const [mobHashBase64Url, deviceId] = keyParts;
-      const mobHash = Buffer.from(mobHashBase64Url, "base64url");
+      const [hashBase64, deviceId] = keyParts;
+      mobHash = Buffer.from(hashBase64, "base64url");
 
       connection = await db.getConnection();
 
       const [rows] = (await connection.execute(
-        {
-          sql: `
-            SELECT type, mobNoEn
-            FROM users
-            WHERE mobNoHs = ? AND devId = ?
-            LIMIT 1
-          `,
-          rowsAsArray: true,
-        },
+        `
+          SELECT type
+          FROM devices
+          WHERE hashed_number = ?
+            AND device_id = ?
+          LIMIT 1
+        `,
         [mobHash, deviceId],
-      )) as unknown as [[number, Buffer][]];
+      )) as unknown as [{ type: number }[]];
 
-      if (rows.length === 0) {
+      if (!rows.length) {
         return NextResponse.json({ status: "post request" }, { status: 200 });
       }
 
-      const [type, encryptedMobNo] = rows[0];
+      userType = rows[0].type;
 
-      if (type === 2 || type === 0) {
-        return statusResponse(type);
+      if (userType === 2 || userType === 0) {
+        return statusResponse(userType);
       }
-
-      mobNoEn = encryptedMobNo;
     }
 
     if (!connection) {
@@ -91,10 +91,10 @@ export async function POST(req: NextRequest) {
 
     await connection.execute(
       `
-        INSERT INTO notify (mobNoEn, code)
+        INSERT INTO notifications (hashed_number, app)
         VALUES (?, ?)
       `,
-      [mobNoEn, code],
+      [mobHash, code],
     );
 
     return NextResponse.json({ status: "OK" }, { status: 200 });

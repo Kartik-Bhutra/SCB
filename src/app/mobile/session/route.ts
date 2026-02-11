@@ -21,14 +21,14 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ status: "invalid session" }, { status: 401 });
     }
 
-    const [redisKey, session] = parts;
+    const [redisKey, sessionId] = parts;
 
     const cached = await redis.get(redisKey);
 
     if (cached) {
       const parsed = JSON.parse(cached);
 
-      if (parsed.session !== session) {
+      if (parsed.session !== sessionId) {
         return NextResponse.json(
           { status: "invalid session" },
           { status: 401 },
@@ -44,28 +44,27 @@ export async function POST(req: NextRequest) {
     }
 
     const [mobHashBase64Url, deviceId] = keyParts;
+
     const mobHash = Buffer.from(mobHashBase64Url, "base64url");
 
     connection = await db.getConnection();
 
     const [rows] = (await connection.execute(
-      {
-        sql: `
-          SELECT type
-          FROM users
-          WHERE mobNoHs = ? AND devId = ?
-          LIMIT 1
-        `,
-        rowsAsArray: true,
-      },
+      `
+        SELECT type
+        FROM devices
+        WHERE hashed_number = ?
+          AND device_id = ?
+        LIMIT 1
+      `,
       [mobHash, deviceId],
-    )) as unknown as [number[][]];
+    )) as unknown as [{ type: number }[]];
 
-    if (rows.length === 0) {
+    if (!rows.length) {
       return NextResponse.json({ status: "post request" }, { status: 200 });
     }
 
-    return statusResponse(rows[0][0]);
+    return statusResponse(rows[0].type);
   } catch {
     return NextResponse.json(
       { error: "Internal Server Error" },
