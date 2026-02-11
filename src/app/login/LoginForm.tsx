@@ -8,7 +8,7 @@ import { useRouter } from "next/navigation";
 import { useActionState, useEffect, useState } from "react";
 import PasswordBtn from "@/app/(components)/PasswordBtn";
 import type { loginActionResult } from "@/types/serverActions";
-import { serverAction, verifyLogin } from "./action";
+import { startLogin, completeLogin } from "./action";
 
 export default function LoginForm() {
   const router = useRouter();
@@ -16,7 +16,7 @@ export default function LoginForm() {
   const [state, actionHandler, isLoading] = useActionState<
     loginActionResult | PublicKeyCredentialRequestOptionsJSON,
     FormData
-  >(serverAction, "");
+  >(startLogin, "");
 
   const [localError, setLocalError] = useState("");
 
@@ -44,7 +44,7 @@ export default function LoginForm() {
           optionsJSON: state,
         });
 
-        const result = await verifyLogin(credential);
+        const result = await completeLogin(credential);
 
         if (result !== "OK") {
           setLocalError(result);
@@ -61,6 +61,21 @@ export default function LoginForm() {
   function handleInputChange() {
     if (localError) setLocalError("");
   }
+
+  const inputClass = [
+    "w-full px-3 sm:px-4 py-2.5 sm:py-3",
+    "border border-gray-200 rounded-xl",
+    "text-sm sm:text-base transition-all duration-200",
+    "focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent",
+  ].join(" ");
+
+  const submitClass = [
+    "w-full py-2.5 sm:py-3 px-4",
+    "bg-blue-600 text-white rounded-xl font-medium text-sm sm:text-base",
+    "transition-all duration-200 hover:bg-blue-700 focus:outline-none",
+    "focus:ring-2 focus:ring-offset-2 focus:ring-blue-500",
+    "transform hover:-translate-y-0.5 disabled:opacity-50",
+  ].join(" ");
 
   return (
     <form className="space-y-4 sm:space-y-6" action={actionHandler}>
@@ -79,8 +94,7 @@ export default function LoginForm() {
             placeholder="Enter your user Id"
             onChange={handleInputChange}
             onFocus={handleInputChange}
-            className="w-full px-3 sm:px-4 py-2.5 sm:py-3 border border-gray-200 rounded-xl text-sm sm:text-base
-              transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className={inputClass}
           />
         </div>
 
@@ -90,7 +104,7 @@ export default function LoginForm() {
       <div className="flex items-center justify-between flex-wrap gap-2">
         <div className="flex items-center">
           <input
-            type="isAuthorizedbox"
+            type="checkbox"
             name="remember-me"
             className="h-4 w-4 text-blue-600 rounded-lg border-gray-300 transition-all duration-200"
           />
@@ -119,14 +133,7 @@ export default function LoginForm() {
         </div>
       )}
 
-      <button
-        type="submit"
-        disabled={isLoading}
-        className="w-full py-2.5 sm:py-3 px-4 bg-blue-600 text-white rounded-xl font-medium text-sm sm:text-base
-          transition-all duration-200 hover:bg-blue-700 focus:outline-none 
-          focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 
-          transform hover:-translate-y-0.5 disabled:opacity-50"
-      >
+      <button type="submit" disabled={isLoading} className={submitClass}>
         Sign In
       </button>
     </form>

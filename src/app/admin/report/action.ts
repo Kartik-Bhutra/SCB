@@ -1,6 +1,6 @@
 "use server";
 
-import { pool } from "@/db";
+import { db } from "@/db";
 import { decryptFromBuffer, encryptToBuffer } from "@/hooks/crypto";
 import { hashToBuffer } from "@/hooks/hash";
 import { isAdmin } from "@/server/auth";
@@ -19,7 +19,7 @@ export async function fetchData(page: number): Promise<ActionResult | Data[]> {
 
   const offset = (page - 1) * 25;
 
-  const [rows] = (await pool.execute(
+  const [rows] = (await db.execute(
     `
     SELECT
     type,
@@ -44,7 +44,7 @@ export async function fetchData(page: number): Promise<ActionResult | Data[]> {
   const reportedHashes = rows.map((r) => r.reportedHash);
   const placeholders = reportedHashes.map(() => "?").join(",");
 
-  const [repRows] = (await pool.execute(
+  const [repRows] = (await db.execute(
     `
     SELECT repNoHs
     FROM reporter
@@ -72,7 +72,7 @@ export async function fetchData(page: number): Promise<ActionResult | Data[]> {
 }
 
 export async function maxPageNo(): Promise<number> {
-  const [rows] = await pool.execute(
+  const [rows] = await db.execute(
     "SELECT id FROM reported ORDER BY id DESC LIMIT 1",
   );
 
@@ -91,18 +91,18 @@ export async function changeTypeAction(
   if (!verified) return "UNAUTHORIZED";
 
   const raw = String(formData.get("mobileType"));
-  if (!raw) return "INVALID_INPUT";
+  if (!raw) return "INVALID INPUT";
 
   const [mobileNo, typeStr] = raw.split(":");
   const type = Number(typeStr);
 
   if (!mobileNo) {
-    return "INVALID_INPUT";
+    return "INVALID INPUT";
   }
 
   const mobHash = hashToBuffer(mobileNo);
 
-  const connection = await pool.getConnection();
+  const connection = await db.getConnection();
 
   try {
     await connection.beginTransaction();
@@ -146,7 +146,7 @@ export async function changeTypeAction(
   } catch (err) {
     await connection.rollback();
     console.error(err);
-    return "INTERNAL_ERROR";
+    return "SERVER ERROR";
   } finally {
     connection.release();
   }

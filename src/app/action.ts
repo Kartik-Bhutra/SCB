@@ -1,7 +1,7 @@
 "use server";
 
 import { cookies } from "next/headers";
-import { client } from "@/db";
+import { redis } from "@/db";
 
 export async function logoutUser() {
   const cookieStore = await cookies();
@@ -10,7 +10,7 @@ export async function logoutUser() {
     return false;
   }
   const key = token.slice(0, 44);
-  await client.del(key);
+  await redis.del(key);
   cookieStore.delete("token");
   return true;
 }

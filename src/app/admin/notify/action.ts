@@ -1,6 +1,6 @@
 "use server";
 
-import { pool } from "@/db";
+import { db } from "@/db";
 import { decryptFromBuffer } from "@/hooks/crypto";
 import { isAdmin } from "@/server/auth";
 import type { ActionResult } from "@/types/serverActions";
@@ -21,7 +21,7 @@ export async function fetchData(page: number): Promise<ActionResult | Data[]> {
 
   const offset = (page - 1) * 25;
 
-  const [rows] = (await pool.execute(
+  const [rows] = (await db.execute(
     `SELECT 
         mobNoEn AS mobileNoEncrypted,
         code
@@ -38,7 +38,7 @@ export async function fetchData(page: number): Promise<ActionResult | Data[]> {
 }
 
 export async function fetchTotalPages(): Promise<number> {
-  const [rows] = (await pool.execute(
+  const [rows] = (await db.execute(
     "SELECT id FROM notify ORDER BY id DESC LIMIT 1",
   )) as unknown as [{ id: number }[]];
 

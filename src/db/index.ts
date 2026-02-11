@@ -43,7 +43,7 @@ const dbConfig: PoolOptions = {
 //   dbConfig.port = 3306;
 // }
 
-export const pool = createPool(dbConfig);
+export const db = createPool(dbConfig);
 
 // let redisConfig: RedisClientOptions = {
 //   url: "redis://127.0.0.1:6379",
@@ -65,4 +65,4 @@ const redisConfig: RedisClientOptions = {
   },
 };
 
-export const client = await createClient(redisConfig).connect();
+export const redis = await createClient(redisConfig).connect();

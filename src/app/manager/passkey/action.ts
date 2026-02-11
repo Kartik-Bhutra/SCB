@@ -1,7 +1,7 @@
 "use server";
 
 import { randomBytes } from "node:crypto";
-import { client, pool } from "@/db";
+import { redis, db } from "@/db";
 import { hashToBuffer } from "@/hooks/hash";
 import { isManager } from "@/server/auth";
 import type { ActionResult } from "@/types/serverActions";
@@ -15,8 +15,8 @@ export async function fetchData(): Promise<Data[] | ActionResult> {
   const verified = await isManager();
   if (!verified) return "UNAUTHORIZED";
 
-  const [rows] = (await pool.execute({
-    sql: `SELECT userId FROM admins WHERE type = 1`,
+  const [rows] = (await db.execute({
+    sql: `SELECT user_Id FROM admins WHERE type = 1`,
     rowsAsArray: true,
   })) as unknown as [string[][]];
 
@@ -27,7 +27,7 @@ export async function fetchData(): Promise<Data[] | ActionResult> {
 
       return {
         userId,
-        sessionId: await client.get(key),
+        sessionId: await redis.get(key),
       };
     }),
   );
@@ -46,8 +46,8 @@ export async function generateSession(
   const key = hashToBuffer(userId).toString("hex");
   const session = randomBytes(4).toString("hex");
 
-  await client.set(key, session);
-  await client.expire(key, 60 * 10);
+  await redis.set(key, session);
+  await redis.expire(key, 60 * 10);
   return "OK";
 }
 
@@ -61,6 +61,6 @@ export async function deleteSession(
   const userId = String(formData.get("userId"));
   const key = hashToBuffer(userId).toString("hex");
 
-  await client.del(key);
+  await redis.del(key);
   return "OK";
 }

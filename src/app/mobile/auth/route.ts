@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { type NextRequest, NextResponse } from "next/server";
-import { client, pool } from "@/db";
+import { redis, db } from "@/db";
 import { encryptToBuffer } from "@/hooks/crypto";
 import { hashToBuffer } from "@/hooks/hash";
 import { STATUS_MAP } from "@/types/serverActions";
@@ -24,7 +24,7 @@ export async function POST(req: NextRequest) {
     }
 
     const mobileHash = hashToBuffer(mobileNo);
-    connection = await pool.getConnection();
+    connection = await db.getConnection();
 
     const [blocked] = (await connection.execute(
       {
@@ -83,7 +83,7 @@ export async function POST(req: NextRequest) {
     const session = randomUUID();
     const redisKey = `${mobileHash.toString("base64url")}:${deviceId}`;
 
-    await client.set(redisKey, JSON.stringify({ session, type, mobileNo }));
+    await redis.set(redisKey, JSON.stringify({ session, type, mobileNo }));
 
     const token = `${redisKey}.${session}`;
 

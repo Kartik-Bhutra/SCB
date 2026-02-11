@@ -1,5 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server";
-import { pool } from "@/db";
+import { db } from "@/db";
 
 interface ReqData {
   token: string;
@@ -34,7 +34,7 @@ export async function POST(req: NextRequest) {
     const [mobHashBase64Url, deviceId] = keyParts;
     const mobHash = Buffer.from(mobHashBase64Url, "base64url");
 
-    connection = await pool.getConnection();
+    connection = await db.getConnection();
 
     const [result] = await connection.execute(
       {

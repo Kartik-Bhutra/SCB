@@ -1,5 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server";
-import { pool } from "@/db";
+import { db } from "@/db";
 import { decryptFromBuffer } from "@/hooks/crypto";
 
 export async function POST(req: NextRequest) {
@@ -18,7 +18,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const [rows] = (await pool.execute(
+    const [rows] = (await db.execute(
       {
         sql: `
           SELECT mobNoEn, type
@@ -43,14 +43,14 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    const [codeRows] = (await pool.execute({
+    const [codeRows] = (await db.execute({
       sql: `SELECT code FROM codes`,
       rowsAsArray: true,
     })) as unknown as [string[][]];
 
     const codes = codeRows.map(([code]) => code);
 
-    const [appRows] = (await pool.execute({
+    const [appRows] = (await db.execute({
       sql: `SELECT code FROM apps`,
       rowsAsArray: true,
     })) as unknown as [string[][]];

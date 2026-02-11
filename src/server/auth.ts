@@ -1,5 +1,5 @@
 import { cookies } from "next/headers";
-import { client } from "@/db/index";
+import { redis } from "@/db/index";
 
 export async function isAuthorized(): Promise<null | boolean> {
   try {
@@ -14,7 +14,7 @@ export async function isAuthorized(): Promise<null | boolean> {
     }
 
     const [key, value] = parts;
-    const stored = await client.get(key);
+    const stored = await redis.get(key);
     if (!stored) {
       return null;
     }
@@ -38,6 +38,7 @@ export async function isAdmin() {
 
 export async function isManager() {
   const isLoggedIn = await isAuthorized();
-  if (isLoggedIn) return false;
-  return true;
+  console.log(isLoggedIn);
+  if (isLoggedIn === false) return true;
+  return false;
 }

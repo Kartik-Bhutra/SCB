@@ -1,6 +1,6 @@
 "use server";
 
-import { pool } from "@/db";
+import { db } from "@/db";
 import { isAdmin } from "@/server/auth";
 import { sendHighPriorityAndroid } from "@/server/message";
 import type { ActionResult } from "@/types/serverActions";
@@ -9,7 +9,7 @@ export async function fetchData(): Promise<string[] | ActionResult> {
   const verified = await isAdmin();
   if (!verified) return "UNAUTHORIZED";
 
-  const [rows] = (await pool.execute({
+  const [rows] = (await db.execute({
     sql: "SELECT code FROM codes",
     rowsAsArray: true,
   })) as unknown as [string[][]];
@@ -27,11 +27,11 @@ export async function addActionState(
   const code = formData.get("code");
 
   try {
-    await pool.execute("INSERT IGNORE INTO codes (code) VALUES (?)", [code]);
+    await db.execute("INSERT IGNORE INTO codes (code) VALUES (?)", [code]);
     await sendHighPriorityAndroid();
     return "OK";
   } catch {
-    return "INTERNAL_ERROR";
+    return "SERVER ERROR";
   }
 }
 
@@ -45,11 +45,11 @@ export async function removeActionState(
   const code = formData.get("code");
 
   try {
-    await pool.execute("DELETE FROM codes WHERE code = ?", [code]);
+    await db.execute("DELETE FROM codes WHERE code = ?", [code]);
 
     await sendHighPriorityAndroid();
     return "OK";
   } catch {
-    return "INTERNAL_ERROR";
+    return "SERVER ERROR";
   }
 }

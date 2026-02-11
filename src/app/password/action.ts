@@ -1,7 +1,7 @@
 "use server";
 
 import { hash, verify } from "@node-rs/argon2";
-import { pool } from "@/db";
+import { db } from "@/db";
 import { passwordActionResult } from "@/types/serverActions";
 
 export async function serverAction(
@@ -14,14 +14,14 @@ export async function serverAction(
     const newPassword = String(formData.get("newPassword") || "");
 
     if (!userId || !password || !newPassword) {
-      return "INVALID_INPUT";
+      return "INVALID INPUT";
     }
 
     if (password == newPassword) {
       return "INVALID_PASSWORD";
     }
 
-    const [rows] = (await pool.execute(
+    const [rows] = (await db.execute(
       {
         sql: `
           SELECT passHash
@@ -33,13 +33,13 @@ export async function serverAction(
       [userId],
     )) as unknown as [string[][]];
 
-    if (!rows.length) return "INVALID_CREDENTIALS";
+    if (!rows.length) return "INVALID CREDENTIALS";
 
     if (!(await verify(rows[0][0], password))) {
-      return "INVALID_CREDENTIALS";
+      return "INVALID CREDENTIALS";
     }
 
-    await pool.execute(
+    await db.execute(
       `
         UPDATE admins
         SET passHash = ?
@@ -51,6 +51,6 @@ export async function serverAction(
 
     return "OK";
   } catch {
-    return "INTERNAL_ERROR";
+    return "SERVER ERROR";
   }
 }

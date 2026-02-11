@@ -1,7 +1,7 @@
 "use server";
 
 import { randomUUID } from "node:crypto";
-import { verify } from "@node-rs/argon2";
+import { verify as verifyPassword } from "@node-rs/argon2";
 import {
   generateRegistrationOptions,
   verifyRegistrationResponse,
@@ -11,85 +11,87 @@ import type {
   RegistrationResponseJSON,
 } from "@simplewebauthn/browser";
 import { cookies } from "next/headers";
-import { client, pool } from "@/db";
+import { redis, db } from "@/db";
 import { rpID, rpName } from "@/env";
 import { hashToBuffer } from "@/hooks/hash";
 import { origin, type keyActionResult } from "@/types/serverActions";
 
-export async function serverAction(
+export async function startPasskeyRegistration(
   _: keyActionResult | PublicKeyCredentialCreationOptionsJSON,
   formData: FormData,
 ): Promise<keyActionResult | PublicKeyCredentialCreationOptionsJSON> {
   try {
-    const userId = String(formData.get("userId") || "");
+    const adminId = String(formData.get("userId") || "").trim();
     const password = String(formData.get("password") || "");
-    const sessionKey = String(formData.get("session") || "");
+    const sessionToken = String(formData.get("session") || "");
 
-    if (!userId || !password || !sessionKey) {
-      return "INVALID_INPUT";
+    if (!adminId || !password || !sessionToken) {
+      return "INVALID INPUT";
     }
 
-    const [rows] = (await pool.execute(
+    const [rows] = (await db.execute(
       {
         sql: `
-          SELECT passHash
+          SELECT hashed_password
           FROM admins
-          WHERE userId = ? AND type = 1
+          WHERE user_id = ? AND type = 1
           LIMIT 1
         `,
         rowsAsArray: true,
       },
-      [userId],
+      [adminId],
     )) as unknown as [string[][]];
 
-    if (!rows.length) return "INVALID_CREDENTIALS";
+    if (!rows.length) return "INVALID CREDENTIALS";
 
-    if (!(await verify(rows[0][0], password))) {
-      return "INVALID_CREDENTIALS";
-    }
+    const hashedPassword = rows[0][0];
 
-    const redisKey = hashToBuffer(userId).toString("hex");
-    const storedSession = await client.get(redisKey);
+    if (!(await verifyPassword(hashedPassword, password)))
+      return "INVALID CREDENTIALS";
 
-    if (!storedSession) return "SESSION_EXPIRED";
-    await client.del(redisKey);
+    const redisKey = hashToBuffer(adminId).toString("hex");
+    const storedSession = await redis.get(redisKey);
 
-    if (storedSession !== sessionKey) return "UNAUTHORIZED";
+    if (!storedSession) return "SESSION EXPIRED";
 
-    const [creds] = (await pool.execute(
+    if (storedSession !== sessionToken) return "INVALID SESSION";
+
+    await redis.del(redisKey);
+
+    const [existing] = (await db.execute(
       {
-        sql: `SELECT id FROM passkeys WHERE userId = ?`,
+        sql: `SELECT id FROM passkeys WHERE user_id = ?`,
         rowsAsArray: true,
       },
-      [userId],
-    )) as unknown as [string[][]];
+      [adminId],
+    )) as unknown as [Buffer[][]];
 
-    const excludeCredentials = creds.map((r) => ({
-      id: r[0],
+    const excludeCredentials = existing.map(([id]) => ({
+      id: id.toString("base64url"),
     }));
 
     const options = await generateRegistrationOptions({
       rpName,
       rpID,
-      userName: userId,
+      userName: adminId,
       excludeCredentials,
       authenticatorSelection: {
         authenticatorAttachment: "cross-platform",
       },
     });
 
-    const challengeKey = randomUUID();
+    const challengeToken = randomUUID();
 
-    await client.set(
-      challengeKey,
+    await redis.set(
+      challengeToken,
       JSON.stringify({
-        userId,
+        adminId,
         challenge: options.challenge,
       }),
       { expiration: { type: "EX", value: 300 } },
     );
 
-    (await cookies()).set("session", challengeKey, {
+    (await cookies()).set("webauthn_session", challengeToken, {
       httpOnly: true,
       secure: true,
       sameSite: "strict",
@@ -99,55 +101,54 @@ export async function serverAction(
 
     return options;
   } catch {
-    return "INTERNAL_ERROR";
+    return "SERVER ERROR";
   }
 }
 
-export async function verifyRegistration(
+export async function completePasskeyRegistration(
   credential: RegistrationResponseJSON,
 ): Promise<keyActionResult> {
   try {
     const cookieStore = await cookies();
-    const challengeKey = cookieStore.get("session")?.value;
+    const challengeToken = cookieStore.get("webauthn_session")?.value;
 
-    if (!challengeKey) return "SESSION_EXPIRED";
+    if (!challengeToken) return "SESSION EXPIRED";
 
-    const stored = await client.get(challengeKey);
-    if (!stored) return "SESSION_EXPIRED";
+    const stored = await redis.get(challengeToken);
+    if (!stored) return "SESSION EXPIRED";
 
-    const { userId, challenge } = JSON.parse(stored);
+    const { adminId, challenge } = JSON.parse(stored);
 
     const verification = await verifyRegistrationResponse({
       response: credential,
       expectedChallenge: challenge,
       expectedOrigin: origin,
       expectedRPID: rpID,
+      requireUserVerification: true,
     });
 
     if (!verification.verified || !verification.registrationInfo) {
-      return "WEBAUTHN_FAILED";
+      return "WEBAUTHN FAILED";
     }
 
-    const {
-      credential: { id, publicKey, counter },
-    } = verification.registrationInfo;
+    const { publicKey, counter } = verification.registrationInfo.credential;
 
-    const webAuthnId = Buffer.from(credential.rawId);
+    const credentialId = Buffer.from(credential.rawId, "base64url");
 
-    await pool.execute(
+    await db.execute(
       `
           INSERT INTO passkeys
-            (id, publicKey, userId, webAuthnId, counter)
-          VALUES (?, ?, ?, ?, ?)
+            (id, public_key, user_id, counter)
+          VALUES (?, ?, ?, ?)
         `,
-      [id, publicKey, userId, webAuthnId, counter],
+      [credentialId, publicKey, adminId, counter],
     );
 
-    await client.del(challengeKey);
-    cookieStore.delete("session");
+    await redis.del(challengeToken);
+    cookieStore.delete("webauthn_session");
 
     return "OK";
   } catch {
-    return "INTERNAL_ERROR";
+    return "SERVER ERROR";
   }
 }

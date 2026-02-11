@@ -1,4 +1,5 @@
 "use client";
+
 import {
   type PublicKeyCredentialCreationOptionsJSON,
   startRegistration,
@@ -7,14 +8,19 @@ import { useRouter } from "next/navigation";
 import { useActionState, useEffect, useState } from "react";
 import PasswordBtn from "@/app/(components)/PasswordBtn";
 import type { keyActionResult } from "@/types/serverActions";
-import { serverAction, verifyRegistration } from "./action";
+import {
+  startPasskeyRegistration,
+  completePasskeyRegistration,
+} from "./action";
 
 export default function LoginForm() {
   const router = useRouter();
+
   const [state, actionHandler, isLoading] = useActionState<
     keyActionResult | PublicKeyCredentialCreationOptionsJSON,
     FormData
-  >(serverAction, "");
+  >(startPasskeyRegistration, "");
+
   const [localError, setLocalError] = useState("");
 
   useEffect(() => {
@@ -24,20 +30,22 @@ export default function LoginForm() {
       setLocalError(state);
       return;
     }
+
     (async () => {
       try {
         const credential = await startRegistration({
           optionsJSON: state,
         });
 
-        const result = await verifyRegistration(credential);
+        const result = await completePasskeyRegistration(credential);
+
         if (result !== "OK") {
           setLocalError(result);
           return;
         }
 
         router.replace("/login");
-      } catch (err) {
+      } catch {
         setLocalError("Registration was cancelled or failed");
       }
     })();
@@ -46,6 +54,21 @@ export default function LoginForm() {
   function handleInputChange() {
     if (localError) setLocalError("");
   }
+
+  const inputClass = [
+    "w-full px-3 sm:px-4 py-2.5 sm:py-3",
+    "border border-gray-200 rounded-xl",
+    "text-sm sm:text-base transition-all duration-200",
+    "focus:outline-none focus:ring-2 focus:ring-blue-500",
+  ].join(" ");
+
+  const submitClass = [
+    "w-full py-2.5 sm:py-3 px-4",
+    "bg-blue-600 text-white rounded-xl font-medium",
+    "transition-all duration-200 hover:bg-blue-700",
+    "focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500",
+    "disabled:opacity-50",
+  ].join(" ");
 
   return (
     <form className="space-y-4 sm:space-y-6" action={actionHandler}>
@@ -61,8 +84,7 @@ export default function LoginForm() {
             placeholder="Enter your user ID"
             onChange={handleInputChange}
             onFocus={handleInputChange}
-            className="w-full px-3 sm:px-4 py-2.5 sm:py-3 border border-gray-200 rounded-xl text-sm sm:text-base
-              transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className={inputClass}
           />
         </div>
 
@@ -79,8 +101,7 @@ export default function LoginForm() {
             placeholder="Enter session key"
             onChange={handleInputChange}
             onFocus={handleInputChange}
-            className="w-full px-3 sm:px-4 py-2.5 sm:py-3 border border-gray-200 rounded-xl text-sm sm:text-base
-              transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className={inputClass}
           />
         </div>
       </div>
@@ -91,13 +112,7 @@ export default function LoginForm() {
         </div>
       )}
 
-      <button
-        type="submit"
-        disabled={isLoading}
-        className="w-full py-2.5 sm:py-3 px-4 bg-blue-600 text-white rounded-xl font-medium
-          transition-all duration-200 hover:bg-blue-700 focus:outline-none
-          focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
-      >
+      <button type="submit" disabled={isLoading} className={submitClass}>
         Add Passkey
       </button>
     </form>

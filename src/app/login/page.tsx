@@ -6,7 +6,7 @@ import LoginForm from "./LoginForm";
 export default async function LoginPage() {
   const isLoggedIn = await isAuthorized();
   if (isLoggedIn) {
-    redirect("/admin");
+    redirect("/admin", RedirectType.replace);
   }
   if (isLoggedIn !== null) {
     redirect("/manager", RedirectType.replace);

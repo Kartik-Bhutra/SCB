@@ -1,10 +1,10 @@
-CREATE DATABASE IF NOT EXISTS scb;
-USE scb;
+CREATE DATABASE IF NOT EXISTS striking_app;
+USE striking_app;
 
-CREATE TABLE IF NOT EXISTS admins(
-  userId CHAR(8) PRIMARY KEY,
-  passHash CHAR(97) NOT NULL,
-  type TINYINT NOT NULL
+CREATE TABLE IF NOT EXISTS admins (
+  admin_id CHAR(8) PRIMARY KEY,
+  hashed_password CHAR(97) NOT NULL,
+  type SMALLINT DEFAULT 0
 );
 
 INSERT IGNORE INTO admins VALUES
@@ -20,62 +20,93 @@ INSERT IGNORE INTO admins VALUES
 );
 
 CREATE TABLE IF NOT EXISTS passkeys (
-  id VARCHAR(64) PRIMARY KEY,
-  publicKey VARBINARY(512) NOT NULL,
-  userId CHAR(8) NOT NULL,
-  webAuthnId VARBINARY(64) NOT NULL,
-  counter BIGINT NOT NULL,
-  FOREIGN KEY (userId) REFERENCES admins(userId) ON DELETE CASCADE
+  id VARBINARY(255) PRIMARY KEY,
+  admin_id CHAR(8) NOT NULL,
+  public_key VARBINARY(512) NOT NULL,
+  counter BIGINT UNSIGNED NOT NULL DEFAULT 0,
+  FOREIGN KEY (admin_id)
+    REFERENCES admins(admin_id)
+    ON DELETE CASCADE
 );
 
-CREATE TABLE IF NOT EXISTS users(
-  id INT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
-  devId VARCHAR(36) NOT NULL,
-  name VARCHAR(30) NOT NULL,
-  mobNoEn VARBINARY(44) NOT NULL,
-  mobNoHs VARBINARY(32) NOT NULL,
-  type SMALLINT DEFAULT 0
+CREATE TABLE IF NOT EXISTS users (
+  hashed_number BINARY(32) PRIMARY KEY,
+  encrypted_number VARBINARY(50) NOT NULL,
+  name VARCHAR(50)
 );
 
-CREATE INDEX idx_users_mob_hash ON users(mobNoHs);
+CREATE TABLE IF NOT EXISTS devices (
+  id INT UNSIGNED PRIMARY KEY,
+  device_id CHAR(36) UNIQUE NOT NULL,
+  hashed_number BINARY(32) NOT NULL,
+  reviewed_by CHAR(8) DEFAULT NULL,
+  type SMALLINT DEFAULT 0,
+  FOREIGN KEY (hashed_number)
+    REFERENCES users(hashed_number)
+    ON DELETE CASCADE,
+  FOREIGN KEY (reviewed_by)
+    REFERENCES admins(admin_id)
+    ON DELETE SET NULL
+);
 
-CREATE TABLE IF NOT EXISTS blocks(
-  id INT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
-  mobNoEn VARBINARY(44) NOT NULL,
-  mobNoHs VARBINARY(32) NOT NULL,
-  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+CREATE TABLE IF NOT EXISTS blocks (
+  id INT PRIMARY KEY,
+  encrypted_number VARBINARY(50) NOT NULL,
+  hashed_number BINARY(32) NOT NULL UNIQUE,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     ON UPDATE CURRENT_TIMESTAMP,
+  blocked_by CHAR(8) NULL,
+  type SMALLINT DEFAULT 0,
+  FOREIGN KEY (blocked_by)
+    REFERENCES admins(admin_id)
+    ON DELETE SET NULL
+);
+
+CREATE TABLE IF NOT EXISTS codes (
+  code VARCHAR(8) PRIMARY KEY,
+  blocked_by CHAR(8) NOT NULL,
+  FOREIGN KEY (blocked_by)
+    REFERENCES admins(admin_id)
+    ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS apps (
+  app VARCHAR(50) PRIMARY KEY,
+  blocked_by CHAR(8) NOT NULL,
+  FOREIGN KEY (blocked_by)
+    REFERENCES admins(admin_id)
+    ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS notifications (
+  id INT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
+  hashed_number BINARY(32) NOT NULL,
+  app VARCHAR(50),
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (hashed_number)
+    REFERENCES users(hashed_number)
+    ON DELETE CASCADE,
+  FOREIGN KEY (app)
+    REFERENCES apps(app)
+    ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS reported (
+  encrypted_number VARBINARY(50) NOT NULL,
+  hashed_number BINARY(32) PRIMARY KEY,
   type SMALLINT DEFAULT 0
 );
 
-CREATE INDEX idx_blocks_mob_hash ON blocks(mobNoHs);
-
-CREATE TABLE IF NOT EXISTS codes(
-  code VARCHAR(8) PRIMARY KEY
+CREATE TABLE IF NOT EXISTS reporters (
+  hashed_number BINARY(32) NOT NULL,
+  hashed_reported BINARY(32) NOT NULL,
+  type SMALLINT DEFAULT 0,
+  PRIMARY KEY (hashed_number, hashed_reported),
+  FOREIGN KEY (hashed_number)
+    REFERENCES users(hashed_number)
+    ON DELETE CASCADE,
+  FOREIGN KEY (hashed_reported)
+    REFERENCES reported(hashed_number)
+    ON DELETE CASCADE
 );
 
-CREATE TABLE IF NOT EXISTS apps(
-  code VARCHAR(64) PRIMARY KEY
-);
-
-CREATE TABLE IF NOT EXISTS notify(
-  id INT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
-  mobNoEn VARBINARY(44) REFERENCES users(mobNoEn) ON DELETE CASCADE,
-  code VARCHAR(64) REFERENCES apps(code) ON DELETE CASCADE
-);
-
-CREATE TABLE IF NOT EXISTS reported(
-  id INT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
-  mobNoEn VARBINARY(44) NOT NULL,
-  mobNoHs VARBINARY(32) NOT NULL,
-  type SMALLINT DEFAULT 0
-);
-
-CREATE TABLE IF NOT EXISTS reporter(
-  mobNoHs VARBINARY(32) NOT NULL REFERENCES users(mobNoHs) ON DELETE CASCADE,
-  repNoHs VARBINARY(32) NOT NULL REFERENCES reported(mobNoHs) ON DELETE CASCADE
-);
-
-CREATE INDEX idx_reported_mob_hash ON reported(mobNoHs);
-
-CREATE INDEX idx_reporter_mob_hash ON reporter(mobNoHs);

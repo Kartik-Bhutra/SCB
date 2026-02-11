@@ -1,5 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server";
-import { client, pool } from "@/db";
+import { redis, db } from "@/db";
 import { decryptFromBuffer } from "@/hooks/crypto";
 import { hashToBuffer } from "@/hooks/hash";
 import { statusResponse } from "@/server/response";
@@ -25,7 +25,7 @@ export async function POST(req: NextRequest) {
     }
 
     const [redisKey, session] = parts;
-    const cached = await client.get(redisKey);
+    const cached = await redis.get(redisKey);
 
     if (cached) {
       const parsed = JSON.parse(cached);
@@ -53,7 +53,7 @@ export async function POST(req: NextRequest) {
       const [mobHashBase64Url, deviceId] = keyParts;
       const mobHash = Buffer.from(mobHashBase64Url, "base64url");
 
-      connection = await pool.getConnection();
+      connection = await db.getConnection();
 
       const [rows] = (await connection.execute(
         {
@@ -82,7 +82,7 @@ export async function POST(req: NextRequest) {
     }
 
     if (!connection) {
-      connection = await pool.getConnection();
+      connection = await db.getConnection();
     }
 
     const [rows] = (await connection.execute(

@@ -3,41 +3,41 @@ import { rpID, rpPORT } from "../env";
 export type loginActionResult =
   | ""
   | "OK"
-  | "INVALID_INPUT"
-  | "INVALID_CREDENTIALS"
-  | "UNAUTHORIZED"
-  | "SESSION_EXPIRED"
-  | "PASSKEY_NOT_FOUND"
-  | "WEBAUTHN_FAILED"
-  | "INTERNAL_ERROR";
+  | "INVALID INPUT"
+  | "INVALID CREDENTIALS"
+  | "SESSION EXPIRED"
+  | "INVALID SESSION"
+  | "PASSKEY NOT FOUND"
+  | "WEBAUTHN FAILED"
+  | "SERVER ERROR";
 
 export type keyActionResult =
   | ""
   | "OK"
-  | "INVALID_INPUT"
-  | "INVALID_CREDENTIALS"
-  | "UNAUTHORIZED"
-  | "SESSION_EXPIRED"
+  | "INVALID INPUT"
+  | "INVALID CREDENTIALS"
+  | "INVALID SESSION"
+  | "SESSION EXPIRED"
   | "PASSKEY_ALREADY_EXISTS"
-  | "WEBAUTHN_FAILED"
-  | "INTERNAL_ERROR";
+  | "WEBAUTHN FAILED"
+  | "SERVER ERROR";
 
 export type passwordActionResult =
   | ""
   | "OK"
-  | "INVALID_INPUT"
+  | "INVALID INPUT"
   | "INVALID_PASSWORD"
-  | "INVALID_CREDENTIALS"
-  | "INTERNAL_ERROR";
+  | "INVALID CREDENTIALS"
+  | "SERVER ERROR";
 
 export type ActionResult =
   | ""
   | "OK"
-  | "INVALID_INPUT"
-  | "INVALID_CREDENTIALS"
+  | "INVALID INPUT"
+  | "INVALID CREDENTIALS"
   | "UNAUTHORIZED"
-  | "SESSION_EXPIRED"
-  | "INTERNAL_ERROR";
+  | "SESSION EXPIRED"
+  | "SERVER ERROR";
 
 export const origin = `http://${rpID}:${rpPORT}`;
 

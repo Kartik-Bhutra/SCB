@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { redirect, RedirectType, usePathname } from "next/navigation";
 import { adminNavigation, managerNavigation } from "@/constants/navbarItem";
 import { logoutUser } from "../action";
 import Cross from "./Cross";
@@ -18,7 +18,7 @@ export default function MobileNav({ isOpen, setIsOpen, type }: MobileNavProps) {
   const pathname = usePathname();
   const handleLogout = async () => {
     await logoutUser();
-    window.location.href = `${type} ? "/login" : "/secure`;
+    redirect("/login", RedirectType.replace);
   };
   return (
     <div className="md:hidden">

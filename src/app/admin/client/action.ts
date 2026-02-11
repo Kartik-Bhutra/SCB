@@ -1,6 +1,6 @@
 "use server";
 
-import { client, pool } from "@/db";
+import { redis, db } from "@/db";
 import { decryptFromBuffer } from "@/hooks/crypto";
 import { hashToBuffer } from "@/hooks/hash";
 import { isAdmin } from "@/server/auth";
@@ -27,7 +27,7 @@ export async function fetchData(page: number): Promise<ActionResult | Data[]> {
 
   const offset = (page - 1) * 25;
 
-  const [rows] = (await pool.execute(
+  const [rows] = (await db.execute(
     `SELECT 
         name,
         mobNoEn AS mobileNoEncrypted,
@@ -49,7 +49,7 @@ export async function fetchData(page: number): Promise<ActionResult | Data[]> {
 }
 
 export async function fetchTotalPages(): Promise<number> {
-  const [rows] = (await pool.execute(
+  const [rows] = (await db.execute(
     "SELECT id FROM users ORDER BY id DESC LIMIT 1",
   )) as unknown as [{ id: number }[]];
 
@@ -74,17 +74,17 @@ export async function changeTypeAction(
   const redisKey = `${mobileNohashed.toString("base64url")}:${deviceId}`;
 
   try {
-    await pool.execute(
+    await db.execute(
       "UPDATE users SET type = ? WHERE mobNoHs = ? AND devId = ?",
       [type, mobileNohashed, deviceId],
     );
 
-    const cached = await client.get(redisKey);
+    const cached = await redis.get(redisKey);
 
     if (cached) {
       const parsed = JSON.parse(cached);
 
-      await client.set(
+      await redis.set(
         redisKey,
         JSON.stringify({
           session: parsed.session,
@@ -102,6 +102,6 @@ export async function changeTypeAction(
 
     return "OK";
   } catch {
-    return "INTERNAL_ERROR";
+    return "SERVER ERROR";
   }
 }

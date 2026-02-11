@@ -1,6 +1,6 @@
 "use server";
 
-import { pool } from "@/db";
+import { db } from "@/db";
 import { decryptFromBuffer, encryptToBuffer } from "@/hooks/crypto";
 import { hashToBuffer } from "@/hooks/hash";
 import { isAdmin } from "@/server/auth";
@@ -24,7 +24,7 @@ export async function fetchData(page: number): Promise<ActionResult | Data[]> {
 
   const offset = (page - 1) * 25;
 
-  const [rows] = (await pool.execute(
+  const [rows] = (await db.execute(
     `SELECT 
         mobNoEn AS mobileNoEncrypted,
         mobNoHs AS mobileNoHashed,
@@ -41,7 +41,7 @@ export async function fetchData(page: number): Promise<ActionResult | Data[]> {
 }
 
 export async function maxPageNo(): Promise<number> {
-  const [rows] = await pool.execute(
+  const [rows] = await db.execute(
     "SELECT id FROM blocks ORDER BY id DESC LIMIT 1",
   );
 
@@ -63,10 +63,10 @@ export async function addNoAction(
   const number = String(formData.get("number"));
 
   const mobileNo = code + number;
-  if (!mobileNo) return "INVALID_INPUT";
+  if (!mobileNo) return "INVALID INPUT";
 
   try {
-    await pool.execute(
+    await db.execute(
       `INSERT INTO blocks (mobNoEn, mobNoHs)
        VALUES (?, ?)
        ON DUPLICATE KEY UPDATE type = 0`,
@@ -76,7 +76,7 @@ export async function addNoAction(
     await sendHighPriorityAndroid();
     return "OK";
   } catch {
-    return "INTERNAL_ERROR";
+    return "SERVER ERROR";
   }
 }
 
@@ -89,7 +89,7 @@ export async function changeTypeAction(
 
   const mobile = String(formData.get("mobileNo"));
   try {
-    await pool.execute("UPDATE blocks SET type = 1 - type WHERE mobNoHs = ?", [
+    await db.execute("UPDATE blocks SET type = 1 - type WHERE mobNoHs = ?", [
       hashToBuffer(mobile),
     ]);
 
@@ -97,7 +97,7 @@ export async function changeTypeAction(
     return "OK";
   } catch (err) {
     console.error(err);
-    return "INTERNAL_ERROR";
+    return "SERVER ERROR";
   }
 }
 
@@ -109,7 +109,7 @@ export async function bulkUploadAction(
   if (!verified) return "UNAUTHORIZED";
 
   const file = formData.get("file-input");
-  if (!(file instanceof File)) return "INVALID_INPUT";
+  if (!(file instanceof File)) return "INVALID INPUT";
 
   try {
     const text = await file.text();
@@ -118,7 +118,7 @@ export async function bulkUploadAction(
       .map((l) => l.trim())
       .filter(Boolean);
 
-    if (lines.length === 0) return "INVALID_INPUT";
+    if (lines.length === 0) return "INVALID INPUT";
 
     const values: Buffer[] = [];
     const placeholders: string[] = [];
@@ -134,11 +134,11 @@ export async function bulkUploadAction(
       ON DUPLICATE KEY UPDATE type = 0
     `;
 
-    await pool.execute(sql, values);
+    await db.execute(sql, values);
 
     await sendHighPriorityAndroid();
     return "OK";
   } catch {
-    return "INTERNAL_ERROR";
+    return "SERVER ERROR";
   }
 }
