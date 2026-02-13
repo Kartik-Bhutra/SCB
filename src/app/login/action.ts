@@ -10,48 +10,62 @@ import {
   generateAuthenticationOptions,
   verifyAuthenticationResponse,
 } from "@simplewebauthn/server";
+import type { RowDataPacket } from "mysql2";
 import { cookies } from "next/headers";
-import { redis, db } from "@/db";
+import { db, redis } from "@/db";
 import { rpID } from "@/env";
 import { hashToBuffer } from "@/hooks/hash";
 import { type loginActionResult, origin } from "@/types/serverActions";
+
+interface AdminRow extends RowDataPacket {
+  hashed_password: string;
+  type: number;
+}
+
+interface PasskeyIdRow extends RowDataPacket {
+  id: Buffer;
+}
+
+interface PasskeyFullRow extends RowDataPacket {
+  id: Buffer;
+  public_key: Buffer;
+  counter: number;
+}
 
 export async function startLogin(
   _: loginActionResult | PublicKeyCredentialRequestOptionsJSON,
   formData: FormData,
 ): Promise<loginActionResult | PublicKeyCredentialRequestOptionsJSON> {
   try {
-    const userId = String(formData.get("userId") || "").trim();
-    const password = String(formData.get("password") || "");
+    const adminId = String(formData.get("userId") ?? "").trim();
+    const password = String(formData.get("password") ?? "");
 
-    if (!userId || !password) return "INVALID INPUT";
+    if (!adminId || !password) return "INVALID INPUT";
 
-    const [rows] = (await db.execute(
-      {
-        sql: `
-          SELECT hashed_password, type
-          FROM admins
-          WHERE user_id = ?
-          LIMIT 1
-        `,
-        rowsAsArray: true,
-      },
-      [userId],
-    )) as unknown as [[string, boolean][]];
+    const [rows] = await db.execute<AdminRow[]>(
+      `
+        SELECT hashed_password, type
+        FROM admins
+        WHERE admin_id = ?
+        LIMIT 1
+      `,
+      [adminId],
+    );
 
     if (!rows.length) return "INVALID CREDENTIALS";
 
-    const [passwordHash, isAdmin] = rows[0];
+    const { hashed_password, type } = rows[0];
 
-    if (!(await verifyPassword(passwordHash, password))) {
-      return "INVALID CREDENTIALS";
-    }
+    const validPassword = await verifyPassword(hashed_password, password);
+    if (!validPassword) return "INVALID CREDENTIALS";
+
+    if (type === 2) return "UNAUTHORIZED";
 
     const cookieStore = await cookies();
+    const userHash = hashToBuffer(adminId).toString("base64url");
 
-    if (!isAdmin) {
+    if (!type) {
       const sessionId = randomUUID();
-      const userHash = hashToBuffer(userId).toString("base64url");
 
       await redis.set(userHash, JSON.stringify({ sessionId, type: false }), {
         expiration: { type: "EX", value: 86400 },
@@ -68,36 +82,37 @@ export async function startLogin(
       return "OK";
     }
 
-    const [credentials] = (await db.execute(
-      {
-        sql: `SELECT id FROM passkeys WHERE user_id = ?`,
-        rowsAsArray: true,
-      },
-      [userId],
-    )) as unknown as [Buffer[][]];
+    const [credentials] = await db.execute<PasskeyIdRow[]>(
+      `SELECT id FROM passkeys WHERE admin_id = ?`,
+      [adminId],
+    );
 
     if (!credentials.length) return "PASSKEY NOT FOUND";
 
-    const allowCredentials = credentials.map(([id]) => ({
+    const allowCredentials = credentials.map(({ id }) => ({
       id: id.toString("base64url"),
+      type: "public-key" as const,
     }));
 
-    const options: PublicKeyCredentialRequestOptionsJSON =
-      await generateAuthenticationOptions({
-        rpID,
-        allowCredentials,
-        userVerification: "required",
-      });
+    const options: PublicKeyCredentialRequestOptionsJSON = await generateAuthenticationOptions({
+      rpID,
+      allowCredentials,
+      userVerification: "required",
+    });
 
     const challengeToken = randomUUID();
 
     await redis.set(
-      challengeToken,
-      JSON.stringify({ userId, challenge: options.challenge }),
+      userHash,
+      JSON.stringify({
+        adminId,
+        challenge: options.challenge,
+        challengeToken,
+      }),
       { expiration: { type: "EX", value: 300 } },
     );
 
-    cookieStore.set("webauthn_session", challengeToken, {
+    cookieStore.set("webauthn_session", `${userHash}:${challengeToken}`, {
       httpOnly: true,
       secure: true,
       sameSite: "strict",
@@ -116,33 +131,35 @@ export async function completeLogin(
 ): Promise<loginActionResult> {
   try {
     const cookieStore = await cookies();
-    const challengeToken = cookieStore.get("webauthn_session")?.value;
+    const token = cookieStore.get("webauthn_session")?.value;
 
-    if (!challengeToken) return "SESSION EXPIRED";
+    if (!token) return "SESSION EXPIRED";
 
-    const stored = await redis.get(challengeToken);
+    const [redisKey, sessionId] = token.split(":");
+    if (!redisKey || !sessionId) return "INVALID SESSION";
+
+    const stored = await redis.get(redisKey);
     if (!stored) return "SESSION EXPIRED";
 
-    const { userId, challenge } = JSON.parse(stored);
+    const { adminId, challenge, challengeToken } = JSON.parse(stored);
+
+    if (sessionId !== challengeToken) return "INVALID SESSION";
 
     const credentialId = Buffer.from(credential.rawId, "base64url");
 
-    const [rows] = (await db.execute(
-      {
-        sql: `
-          SELECT id, public_key, counter
-          FROM passkeys
-          WHERE id = ? AND user_id = ?
-          LIMIT 1
-        `,
-        rowsAsArray: true,
-      },
-      [credentialId, userId],
-    )) as unknown as [[Buffer, Buffer, number][]];
+    const [rows] = await db.execute<PasskeyFullRow[]>(
+      `
+        SELECT id, public_key, counter
+        FROM passkeys
+        WHERE id = ? AND admin_id = ?
+        LIMIT 1
+      `,
+      [credentialId, adminId],
+    );
 
     if (!rows.length) return "PASSKEY NOT FOUND";
 
-    const [storedId, publicKey, counter] = rows[0];
+    const { id, public_key, counter } = rows[0];
 
     const verification = await verifyAuthenticationResponse({
       response: credential,
@@ -151,8 +168,8 @@ export async function completeLogin(
       expectedRPID: rpID,
       requireUserVerification: true,
       credential: {
-        id: storedId.toString("base64url"),
-        publicKey: new Uint8Array(publicKey),
+        id: id.toString("base64url"),
+        publicKey: new Uint8Array(public_key),
         counter,
       },
     });
@@ -166,23 +183,21 @@ export async function completeLogin(
       credentialId,
     ]);
 
-    await redis.del(challengeToken);
     cookieStore.delete("webauthn_session");
 
-    const sessionId = randomUUID();
-    const userHash = hashToBuffer(userId).toString("base64url");
+    const newSessionId = randomUUID();
 
     await redis.set(
-      userHash,
+      redisKey,
       JSON.stringify({
-        sessionId,
+        sessionId: newSessionId,
         type: true,
-        userId,
+        userId: adminId,
       }),
       { expiration: { type: "EX", value: 86400 } },
     );
 
-    cookieStore.set("token", `${userHash}:${sessionId}`, {
+    cookieStore.set("token", `${redisKey}:${newSessionId}`, {
       httpOnly: true,
       secure: true,
       sameSite: "strict",

@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { type NextRequest, NextResponse } from "next/server";
-import { redis, db } from "@/db";
+import { db, redis } from "@/db";
 import { encryptToBuffer } from "@/hooks/crypto";
 import { hashToBuffer } from "@/hooks/hash";
 import { STATUS_MAP } from "@/types/serverActions";
@@ -17,10 +17,7 @@ export async function POST(req: NextRequest) {
     const { mobileNo, deviceId } = (await req.json()) as ReqData;
 
     if (!mobileNo || !deviceId) {
-      return NextResponse.json(
-        { error: "Missing mobileNo or deviceId" },
-        { status: 400 },
-      );
+      return NextResponse.json({ error: "Missing mobileNo or deviceId" }, { status: 400 });
     }
 
     const mobileHash = hashToBuffer(mobileNo);
@@ -120,10 +117,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ status, token, type }, { status: 200 });
   } catch {
     if (connection) await connection.rollback();
-    return NextResponse.json(
-      { error: "Internal Server Error" },
-      { status: 500 },
-    );
+    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   } finally {
     if (connection) connection.release();
   }

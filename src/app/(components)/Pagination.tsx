@@ -8,11 +8,7 @@ interface PaginationProps {
   setPage: Dispatch<SetStateAction<number>>;
 }
 
-export default function Pagination({
-  currentPage,
-  totalPages,
-  setPage,
-}: PaginationProps) {
+export default function Pagination({ currentPage, totalPages, setPage }: PaginationProps) {
   const handlePageSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
@@ -38,10 +34,7 @@ export default function Pagination({
         <span className="bg-blue-100 text-blue-700 px-2 py-1 border-l border-blue-300 select-none">
           / {totalPages}
         </span>
-        <button
-          type="submit"
-          className="ml-2 px-3 py-1.5 bg-blue-600 text-white hover:bg-blue-700"
-        >
+        <button type="submit" className="ml-2 px-3 py-1.5 bg-blue-600 text-white hover:bg-blue-700">
           Go
         </button>
       </form>
@@ -56,22 +49,19 @@ export default function Pagination({
           Previous
         </button>
 
-        {Array.from(
-          { length: Math.max(0, currentPage - Math.max(1, currentPage - 3)) },
-          (_, i) => {
-            const num = Math.max(1, currentPage - 3) + i;
-            return (
-              <button
-                key={num}
-                type="button"
-                onClick={() => setPage(num)}
-                className="px-3 py-2 border border-gray-300 text-gray-700 hover:bg-gray-100"
-              >
-                {num}
-              </button>
-            );
-          },
-        )}
+        {Array.from({ length: Math.max(0, currentPage - Math.max(1, currentPage - 3)) }, (_, i) => {
+          const num = Math.max(1, currentPage - 3) + i;
+          return (
+            <button
+              key={num}
+              type="button"
+              onClick={() => setPage(num)}
+              className="px-3 py-2 border border-gray-300 text-gray-700 hover:bg-gray-100"
+            >
+              {num}
+            </button>
+          );
+        })}
 
         <span className="px-3 py-2 border border-gray-300 text-blue-600 bg-blue-100">
           {currentPage}
@@ -79,10 +69,7 @@ export default function Pagination({
 
         {Array.from(
           {
-            length: Math.max(
-              0,
-              Math.min(totalPages, currentPage + 3) - (currentPage + 1) + 1,
-            ),
+            length: Math.max(0, Math.min(totalPages, currentPage + 3) - (currentPage + 1) + 1),
           },
           (_, i) => {
             const num = currentPage + 1 + i;

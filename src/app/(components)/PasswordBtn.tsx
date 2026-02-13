@@ -7,17 +7,11 @@ interface PasswordBtnProps {
   name?: string;
 }
 
-export default function PasswordBtn({
-  handleInputChange,
-  name,
-}: PasswordBtnProps) {
+export default function PasswordBtn({ handleInputChange, name }: PasswordBtnProps) {
   const [eye, setEye] = useState(false);
   return (
     <div className="space-y-2">
-      <label
-        className="block text-sm font-medium text-gray-700"
-        htmlFor={name || "password"}
-      >
+      <label className="block text-sm font-medium text-gray-700" htmlFor={name || "password"}>
         {name || "password"}
       </label>
       <div className="relative">

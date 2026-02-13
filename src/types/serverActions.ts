@@ -5,6 +5,7 @@ export type loginActionResult =
   | "OK"
   | "INVALID INPUT"
   | "INVALID CREDENTIALS"
+  | "UNAUTHORIZED"
   | "SESSION EXPIRED"
   | "INVALID SESSION"
   | "PASSKEY NOT FOUND"

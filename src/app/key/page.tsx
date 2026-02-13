@@ -12,9 +12,7 @@ export default function LoginPage() {
                 <KeyIcon />
               </div>
             </div>
-            <h1 className="text-xl sm:text-2xl font-bold text-gray-900">
-              Welcome back!
-            </h1>
+            <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Welcome back!</h1>
             <p className="text-sm sm:text-base text-gray-500">
               Please enter your details to add key
             </p>

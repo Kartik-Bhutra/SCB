@@ -1,9 +1,9 @@
 import type { Dispatch, SetStateAction } from "react";
 import Modal from "@/app/(components)/Modal";
 import codes from "@/constants/CountryCodes.json";
+import Input from "../../(components)/Input";
 import Select from "../../(components)/Select";
 import { addActionState, removeActionState } from "../action";
-import Input from "../../(components)/Input";
 
 interface BlockedModalProps {
   openCreate: boolean;

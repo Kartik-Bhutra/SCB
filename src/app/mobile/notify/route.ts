@@ -1,5 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server";
-import { redis, db } from "@/db";
+import { db, redis } from "@/db";
 import { statusResponse } from "@/server/response";
 
 interface ReqData {
@@ -14,10 +14,7 @@ export async function POST(req: NextRequest) {
     const { token, code } = (await req.json()) as ReqData;
 
     if (!token || !code) {
-      return NextResponse.json(
-        { error: "Missing token or code" },
-        { status: 400 },
-      );
+      return NextResponse.json({ error: "Missing token or code" }, { status: 400 });
     }
 
     const parts = token.split(".");
@@ -36,10 +33,7 @@ export async function POST(req: NextRequest) {
       const parsed = JSON.parse(cached);
 
       if (parsed.session !== sessionId) {
-        return NextResponse.json(
-          { status: "invalid session" },
-          { status: 401 },
-        );
+        return NextResponse.json({ status: "invalid session" }, { status: 401 });
       }
 
       userType = parsed.type;
@@ -99,10 +93,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ status: "OK" }, { status: 200 });
   } catch {
-    return NextResponse.json(
-      { error: "Internal Server Error" },
-      { status: 500 },
-    );
+    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   } finally {
     if (connection) connection.release();
   }

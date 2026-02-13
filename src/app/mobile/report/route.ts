@@ -1,5 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server";
-import { redis, db } from "@/db";
+import { db, redis } from "@/db";
 import { encryptToBuffer } from "@/hooks/crypto";
 import { hashToBuffer } from "@/hooks/hash";
 import { statusResponse } from "@/server/response";
@@ -16,10 +16,7 @@ export async function POST(req: NextRequest) {
     const { token, reportedNumber } = (await req.json()) as ReqData;
 
     if (!token || !reportedNumber) {
-      return NextResponse.json(
-        { error: "Missing token or reportedNumber" },
-        { status: 400 },
-      );
+      return NextResponse.json({ error: "Missing token or reportedNumber" }, { status: 400 });
     }
 
     const parts = token.split(".");
@@ -38,10 +35,7 @@ export async function POST(req: NextRequest) {
       const parsed = JSON.parse(cached);
 
       if (parsed.session !== sessionId) {
-        return NextResponse.json(
-          { status: "invalid session" },
-          { status: 401 },
-        );
+        return NextResponse.json({ status: "invalid session" }, { status: 401 });
       }
 
       userType = parsed.type;
@@ -121,10 +115,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ status: "OK" }, { status: 200 });
   } catch {
     if (connection) await connection.rollback();
-    return NextResponse.json(
-      { error: "Internal Server Error" },
-      { status: 500 },
-    );
+    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   } finally {
     if (connection) connection.release();
   }

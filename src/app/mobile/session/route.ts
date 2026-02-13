@@ -1,5 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server";
-import { redis, db } from "@/db";
+import { db, redis } from "@/db";
 import { statusResponse } from "@/server/response";
 
 interface ReqData {
@@ -29,10 +29,7 @@ export async function POST(req: NextRequest) {
       const parsed = JSON.parse(cached);
 
       if (parsed.session !== sessionId) {
-        return NextResponse.json(
-          { status: "invalid session" },
-          { status: 401 },
-        );
+        return NextResponse.json({ status: "invalid session" }, { status: 401 });
       }
 
       return statusResponse(parsed.type);
@@ -66,10 +63,7 @@ export async function POST(req: NextRequest) {
 
     return statusResponse(rows[0].type);
   } catch {
-    return NextResponse.json(
-      { error: "Internal Server Error" },
-      { status: 500 },
-    );
+    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   } finally {
     if (connection) connection.release();
   }

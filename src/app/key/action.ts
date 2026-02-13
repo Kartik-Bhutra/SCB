@@ -2,96 +2,96 @@
 
 import { randomUUID } from "node:crypto";
 import { verify as verifyPassword } from "@node-rs/argon2";
-import {
-  generateRegistrationOptions,
-  verifyRegistrationResponse,
-} from "@simplewebauthn/server";
 import type {
   PublicKeyCredentialCreationOptionsJSON,
   RegistrationResponseJSON,
 } from "@simplewebauthn/browser";
+import { generateRegistrationOptions, verifyRegistrationResponse } from "@simplewebauthn/server";
+import type { RowDataPacket } from "mysql2";
 import { cookies } from "next/headers";
-import { redis, db } from "@/db";
+import { db, redis } from "@/db";
 import { rpID, rpName } from "@/env";
 import { hashToBuffer } from "@/hooks/hash";
-import { origin, type keyActionResult } from "@/types/serverActions";
+import { type keyActionResult, origin } from "@/types/serverActions";
+
+interface AdminRow extends RowDataPacket {
+  hashed_password: string;
+}
+
+interface PasskeyRow extends RowDataPacket {
+  id: Buffer;
+}
 
 export async function startPasskeyRegistration(
   _: keyActionResult | PublicKeyCredentialCreationOptionsJSON,
   formData: FormData,
 ): Promise<keyActionResult | PublicKeyCredentialCreationOptionsJSON> {
   try {
-    const adminId = String(formData.get("userId") || "").trim();
-    const password = String(formData.get("password") || "");
-    const sessionToken = String(formData.get("session") || "");
+    const adminId = String(formData.get("userId") ?? "").trim();
+    const password = String(formData.get("password") ?? "");
+    const sessionToken = String(formData.get("session") ?? "");
 
     if (!adminId || !password || !sessionToken) {
       return "INVALID INPUT";
     }
 
-    const [rows] = (await db.execute(
-      {
-        sql: `
-          SELECT hashed_password
-          FROM admins
-          WHERE user_id = ? AND type = 1
-          LIMIT 1
-        `,
-        rowsAsArray: true,
-      },
+    const [rows] = await db.execute<AdminRow[]>(
+      `
+        SELECT hashed_password
+        FROM admins
+        WHERE admin_id = ? AND type = 1
+        LIMIT 1
+      `,
       [adminId],
-    )) as unknown as [string[][]];
+    );
 
     if (!rows.length) return "INVALID CREDENTIALS";
 
-    const hashedPassword = rows[0][0];
+    const validPassword = await verifyPassword(rows[0].hashed_password, password);
 
-    if (!(await verifyPassword(hashedPassword, password)))
-      return "INVALID CREDENTIALS";
+    if (!validPassword) return "INVALID CREDENTIALS";
 
-    const redisKey = hashToBuffer(adminId).toString("hex");
+    const redisKey = hashToBuffer(adminId).toString("base64url");
+
     const storedSession = await redis.get(redisKey);
-
     if (!storedSession) return "SESSION EXPIRED";
-
     if (storedSession !== sessionToken) return "INVALID SESSION";
 
-    await redis.del(redisKey);
-
-    const [existing] = (await db.execute(
-      {
-        sql: `SELECT id FROM passkeys WHERE user_id = ?`,
-        rowsAsArray: true,
-      },
+    const [existing] = await db.execute<PasskeyRow[]>(
+      `SELECT id FROM passkeys WHERE admin_id = ?`,
       [adminId],
-    )) as unknown as [Buffer[][]];
+    );
 
-    const excludeCredentials = existing.map(([id]) => ({
+    const excludeCredentials = existing.map(({ id }) => ({
       id: id.toString("base64url"),
+      type: "public-key" as const,
     }));
 
     const options = await generateRegistrationOptions({
       rpName,
       rpID,
       userName: adminId,
+      attestationType: "none",
       excludeCredentials,
       authenticatorSelection: {
         authenticatorAttachment: "cross-platform",
+        userVerification: "required",
       },
     });
 
     const challengeToken = randomUUID();
 
     await redis.set(
-      challengeToken,
+      redisKey,
       JSON.stringify({
         adminId,
         challenge: options.challenge,
+        challengeToken,
       }),
       { expiration: { type: "EX", value: 300 } },
     );
 
-    (await cookies()).set("webauthn_session", challengeToken, {
+    (await cookies()).set("webauthn_session", `${redisKey}:${challengeToken}`, {
       httpOnly: true,
       secure: true,
       sameSite: "strict",
@@ -110,14 +110,19 @@ export async function completePasskeyRegistration(
 ): Promise<keyActionResult> {
   try {
     const cookieStore = await cookies();
-    const challengeToken = cookieStore.get("webauthn_session")?.value;
+    const token = cookieStore.get("webauthn_session")?.value;
 
-    if (!challengeToken) return "SESSION EXPIRED";
+    if (!token) return "SESSION EXPIRED";
 
-    const stored = await redis.get(challengeToken);
-    if (!stored) return "SESSION EXPIRED";
+    const [redisKey, sessionId] = token.split(":");
+    if (!redisKey || !sessionId) return "INVALID SESSION";
 
-    const { adminId, challenge } = JSON.parse(stored);
+    const stored = await redis.get(redisKey);
+    if (!stored) return "INVALID SESSION";
+
+    const { adminId, challenge, challengeToken } = JSON.parse(stored);
+
+    if (sessionId !== challengeToken) return "INVALID SESSION";
 
     const verification = await verifyRegistrationResponse({
       response: credential,
@@ -131,20 +136,29 @@ export async function completePasskeyRegistration(
       return "WEBAUTHN FAILED";
     }
 
-    const { publicKey, counter } = verification.registrationInfo.credential;
+    const {
+      credential: { publicKey, counter },
+    } = verification.registrationInfo;
 
     const credentialId = Buffer.from(credential.rawId, "base64url");
 
-    await db.execute(
-      `
+    try {
+      await db.execute(
+        `
           INSERT INTO passkeys
-            (id, public_key, user_id, counter)
+            (id, public_key, admin_id, counter)
           VALUES (?, ?, ?, ?)
         `,
-      [credentialId, publicKey, adminId, counter],
-    );
+        [credentialId, publicKey, adminId, counter],
+      );
+    } catch /* (err) */ {
+      // if (err?.code === "ER_DUP_ENTRY") {
+      //   return "PASSKEY ALREADY REGISTERED";
+      // }
+      // throw err;
+    }
 
-    await redis.del(challengeToken);
+    await redis.del(redisKey);
     cookieStore.delete("webauthn_session");
 
     return "OK";

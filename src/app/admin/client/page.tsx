@@ -77,11 +77,7 @@ export default function BlockNumber() {
   return (
     <div className="container pb-5">
       <Table data={data} isLoading={isLoading} reload={reload} />
-      <Pagination
-        currentPage={page}
-        totalPages={lastPageNo}
-        setPage={setPage}
-      />
+      <Pagination currentPage={page} totalPages={lastPageNo} setPage={setPage} />
     </div>
   );
 }

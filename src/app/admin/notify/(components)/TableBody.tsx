@@ -19,10 +19,7 @@ export default function TableBody({ data }: TableBodyProps) {
   return (
     <tbody>
       {data.map(({ code, mobileNo }, idx) => (
-        <tr
-          key={idx}
-          className="odd:bg-white even:bg-gray-50 border-b border-gray-200"
-        >
+        <tr key={idx} className="odd:bg-white even:bg-gray-50 border-b border-gray-200">
           <td className="px-6 py-4 text-center">{code}</td>
           <td className="px-6 py-4 text-center">{formatValue(mobileNo)}</td>
         </tr>

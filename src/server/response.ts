@@ -1,5 +1,5 @@
-import { STATUS_MAP } from "@/types/serverActions";
 import { NextResponse } from "next/server";
+import { STATUS_MAP } from "@/types/serverActions";
 
 export function statusResponse(type: number) {
   const status = STATUS_MAP.get(type);

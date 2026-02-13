@@ -54,9 +54,7 @@ export default function BlockedModal({
         reload={reload}
         title="Delete Sequence"
       >
-        <p>
-          Are you sure you want to delete the sequence? It cannot be undone.
-        </p>
+        <p>Are you sure you want to delete the sequence? It cannot be undone.</p>
         <input type="hidden" name="mobileNo" value={deleteId} />
       </Modal>
 

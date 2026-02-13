@@ -8,10 +8,7 @@ import { useRouter } from "next/navigation";
 import { useActionState, useEffect, useState } from "react";
 import PasswordBtn from "@/app/(components)/PasswordBtn";
 import type { keyActionResult } from "@/types/serverActions";
-import {
-  startPasskeyRegistration,
-  completePasskeyRegistration,
-} from "./action";
+import { completePasskeyRegistration, startPasskeyRegistration } from "./action";
 
 export default function LoginForm() {
   const router = useRouter();
@@ -74,9 +71,7 @@ export default function LoginForm() {
     <form className="space-y-4 sm:space-y-6" action={actionHandler}>
       <div className="space-y-4 sm:space-y-5">
         <div className="space-y-1.5 sm:space-y-2">
-          <label className="block text-sm font-medium text-gray-700">
-            User Id
-          </label>
+          <label className="block text-sm font-medium text-gray-700">User Id</label>
           <input
             type="text"
             name="userId"
@@ -91,9 +86,7 @@ export default function LoginForm() {
         <PasswordBtn handleInputChange={handleInputChange} />
 
         <div className="space-y-1.5 sm:space-y-2">
-          <label className="block text-sm font-medium text-gray-700">
-            Session Key
-          </label>
+          <label className="block text-sm font-medium text-gray-700">Session Key</label>
           <input
             type="text"
             name="session"

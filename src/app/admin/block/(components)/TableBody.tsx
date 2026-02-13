@@ -18,11 +18,7 @@ const formatValue = (val: string) => {
   return chunks.join("-");
 };
 
-export default function TableBody({
-  data,
-  setDeleteId,
-  setOpenDelete,
-}: TableBodyProps) {
+export default function TableBody({ data, setDeleteId, setOpenDelete }: TableBodyProps) {
   return (
     <tbody>
       {data.map(({ mobileNo, type }) => (
@@ -41,9 +37,7 @@ export default function TableBody({
                 setDeleteId(mobileNo);
                 setOpenDelete(true);
               }}
-              className={`${
-                type ? "text-red-600" : "text-blue-600"
-              } hover:underline`}
+              className={`${type ? "text-red-600" : "text-blue-600"} hover:underline`}
             >
               {type ? "Block again" : "Unblock"}
             </button>

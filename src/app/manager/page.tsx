@@ -5,9 +5,7 @@ export default function HomePage() {
     <div className="h-full bg-gray-50 p-2">
       <div className="max-w-4xl">
         <div className=" rounded-2xl p-6">
-          <h1 className="text-2xl font-bold text-gray-900">
-            Welcome Back, Manager
-          </h1>
+          <h1 className="text-2xl font-bold text-gray-900">Welcome Back, Manager</h1>
         </div>
       </div>
       <div className="p-6">
@@ -18,9 +16,7 @@ export default function HomePage() {
             className="bg-white rounded-lg shadow p-4 hover:shadow-md transition-shadow duration-200 cursor-pointer"
           >
             <h4 className="text-lg font-medium text-gray-900">Manage Admins</h4>
-            <p className="mt-1 text-gray-600">
-              View and manage client accounts.
-            </p>
+            <p className="mt-1 text-gray-600">View and manage client accounts.</p>
           </Link>
         </div>
       </div>

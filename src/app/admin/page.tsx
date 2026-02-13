@@ -5,9 +5,7 @@ export default function HomePage() {
     <div className="h-full bg-gray-50 p-2">
       <div className="max-w-4xl">
         <div className=" rounded-2xl p-6">
-          <h1 className="text-2xl font-bold text-gray-900">
-            Welcome Back, Admin
-          </h1>
+          <h1 className="text-2xl font-bold text-gray-900">Welcome Back, Admin</h1>
         </div>
       </div>
       <div className="p-6">
@@ -17,23 +15,15 @@ export default function HomePage() {
             href="/admin/client"
             className="bg-white rounded-lg shadow p-4 hover:shadow-md transition-shadow duration-200 cursor-pointer"
           >
-            <h4 className="text-lg font-medium text-gray-900">
-              Manage Clients
-            </h4>
-            <p className="mt-1 text-gray-600">
-              View and manage client accounts.
-            </p>
+            <h4 className="text-lg font-medium text-gray-900">Manage Clients</h4>
+            <p className="mt-1 text-gray-600">View and manage client accounts.</p>
           </Link>
           <Link
             href="/admin/block"
             className="bg-white rounded-lg shadow p-4 hover:shadow-md transition-shadow duration-200 cursor-pointer"
           >
-            <h4 className="text-lg font-medium text-gray-900">
-              Blocked Numbers
-            </h4>
-            <p className="mt-1 text-gray-600">
-              Review and update blocked numbers.
-            </p>
+            <h4 className="text-lg font-medium text-gray-900">Blocked Numbers</h4>
+            <p className="mt-1 text-gray-600">Review and update blocked numbers.</p>
           </Link>
           <Link
             href="/admin/code"

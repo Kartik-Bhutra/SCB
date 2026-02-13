@@ -8,7 +8,7 @@ import { useRouter } from "next/navigation";
 import { useActionState, useEffect, useState } from "react";
 import PasswordBtn from "@/app/(components)/PasswordBtn";
 import type { loginActionResult } from "@/types/serverActions";
-import { startLogin, completeLogin } from "./action";
+import { completeLogin, startLogin } from "./action";
 
 export default function LoginForm() {
   const router = useRouter();
@@ -81,10 +81,7 @@ export default function LoginForm() {
     <form className="space-y-4 sm:space-y-6" action={actionHandler}>
       <div className="space-y-4 sm:space-y-5">
         <div className="space-y-1.5 sm:space-y-2">
-          <label
-            className="block text-sm font-medium text-gray-700"
-            htmlFor="userId"
-          >
+          <label className="block text-sm font-medium text-gray-700" htmlFor="userId">
             User Id
           </label>
           <input
@@ -108,10 +105,7 @@ export default function LoginForm() {
             name="remember-me"
             className="h-4 w-4 text-blue-600 rounded-lg border-gray-300 transition-all duration-200"
           />
-          <label
-            htmlFor="remember-me"
-            className="ml-2 text-xs sm:text-sm text-gray-600"
-          >
+          <label htmlFor="remember-me" className="ml-2 text-xs sm:text-sm text-gray-600">
             Remember me
           </label>
         </div>

@@ -1,10 +1,7 @@
 export default function Input({ label }: { label: string }) {
   return (
     <div className="max-w-sm my-4">
-      <label
-        htmlFor="name"
-        className="block mb-2 text-sm font-medium text-gray-700"
-      >
+      <label htmlFor="name" className="block mb-2 text-sm font-medium text-gray-700">
         {label}
       </label>
       <input

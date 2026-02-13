@@ -13,18 +13,11 @@ countryData.forEach((country: { name: string; dial_code: string }) => {
   codeToName.set(country.dial_code, country.name);
 });
 
-export default function TableBody({
-  data,
-  setDeleteId,
-  setOpenDelete,
-}: TableBodyProps) {
+export default function TableBody({ data, setDeleteId, setOpenDelete }: TableBodyProps) {
   return (
     <tbody>
       {data.map((code) => (
-        <tr
-          key={code}
-          className="odd:bg-white even:bg-gray-50 border-b border-gray-200"
-        >
+        <tr key={code} className="odd:bg-white even:bg-gray-50 border-b border-gray-200">
           <td className="px-6 py-4 text-center">{code}</td>
           <td className="px-6 py-4 text-center">{codeToName.get(code)}</td>
 

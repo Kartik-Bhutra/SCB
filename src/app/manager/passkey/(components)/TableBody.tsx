@@ -19,10 +19,7 @@ export default function TableBody({
   return (
     <tbody>
       {data.map(({ sessionId, userId }) => (
-        <tr
-          key={sessionId}
-          className="odd:bg-white even:bg-gray-50 border-b border-gray-200"
-        >
+        <tr key={sessionId} className="odd:bg-white even:bg-gray-50 border-b border-gray-200">
           <td className="px-6 py-4 text-center">{userId}</td>
 
           <td className="px-6 py-4 text-center">{sessionId || "-"}</td>

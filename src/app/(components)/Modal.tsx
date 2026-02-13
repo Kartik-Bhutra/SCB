@@ -22,14 +22,7 @@ interface ModalProps {
   reload: () => void;
 }
 
-export default function Modal({
-  open,
-  setOpen,
-  children,
-  title,
-  onConfirm,
-  reload,
-}: ModalProps) {
+export default function Modal({ open, setOpen, children, title, onConfirm, reload }: ModalProps) {
   const backdropRef = useRef<HTMLDivElement>(null);
   const formRef = useRef<HTMLFormElement>(null);
 

@@ -13,10 +13,7 @@ export async function POST(req: NextRequest) {
     const { token, name } = (await req.json()) as ReqData;
 
     if (!token || !name) {
-      return NextResponse.json(
-        { error: "Missing token or name" },
-        { status: 400 },
-      );
+      return NextResponse.json({ error: "Missing token or name" }, { status: 400 });
     }
 
     const parts = token.split(".");
@@ -56,10 +53,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ status: "name updated" }, { status: 200 });
   } catch {
-    return NextResponse.json(
-      { error: "Internal Server Error" },
-      { status: 500 },
-    );
+    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   } finally {
     if (connection) connection.release();
   }

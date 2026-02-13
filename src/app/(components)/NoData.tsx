@@ -7,9 +7,7 @@ export default function NoData() {
       <div className="text-gray-300 mb-4">
         <NoDataIcon />
       </div>
-      <h2 className="text-2xl font-semibold text-gray-800 mb-2">
-        No Data Found
-      </h2>
+      <h2 className="text-2xl font-semibold text-gray-800 mb-2">No Data Found</h2>
       <p className="text-gray-600 mb-6 max-w-md">
         There are currently no client requests available.
       </p>

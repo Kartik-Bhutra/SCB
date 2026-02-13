@@ -30,9 +30,7 @@ export default function Table({ data, isLoading, reload }: tableProps) {
       />
       <div className="bg-white rounded-lg shadow-sm mx-auto max-w-[100vw]">
         <div className="flex justify-between items-center gap-2 px-6 py-4 border-b border-gray-200">
-          <h2 className="text-lg font-semibold text-gray-800">
-            Blocked Numbers
-          </h2>
+          <h2 className="text-lg font-semibold text-gray-800">Blocked Numbers</h2>
           <div className="inline-flex rounded-md shadow-xs">
             <button
               type="button"
@@ -74,11 +72,7 @@ export default function Table({ data, isLoading, reload }: tableProps) {
                   </tr>
                 </tbody>
               ) : (
-                <TableBody
-                  data={data}
-                  setOpenDelete={setOpenDelete}
-                  setDeleteId={setDeleteId}
-                />
+                <TableBody data={data} setOpenDelete={setOpenDelete} setDeleteId={setDeleteId} />
               )}
             </table>
           </div>

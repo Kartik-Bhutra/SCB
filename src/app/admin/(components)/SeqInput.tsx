@@ -35,10 +35,7 @@ export default function SeqInput({
 
   return (
     <div className="max-w-md mx-auto">
-      <label
-        htmlFor="displayedNumber"
-        className="block mb-2 text-sm font-medium text-gray-700"
-      >
+      <label htmlFor="displayedNumber" className="block mb-2 text-sm font-medium text-gray-700">
         Enter Sequence
       </label>
 

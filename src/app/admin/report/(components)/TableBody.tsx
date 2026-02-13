@@ -18,11 +18,7 @@ const formatValue = (val: string) => {
   return chunks.join("-");
 };
 
-export default function TableBody({
-  data,
-  setDeleteId,
-  setOpenDelete,
-}: TableBodyProps) {
+export default function TableBody({ data, setDeleteId, setOpenDelete }: TableBodyProps) {
   return (
     <tbody>
       {data.map(({ mobileNo, type, reporter }) => (

@@ -12,10 +12,7 @@ export async function POST(req: NextRequest) {
 
     const date = new Date(formTime);
     if (isNaN(date.getTime())) {
-      return NextResponse.json(
-        { error: "Invalid time format" },
-        { status: 400 },
-      );
+      return NextResponse.json({ error: "Invalid time format" }, { status: 400 });
     }
 
     const [rows] = (await db.execute(
@@ -41,26 +38,18 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    const [codeRows] = (await db.execute(
-      `SELECT code FROM codes`,
-    )) as unknown as [{ code: string }[]];
+    const [codeRows] = (await db.execute(`SELECT code FROM codes`)) as unknown as [
+      { code: string }[],
+    ];
 
     const codes = codeRows.map((r) => r.code);
 
-    const [appRows] = (await db.execute(`SELECT app FROM apps`)) as unknown as [
-      { app: string }[],
-    ];
+    const [appRows] = (await db.execute(`SELECT app FROM apps`)) as unknown as [{ app: string }[]];
 
     const apps = appRows.map((r) => r.app);
 
-    return NextResponse.json(
-      { blocked, unBlocked, codes, apps },
-      { status: 200 },
-    );
+    return NextResponse.json({ blocked, unBlocked, codes, apps }, { status: 200 });
   } catch {
-    return NextResponse.json(
-      { error: "Internal Server Error" },
-      { status: 500 },
-    );
+    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }

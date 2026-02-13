@@ -28,10 +28,7 @@ export default function LoginForm() {
     <form className="space-y-4 sm:space-y-6" action={actionHandler}>
       <div className="space-y-4 sm:space-y-5">
         <div className="space-y-1.5 sm:space-y-2">
-          <label
-            className="block text-sm font-medium text-gray-700"
-            htmlFor="userId"
-          >
+          <label className="block text-sm font-medium text-gray-700" htmlFor="userId">
             User Id
           </label>
           <input

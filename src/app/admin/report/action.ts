@@ -1,5 +1,6 @@
 "use server";
 
+import type { RowDataPacket } from "mysql2";
 import { db } from "@/db";
 import { decryptFromBuffer, encryptToBuffer } from "@/hooks/crypto";
 import { hashToBuffer } from "@/hooks/hash";
@@ -7,24 +8,38 @@ import { getAdmin } from "@/server/auth";
 import { sendHighPriorityAndroid } from "@/server/message";
 import type { ActionResult } from "@/types/serverActions";
 
+interface ReportedRow extends RowDataPacket {
+  encrypted_number: Buffer;
+  type: number;
+  reporterCount: number;
+}
+
+interface IdRow extends RowDataPacket {
+  id: number;
+}
+
 export interface Data {
   type: number;
   mobileNo: string;
   reporter: number;
 }
 
-export async function fetchData(
-  lastId: number,
-): Promise<ActionResult | Data[]> {
+export async function fetchData(page: number): Promise<ActionResult | Data[]> {
   const adminId = await getAdmin();
   if (!adminId) return "UNAUTHORIZED";
 
-  const [rows] = (await db.execute(
+  if (page < 1) return "INVALID INPUT";
+
+  const lastPage = (page - 1) * 25;
+
+  const [rows] = await db.execute<ReportedRow[]>(
     `
       SELECT
-        r.id,
         r.encrypted_number,
-        r.type,
+        CASE
+          WHEN r.reviewed_by IS NULL THEN 0
+          ELSE r.type
+        END AS type,
         COUNT(rep.hashed_reported) AS reporterCount
       FROM reported r
       LEFT JOIN reporters rep
@@ -34,41 +49,29 @@ export async function fetchData(
       ORDER BY r.id ASC
       LIMIT 25
     `,
-    [lastId],
-  )) as unknown as [
-    {
-      id: number;
-      encrypted_number: Buffer;
-      type: number;
-      reporterCount: number;
-    }[],
-  ];
+    [lastPage],
+  );
 
   return rows.map((row) => ({
     type: row.type,
     mobileNo: decryptFromBuffer(row.encrypted_number),
-    reporter: row.reporterCount,
+    reporter: Number(row.reporterCount),
   }));
 }
 
 export async function maxPageNo(): Promise<number> {
-  const [rows] = (await db.execute(
-    "SELECT id FROM reported ORDER BY id DESC LIMIT 1",
-  )) as unknown as [{ id: number }[]];
+  const [rows] = await db.execute<IdRow[]>(`SELECT id FROM reported ORDER BY id DESC LIMIT 1`);
 
   if (!rows.length) return 0;
 
   return Math.ceil(rows[0].id / 25);
 }
 
-export async function changeTypeAction(
-  _: ActionResult,
-  formData: FormData,
-): Promise<ActionResult> {
+export async function changeTypeAction(_: ActionResult, formData: FormData): Promise<ActionResult> {
   const adminId = await getAdmin();
   if (!adminId) return "UNAUTHORIZED";
 
-  const raw = String(formData.get("mobileType") || "").trim();
+  const raw = String(formData.get("mobileType") ?? "").trim();
   if (!raw) return "INVALID INPUT";
 
   const [mobileNo, typeStr] = raw.split(":");
@@ -86,33 +89,24 @@ export async function changeTypeAction(
     await connection.execute(
       `
         UPDATE reported
-        SET type = ?
+        SET type = ?,
+            reviewed_by = ?
         WHERE hashed_number = ?
       `,
-      [type, mobHash],
+      [type, adminId, mobHash],
     );
 
-    if (type === 2) {
+    if (type === 1) {
       await connection.execute(
         `
           INSERT INTO blocks
             (encrypted_number, hashed_number, blocked_by, type)
           VALUES (?, ?, ?, 1)
           ON DUPLICATE KEY UPDATE
-            type = 1,
+            type = 0,
             blocked_by = VALUES(blocked_by)
         `,
         [encryptToBuffer(mobileNo), mobHash, adminId],
-      );
-    } else {
-      await connection.execute(
-        `
-          UPDATE blocks
-          SET type = 0,
-              blocked_by = ?
-          WHERE hashed_number = ?
-        `,
-        [adminId, mobHash],
       );
     }
 

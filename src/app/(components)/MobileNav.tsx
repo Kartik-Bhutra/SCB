@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { redirect, RedirectType, usePathname } from "next/navigation";
+import { RedirectType, redirect, usePathname } from "next/navigation";
 import { adminNavigation, managerNavigation } from "@/constants/navbarItem";
 import { logoutUser } from "../action";
 import Cross from "./Cross";
@@ -55,9 +55,7 @@ export default function MobileNav({ isOpen, setIsOpen, type }: MobileNavProps) {
                       onClick={() => setIsOpen(false)}
                       className={`flex items-center gap-3 px-3 py-2.5 text-base font-medium rounded-xl transition-all duration-200
                         ${
-                          isActive
-                            ? "bg-blue-50 text-blue-600"
-                            : "text-gray-700 hover:bg-gray-50"
+                          isActive ? "bg-blue-50 text-blue-600" : "text-gray-700 hover:bg-gray-50"
                         }`}
                     >
                       <Links icon={item.icon} />

@@ -64,11 +64,7 @@ export default function Table({ data, isLoading, reload }: tableProps) {
                   </tr>
                 </tbody>
               ) : (
-                <TableBody
-                  data={data}
-                  setOpenDelete={setOpenDelete}
-                  setDeleteId={setDeleteId}
-                />
+                <TableBody data={data} setOpenDelete={setOpenDelete} setDeleteId={setDeleteId} />
               )}
             </table>
           </div>

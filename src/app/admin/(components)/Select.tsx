@@ -10,10 +10,7 @@ interface SelectProps {
 export default function Select({ options }: SelectProps) {
   return (
     <div className="max-w mx-auto my-4">
-      <label
-        htmlFor="code"
-        className="block mb-2 text-sm font-medium text-gray-700"
-      >
+      <label htmlFor="code" className="block mb-2 text-sm font-medium text-gray-700">
         Select Country
       </label>
       <select

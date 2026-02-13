@@ -6,10 +6,7 @@ interface errorProps {
   reload: () => void;
 }
 
-export default function ErrorPop({
-  message = "Something went wrong!",
-  reload,
-}: errorProps) {
+export default function ErrorPop({ message = "Something went wrong!", reload }: errorProps) {
   return (
     <div className="flex flex-col items-center justify-center min-h-[60vh] p-8 text-center">
       <div className="text-red-500 mb-4">

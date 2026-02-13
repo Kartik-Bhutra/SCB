@@ -1,5 +1,6 @@
 "use server";
 
+import type { RowDataPacket } from "mysql2";
 import { db } from "@/db";
 import { decryptFromBuffer, encryptToBuffer } from "@/hooks/crypto";
 import { hashToBuffer } from "@/hooks/hash";
@@ -7,23 +8,27 @@ import { getAdmin } from "@/server/auth";
 import { sendHighPriorityAndroid } from "@/server/message";
 import type { ActionResult } from "@/types/serverActions";
 
+interface DataRaw extends RowDataPacket {
+  encrypted_number: Buffer;
+  type: number;
+}
+
+interface IdRow extends RowDataPacket {
+  id: number;
+}
+
 export interface Data {
   type: number;
   mobileNo: string;
 }
 
-interface DataRaw {
-  encrypted_number: Buffer;
-  type: number;
-}
-
-export async function fetchData(
-  lastId: number,
-): Promise<ActionResult | Data[]> {
+export async function fetchData(lastId: number): Promise<ActionResult | Data[]> {
   const adminId = await getAdmin();
   if (!adminId) return "UNAUTHORIZED";
 
-  const [rows] = (await db.execute(
+  const lastPage = (lastId - 1) * 25;
+
+  const [rows] = await db.execute<DataRaw[]>(
     `
       SELECT
         encrypted_number,
@@ -36,8 +41,8 @@ export async function fetchData(
       ORDER BY id ASC
       LIMIT 25
     `,
-    [lastId],
-  )) as unknown as [DataRaw[]];
+    [lastPage],
+  );
 
   return rows.map((r) => ({
     type: r.type,
@@ -46,27 +51,23 @@ export async function fetchData(
 }
 
 export async function maxPageNo(): Promise<number> {
-  const [rows] = (await db.execute(
-    "SELECT id FROM blocks ORDER BY id DESC LIMIT 1",
-  )) as unknown as [{ id: number }[]];
+  const [rows] = await db.execute<IdRow[]>(`SELECT id FROM blocks ORDER BY id DESC LIMIT 1`);
 
   if (!rows.length) return 0;
 
   return Math.ceil(rows[0].id / 25);
 }
 
-export async function addNoAction(
-  _: ActionResult,
-  formData: FormData,
-): Promise<ActionResult> {
+export async function addNoAction(_: ActionResult, formData: FormData): Promise<ActionResult> {
   const adminId = await getAdmin();
   if (!adminId) return "UNAUTHORIZED";
 
-  const code = String(formData.get("code") || "").trim();
-  const number = String(formData.get("number") || "").trim();
+  const code = String(formData.get("code") ?? "").trim();
+  const number = String(formData.get("number") ?? "").trim();
+
+  if (!code || !number) return "INVALID INPUT";
 
   const mobileNo = code + number;
-  if (!mobileNo) return "INVALID INPUT";
 
   try {
     await db.execute(
@@ -83,20 +84,16 @@ export async function addNoAction(
 
     await sendHighPriorityAndroid();
     return "OK";
-  } catch (err) {
-    console.error(err);
+  } catch {
     return "SERVER ERROR";
   }
 }
 
-export async function changeTypeAction(
-  _: ActionResult,
-  formData: FormData,
-): Promise<ActionResult> {
+export async function changeTypeAction(_: ActionResult, formData: FormData): Promise<ActionResult> {
   const adminId = await getAdmin();
   if (!adminId) return "UNAUTHORIZED";
 
-  const mobile = String(formData.get("mobileNo") || "").trim();
+  const mobile = String(formData.get("mobileNo") ?? "").trim();
   if (!mobile) return "INVALID INPUT";
 
   try {
@@ -117,10 +114,7 @@ export async function changeTypeAction(
   }
 }
 
-export async function bulkUploadAction(
-  _: ActionResult,
-  formData: FormData,
-): Promise<ActionResult> {
+export async function bulkUploadAction(_: ActionResult, formData: FormData): Promise<ActionResult> {
   const adminId = await getAdmin();
   if (!adminId) return "UNAUTHORIZED";
 
@@ -129,15 +123,16 @@ export async function bulkUploadAction(
 
   try {
     const text = await file.text();
+
     const lines = text
       .split("\n")
       .map((l) => l.trim())
       .filter(Boolean);
 
-    if (lines.length === 0) return "INVALID INPUT";
+    if (!lines.length) return "INVALID INPUT";
 
-    const values: (Buffer | string)[] = [];
     const placeholders: string[] = [];
+    const values: (Buffer | string)[] = [];
 
     for (const mobileNo of lines) {
       placeholders.push("(?, ?, ?, 0)");
