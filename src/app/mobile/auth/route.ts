@@ -1,8 +1,11 @@
-import { randomUUID } from "node:crypto";
-import { type NextRequest, NextResponse } from "next/server";
+import { randomUUID, UUID } from "node:crypto";
+import type { RowDataPacket } from "mysql2";
+import type { NextRequest } from "next/server";
+import { NextResponse } from "next/server";
 import { db, redis } from "@/db";
 import { encryptToBuffer } from "@/hooks/crypto";
 import { hashToBuffer } from "@/hooks/hash";
+import { uuidToBuffer } from "@/hooks/uuid";
 import { STATUS_MAP } from "@/types/serverActions";
 
 interface ReqData {
@@ -10,22 +13,33 @@ interface ReqData {
   deviceId: string;
 }
 
+interface BlockRow extends RowDataPacket {
+  type: number;
+}
+
+interface DeviceRow extends RowDataPacket {
+  type: number;
+}
+
 export async function POST(req: NextRequest) {
   let connection;
 
   try {
-    const { mobileNo, deviceId } = (await req.json()) as ReqData;
+    const body = (await req.json()) as ReqData;
+    const mobileNo = body?.mobileNo?.trim();
+    const deviceIdStr = body?.deviceId?.trim();
 
-    if (!mobileNo || !deviceId) {
+    if (!mobileNo || !deviceIdStr) {
       return NextResponse.json({ error: "Missing mobileNo or deviceId" }, { status: 400 });
     }
 
     const mobileHash = hashToBuffer(mobileNo);
+    const deviceIdBuffer = uuidToBuffer(deviceIdStr as UUID);
 
     connection = await db.getConnection();
     await connection.beginTransaction();
 
-    const [blockedRows] = (await connection.execute(
+    const [blockedRows] = await connection.execute<BlockRow[]>(
       `
         SELECT type
         FROM blocks
@@ -33,14 +47,14 @@ export async function POST(req: NextRequest) {
         LIMIT 1
       `,
       [mobileHash],
-    )) as unknown as [{ type: number }[]];
+    );
 
-    if (blockedRows.length && blockedRows[0].type === 1) {
+    if (blockedRows.length && blockedRows[0].type === 0) {
       await connection.rollback();
       return NextResponse.json({ status: "blocked" }, { status: 403 });
     }
 
-    const [userRows] = (await connection.execute(
+    const [userRows] = await connection.execute<RowDataPacket[]>(
       `
         SELECT 1
         FROM users
@@ -48,7 +62,7 @@ export async function POST(req: NextRequest) {
         LIMIT 1
       `,
       [mobileHash],
-    )) as unknown as [unknown[]];
+    );
 
     if (!userRows.length) {
       await connection.execute(
@@ -61,7 +75,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const [deviceRows] = (await connection.execute(
+    const [deviceRows] = await connection.execute<DeviceRow[]>(
       `
         SELECT type
         FROM devices
@@ -69,20 +83,24 @@ export async function POST(req: NextRequest) {
           AND device_id = ?
         LIMIT 1
       `,
-      [mobileHash, deviceId],
-    )) as unknown as [{ type: number }[]];
+      [mobileHash, deviceIdBuffer],
+    );
 
     let type = 0;
 
     if (!deviceRows.length) {
-      await connection.execute(
-        `
-          INSERT INTO devices
-            (device_id, hashed_number, type)
-          VALUES (?, ?, 0)
-        `,
-        [deviceId, mobileHash],
-      );
+      try {
+        await connection.execute(
+          `
+            INSERT INTO devices
+              (device_id, hashed_number, type)
+            VALUES (?, ?, 0)
+          `,
+          [deviceIdBuffer, mobileHash],
+        );
+      } catch (err: any) {
+        if (err?.code !== "ER_DUP_ENTRY") throw err;
+      }
     } else {
       type = deviceRows[0].type;
     }
@@ -99,7 +117,7 @@ export async function POST(req: NextRequest) {
     }
 
     const sessionId = randomUUID();
-    const redisKey = `${mobileHash.toString("base64url")}:${deviceId}`;
+    const redisKey = `${mobileHash.toString("base64url")}:${deviceIdStr}`;
 
     await redis.set(
       redisKey,
@@ -117,6 +135,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ status, token, type }, { status: 200 });
   } catch {
     if (connection) await connection.rollback();
+
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   } finally {
     if (connection) connection.release();

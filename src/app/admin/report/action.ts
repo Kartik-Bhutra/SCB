@@ -28,8 +28,6 @@ export async function fetchData(page: number): Promise<ActionResult | Data[]> {
   const adminId = await getAdmin();
   if (!adminId) return "UNAUTHORIZED";
 
-  if (page < 1) return "INVALID INPUT";
-
   const lastPage = (page - 1) * 25;
 
   const [rows] = await db.execute<ReportedRow[]>(
@@ -37,7 +35,7 @@ export async function fetchData(page: number): Promise<ActionResult | Data[]> {
       SELECT
         r.encrypted_number,
         CASE
-          WHEN r.reviewed_by IS NULL THEN 0
+          WHEN r.type IS NULL THEN 0
           ELSE r.type
         END AS type,
         COUNT(rep.hashed_reported) AS reporterCount
@@ -89,11 +87,10 @@ export async function changeTypeAction(_: ActionResult, formData: FormData): Pro
     await connection.execute(
       `
         UPDATE reported
-        SET type = ?,
-            reviewed_by = ?
+        SET type = ?
         WHERE hashed_number = ?
       `,
-      [type, adminId, mobHash],
+      [type, mobHash],
     );
 
     if (type === 1) {
@@ -103,7 +100,7 @@ export async function changeTypeAction(_: ActionResult, formData: FormData): Pro
             (encrypted_number, hashed_number, blocked_by, type)
           VALUES (?, ?, ?, 1)
           ON DUPLICATE KEY UPDATE
-            type = 0,
+            type = 1,
             blocked_by = VALUES(blocked_by)
         `,
         [encryptToBuffer(mobileNo), mobHash, adminId],

@@ -1,7 +1,10 @@
-import { type NextRequest, NextResponse } from "next/server";
+import type { RowDataPacket } from "mysql2";
+import type { NextRequest } from "next/server";
+import { NextResponse } from "next/server";
 import { db, redis } from "@/db";
 import { encryptToBuffer } from "@/hooks/crypto";
 import { hashToBuffer } from "@/hooks/hash";
+import { parseToken } from "@/server/client";
 import { statusResponse } from "@/server/response";
 
 interface ReqData {
@@ -9,57 +12,54 @@ interface ReqData {
   reportedNumber: string;
 }
 
+interface DeviceRow extends RowDataPacket {
+  type: number;
+}
+
 export async function POST(req: NextRequest) {
   let connection;
 
   try {
-    const { token, reportedNumber } = (await req.json()) as ReqData;
+    const body = (await req.json()) as ReqData;
+    const token = body?.token?.trim();
+    const reportedNumber = body?.reportedNumber?.trim();
 
     if (!token || !reportedNumber) {
       return NextResponse.json({ error: "Missing token or reportedNumber" }, { status: 400 });
     }
 
-    const parts = token.split(".");
-    if (parts.length !== 2) {
+    const parsed = parseToken(token);
+    if (!parsed) {
       return NextResponse.json({ status: "invalid session" }, { status: 401 });
     }
 
-    const [redisKey, sessionId] = parts;
-
-    const cached = await redis.get(redisKey);
+    const { redisKey, sessionId, mobHash, deviceIdBuffer } = parsed;
 
     let reporterHash: Buffer | null = null;
     let userType: number | null = null;
 
-    if (cached) {
-      const parsed = JSON.parse(cached);
+    const cached = await redis.get(redisKey);
 
-      if (parsed.session !== sessionId) {
+    if (cached) {
+      const redisData = JSON.parse(cached);
+
+      if (redisData.session !== sessionId) {
         return NextResponse.json({ status: "invalid session" }, { status: 401 });
       }
 
-      userType = parsed.type;
+      userType = redisData.type;
 
       if (userType === 2 || userType === 0) {
         return statusResponse(userType);
       }
 
-      const [hashBase64] = redisKey.split(":");
-      reporterHash = Buffer.from(hashBase64, "base64url");
+      reporterHash = mobHash;
     }
 
     if (!reporterHash) {
-      const keyParts = redisKey.split(":");
-      if (keyParts.length !== 2) {
-        return NextResponse.json({ error: "Invalid token" }, { status: 400 });
-      }
-
-      const [hashBase64, deviceId] = keyParts;
-      const mobHash = Buffer.from(hashBase64, "base64url");
-
       connection = await db.getConnection();
 
-      const [rows] = (await connection.execute(
+      const [rows] = await connection.execute<DeviceRow[]>(
         `
           SELECT type
           FROM devices
@@ -67,8 +67,8 @@ export async function POST(req: NextRequest) {
             AND device_id = ?
           LIMIT 1
         `,
-        [mobHash, deviceId],
-      )) as unknown as [{ type: number }[]];
+        [mobHash, deviceIdBuffer],
+      );
 
       if (!rows.length) {
         return NextResponse.json({ status: "post request" }, { status: 200 });
@@ -96,7 +96,7 @@ export async function POST(req: NextRequest) {
       `
         INSERT INTO reported (encrypted_number, hashed_number)
         VALUES (?, ?)
-        ON DUPLICATE KEY UPDATE encrypted_number = encrypted_number
+        ON DUPLICATE KEY UPDATE hashed_number = hashed_number
       `,
       [reportedEncrypted, reportedHash],
     );
@@ -115,6 +115,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ status: "OK" }, { status: 200 });
   } catch {
     if (connection) await connection.rollback();
+
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   } finally {
     if (connection) connection.release();

@@ -1,27 +1,35 @@
-import { type NextRequest, NextResponse } from "next/server";
+import type { RowDataPacket } from "mysql2";
+import type { NextRequest } from "next/server";
+import { NextResponse } from "next/server";
 import { db, redis } from "@/db";
+import { parseToken } from "@/server/client";
 import { statusResponse } from "@/server/response";
 
 interface ReqData {
   token: string;
 }
 
+interface DeviceRow extends RowDataPacket {
+  type: number;
+}
+
 export async function POST(req: NextRequest) {
   let connection;
 
   try {
-    const { token } = (await req.json()) as ReqData;
+    const body = (await req.json()) as ReqData;
+    const token = body?.token?.trim();
 
     if (!token) {
       return NextResponse.json({ error: "Missing token" }, { status: 400 });
     }
 
-    const parts = token.split(".");
-    if (parts.length !== 2) {
+    const parsedToken = parseToken(token);
+    if (!parsedToken) {
       return NextResponse.json({ status: "invalid session" }, { status: 401 });
     }
 
-    const [redisKey, sessionId] = parts;
+    const { redisKey, sessionId, mobHash, deviceIdBuffer } = parsedToken;
 
     const cached = await redis.get(redisKey);
 
@@ -35,18 +43,9 @@ export async function POST(req: NextRequest) {
       return statusResponse(parsed.type);
     }
 
-    const keyParts = redisKey.split(":");
-    if (keyParts.length !== 2) {
-      return NextResponse.json({ error: "Invalid token" }, { status: 400 });
-    }
-
-    const [mobHashBase64Url, deviceId] = keyParts;
-
-    const mobHash = Buffer.from(mobHashBase64Url, "base64url");
-
     connection = await db.getConnection();
 
-    const [rows] = (await connection.execute(
+    const [rows] = await connection.execute<DeviceRow[]>(
       `
         SELECT type
         FROM devices
@@ -54,8 +53,8 @@ export async function POST(req: NextRequest) {
           AND device_id = ?
         LIMIT 1
       `,
-      [mobHash, deviceId],
-    )) as unknown as [{ type: number }[]];
+      [mobHash, deviceIdBuffer],
+    );
 
     if (!rows.length) {
       return NextResponse.json({ status: "post request" }, { status: 200 });

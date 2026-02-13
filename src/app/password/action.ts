@@ -1,52 +1,60 @@
 "use server";
 
 import { hash, verify } from "@node-rs/argon2";
+import type { RowDataPacket } from "mysql2";
 import { db } from "@/db";
-import { passwordActionResult } from "@/types/serverActions";
+import type { passwordActionResult } from "@/types/serverActions";
+
+interface AdminRow extends RowDataPacket {
+  hashed_password: string;
+}
 
 export async function serverAction(
   _: passwordActionResult,
   formData: FormData,
 ): Promise<passwordActionResult> {
   try {
-    const userId = String(formData.get("userId") || "");
-    const password = String(formData.get("password") || "");
-    const newPassword = String(formData.get("newPassword") || "");
+    const adminId = String(formData.get("userId") ?? "").trim();
+    const password = String(formData.get("password") ?? "");
+    const newPassword = String(formData.get("newPassword") ?? "");
 
-    if (!userId || !password || !newPassword) {
+    if (!adminId || !password || !newPassword) {
       return "INVALID INPUT";
     }
 
-    if (password == newPassword) {
+    if (password === newPassword) {
       return "INVALID_PASSWORD";
     }
 
-    const [rows] = (await db.execute(
-      {
-        sql: `
-          SELECT passHash
-          FROM admins
-          WHERE userId = ? LIMIT 1
-        `,
-        rowsAsArray: true,
-      },
-      [userId],
-    )) as unknown as [string[][]];
+    if (newPassword.length < 8) {
+      return "INVALID_PASSWORD";
+    }
+
+    const [rows] = await db.execute<AdminRow[]>(
+      `
+        SELECT hashed_password
+        FROM admins
+        WHERE admin_id = ?
+        LIMIT 1
+      `,
+      [adminId],
+    );
 
     if (!rows.length) return "INVALID CREDENTIALS";
 
-    if (!(await verify(rows[0][0], password))) {
-      return "INVALID CREDENTIALS";
-    }
+    const valid = await verify(rows[0].hashed_password, password);
+    if (!valid) return "INVALID CREDENTIALS";
+
+    const newHash = await hash(newPassword);
 
     await db.execute(
       `
         UPDATE admins
-        SET passHash = ?
-        WHERE userId = ?
+        SET hashed_password = ?
+        WHERE admin_id = ?
         LIMIT 1
       `,
-      [await hash(newPassword), userId],
+      [newHash, adminId],
     );
 
     return "OK";

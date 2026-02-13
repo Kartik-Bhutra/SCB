@@ -1,21 +1,38 @@
-import { type NextRequest, NextResponse } from "next/server";
+import type { RowDataPacket } from "mysql2";
+import type { NextRequest } from "next/server";
+import { NextResponse } from "next/server";
 import { db } from "@/db";
 import { decryptFromBuffer } from "@/hooks/crypto";
 
+interface BlockRow extends RowDataPacket {
+  encrypted_number: Buffer;
+  type: number;
+}
+
+interface CodeRow extends RowDataPacket {
+  code: string;
+}
+
+interface AppRow extends RowDataPacket {
+  app: string;
+}
+
 export async function POST(req: NextRequest) {
   try {
-    const { formTime } = await req.json();
+    const body = await req.json();
+    const formTime = body?.formTime;
 
     if (!formTime) {
       return NextResponse.json({ error: "Missing formTime" }, { status: 400 });
     }
 
     const date = new Date(formTime);
-    if (isNaN(date.getTime())) {
+
+    if (Number.isNaN(date.getTime())) {
       return NextResponse.json({ error: "Invalid time format" }, { status: 400 });
     }
 
-    const [rows] = (await db.execute(
+    const [blockRows] = await db.execute<BlockRow[]>(
       `
         SELECT encrypted_number, type
         FROM blocks
@@ -23,12 +40,12 @@ export async function POST(req: NextRequest) {
         ORDER BY updated_at ASC
       `,
       [date],
-    )) as unknown as [{ encrypted_number: Buffer; type: number }[]];
+    );
 
     const blocked: string[] = [];
     const unBlocked: string[] = [];
 
-    for (const row of rows) {
+    for (const row of blockRows) {
       const mobileNo = decryptFromBuffer(row.encrypted_number);
 
       if (row.type === 1) {
@@ -38,13 +55,11 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    const [codeRows] = (await db.execute(`SELECT code FROM codes`)) as unknown as [
-      { code: string }[],
-    ];
+    const [codeRows] = await db.execute<CodeRow[]>(`SELECT code FROM codes`);
 
     const codes = codeRows.map((r) => r.code);
 
-    const [appRows] = (await db.execute(`SELECT app FROM apps`)) as unknown as [{ app: string }[]];
+    const [appRows] = await db.execute<AppRow[]>(`SELECT app FROM apps`);
 
     const apps = appRows.map((r) => r.app);
 

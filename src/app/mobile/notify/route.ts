@@ -1,5 +1,8 @@
-import { type NextRequest, NextResponse } from "next/server";
+import type { RowDataPacket } from "mysql2";
+import type { NextRequest } from "next/server";
+import { NextResponse } from "next/server";
 import { db, redis } from "@/db";
+import { parseToken } from "@/server/client";
 import { statusResponse } from "@/server/response";
 
 interface ReqData {
@@ -7,57 +10,51 @@ interface ReqData {
   code: string;
 }
 
+interface DeviceRow extends RowDataPacket {
+  type: number;
+}
+
 export async function POST(req: NextRequest) {
   let connection;
 
   try {
-    const { token, code } = (await req.json()) as ReqData;
+    const body = (await req.json()) as ReqData;
+    const token = body?.token?.trim();
+    const code = body?.code?.trim();
 
     if (!token || !code) {
       return NextResponse.json({ error: "Missing token or code" }, { status: 400 });
     }
 
-    const parts = token.split(".");
-    if (parts.length !== 2) {
+    const parsed = parseToken(token);
+    if (!parsed) {
       return NextResponse.json({ status: "invalid session" }, { status: 401 });
     }
 
-    const [redisKey, sessionId] = parts;
+    const { redisKey, sessionId, mobHash, deviceIdBuffer } = parsed;
 
-    let mobHash: Buffer | null = null;
     let userType: number | null = null;
 
     const cached = await redis.get(redisKey);
 
     if (cached) {
-      const parsed = JSON.parse(cached);
+      const redisData = JSON.parse(cached);
 
-      if (parsed.session !== sessionId) {
+      if (redisData.session !== sessionId) {
         return NextResponse.json({ status: "invalid session" }, { status: 401 });
       }
 
-      userType = parsed.type;
+      userType = redisData.type;
 
       if (userType === 2 || userType === 0) {
         return statusResponse(userType);
       }
-
-      const [hashBase64] = redisKey.split(":");
-      mobHash = Buffer.from(hashBase64, "base64url");
     }
 
-    if (!mobHash) {
-      const keyParts = redisKey.split(":");
-      if (keyParts.length !== 2) {
-        return NextResponse.json({ error: "Invalid token" }, { status: 400 });
-      }
-
-      const [hashBase64, deviceId] = keyParts;
-      mobHash = Buffer.from(hashBase64, "base64url");
-
+    if (userType === null) {
       connection = await db.getConnection();
 
-      const [rows] = (await connection.execute(
+      const [rows] = await connection.execute<DeviceRow[]>(
         `
           SELECT type
           FROM devices
@@ -65,8 +62,8 @@ export async function POST(req: NextRequest) {
             AND device_id = ?
           LIMIT 1
         `,
-        [mobHash, deviceId],
-      )) as unknown as [{ type: number }[]];
+        [mobHash, deviceIdBuffer],
+      );
 
       if (!rows.length) {
         return NextResponse.json({ status: "post request" }, { status: 200 });
