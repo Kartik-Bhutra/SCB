@@ -6,15 +6,11 @@ import { db, redis } from "@/db";
 import { encryptToBuffer } from "@/hooks/crypto";
 import { hashToBuffer } from "@/hooks/hash";
 import { uuidToBuffer } from "@/hooks/uuid";
-import { STATUS_MAP } from "@/types/serverActions";
+import { statusResponse } from "@/server/response";
 
 interface ReqData {
   mobileNo: string;
   deviceId: string;
-}
-
-interface BlockRow extends RowDataPacket {
-  type: number;
 }
 
 interface DeviceRow extends RowDataPacket {
@@ -34,25 +30,11 @@ export async function POST(req: NextRequest) {
     }
 
     const mobileHash = hashToBuffer(mobileNo);
+    const encryptedMobile = encryptToBuffer(mobileNo);
     const deviceIdBuffer = uuidToBuffer(deviceIdStr as UUID);
 
     connection = await db.getConnection();
     await connection.beginTransaction();
-
-    const [blockedRows] = await connection.execute<BlockRow[]>(
-      `
-        SELECT type
-        FROM blocks
-        WHERE hashed_number = ?
-        LIMIT 1
-      `,
-      [mobileHash],
-    );
-
-    if (blockedRows.length && blockedRows[0].type === 0) {
-      await connection.rollback();
-      return NextResponse.json({ status: "blocked" }, { status: 403 });
-    }
 
     const [userRows] = await connection.execute<RowDataPacket[]>(
       `
@@ -71,7 +53,25 @@ export async function POST(req: NextRequest) {
             (hashed_number, encrypted_number, name)
           VALUES (?, ?, '')
         `,
-        [mobileHash, encryptToBuffer(mobileNo)],
+        [mobileHash, encryptedMobile],
+      );
+
+      await connection.execute(
+        `
+          INSERT INTO devices
+            (device_id, hashed_number, type)
+          VALUES (?, ?, 0)
+        `,
+        [deviceIdBuffer, mobileHash],
+      );
+    } else {
+      await connection.execute(
+        `
+          INSERT IGNORE INTO devices
+            (device_id, hashed_number)
+          VALUES (?, ?)
+        `,
+        [deviceIdBuffer, mobileHash],
       );
     }
 
@@ -86,38 +86,18 @@ export async function POST(req: NextRequest) {
       [mobileHash, deviceIdBuffer],
     );
 
-    let type = 0;
-
-    if (!deviceRows.length) {
-      try {
-        await connection.execute(
-          `
-            INSERT INTO devices
-              (device_id, hashed_number, type)
-            VALUES (?, ?, 0)
-          `,
-          [deviceIdBuffer, mobileHash],
-        );
-      } catch (err: any) {
-        if (err?.code !== "ER_DUP_ENTRY") throw err;
-      }
-    } else {
-      type = deviceRows[0].type;
-    }
+    const type = deviceRows[0].type;
 
     await connection.commit();
-
-    const status = STATUS_MAP.get(type);
-    if (!status) {
-      return NextResponse.json({ error: "Invalid user type" }, { status: 500 });
-    }
+    connection.release();
 
     if (type === 2) {
-      return NextResponse.json({ status, type }, { status: 403 });
+      return statusResponse(2);
     }
 
     const sessionId = randomUUID();
-    const redisKey = `${mobileHash.toString("base64url")}:${deviceIdStr}`;
+    const mobileHashBase = mobileHash.toString("base64url");
+    const redisKey = `${mobileHashBase}:${deviceIdStr}`;
 
     await redis.set(
       redisKey,
@@ -132,7 +112,7 @@ export async function POST(req: NextRequest) {
 
     const token = `${redisKey}.${sessionId}`;
 
-    return NextResponse.json({ status, token, type }, { status: 200 });
+    return NextResponse.json({ status: "OK", token, type }, { status: 200 });
   } catch {
     if (connection) await connection.rollback();
 

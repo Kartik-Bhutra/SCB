@@ -1,8 +1,7 @@
-import type { RowDataPacket } from "mysql2";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
-import { db, redis } from "@/db";
-import { parseToken } from "@/server/client";
+import { db } from "@/db";
+import { parseToken, verifyToken } from "@/server/client";
 import { statusResponse } from "@/server/response";
 
 interface ReqData {
@@ -10,13 +9,7 @@ interface ReqData {
   code: string;
 }
 
-interface DeviceRow extends RowDataPacket {
-  type: number;
-}
-
 export async function POST(req: NextRequest) {
-  let connection;
-
   try {
     const body = (await req.json()) as ReqData;
     const token = body?.token?.trim();
@@ -31,67 +24,25 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ status: "invalid session" }, { status: 401 });
     }
 
-    const { redisKey, sessionId, mobHash, deviceIdBuffer } = parsed;
-
-    let userType: number | null = null;
-
-    const cached = await redis.get(redisKey);
-
-    if (cached) {
-      const redisData = JSON.parse(cached);
-
-      if (redisData.session !== sessionId) {
-        return NextResponse.json({ status: "invalid session" }, { status: 401 });
-      }
-
-      userType = redisData.type;
-
-      if (userType === 2 || userType === 0) {
-        return statusResponse(userType);
-      }
+    const verified = await verifyToken(parsed);
+    if (!verified) {
+      return NextResponse.json({ status: "invalid session" }, { status: 401 });
     }
 
-    if (userType === null) {
-      connection = await db.getConnection();
-
-      const [rows] = await connection.execute<DeviceRow[]>(
-        `
-          SELECT type
-          FROM devices
-          WHERE hashed_number = ?
-            AND device_id = ?
-          LIMIT 1
-        `,
-        [mobHash, deviceIdBuffer],
-      );
-
-      if (!rows.length) {
-        return NextResponse.json({ status: "post request" }, { status: 200 });
-      }
-
-      userType = rows[0].type;
-
-      if (userType === 2 || userType === 0) {
-        return statusResponse(userType);
-      }
+    if (verified.type === 2 || verified.type === 0) {
+      return statusResponse(verified.type);
     }
 
-    if (!connection) {
-      connection = await db.getConnection();
-    }
-
-    await connection.execute(
+    await db.execute(
       `
         INSERT INTO notifications (hashed_number, app)
         VALUES (?, ?)
       `,
-      [mobHash, code],
+      [verified.mobileHash, code],
     );
 
     return NextResponse.json({ status: "OK" }, { status: 200 });
   } catch {
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
-  } finally {
-    if (connection) connection.release();
   }
 }
